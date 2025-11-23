@@ -13,6 +13,16 @@ body {
   padding: 1rem;
 }
 
+/* Background fix for all devices when content exceeds viewport */
+html, body {
+  height: auto;
+  min-height: 100vh;
+}
+
+body {
+  background-attachment: fixed;
+}
+
 html, body {
   height: 100%;
 }

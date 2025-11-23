@@ -106,10 +106,11 @@
 
   /* Widen todo-list container for mobile */
   app-todo-list, .todo-container {
-    width: 100% !important;
-    box-sizing: border-box !important;
-    background: #fff !important;
-    padding: 1rem 0.5rem !important;
+    width: 100%;
+    box-sizing: border-box;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
   }
 
   .dialog-overlay {
@@ -229,7 +230,7 @@
       margin-top: 0.5rem;
       
       .exit-highlight {
-        color: #e74c3c !important;
+        color: #e74c3c;
         font-weight: 700;
       }
     }
@@ -311,7 +312,7 @@
       margin-top: 0.5rem;
       
       .exit-highlight {
-        color: #e74c3c !important;
+        color: #e74c3c;
         font-weight: 700;
       }
     }

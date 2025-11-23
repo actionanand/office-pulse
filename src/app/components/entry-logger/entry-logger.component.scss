@@ -3,6 +3,170 @@
   margin: 0 auto;
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+// MOBILE-FIRST STYLES
+@media (max-width: 600px) {
+  .entry-logger-container {
+    max-width: 100%;
+    padding: 0.5rem 1rem 1.5rem 1rem;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+    h1 {
+      font-size: 1.3rem;
+      margin-bottom: 0.25rem;
+    }
+    .current-time {
+      font-size: 1.1rem;
+    }
+  }
+
+  .status-card {
+    padding: 1rem 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    width: 100%;
+    box-sizing: border-box;
+    background: #fff;
+  }
+
+  .status-entered, .status-not-entered, .status-submitted {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    .status-icon {
+      font-size: 2.5rem;
+    }
+    .status-text {
+      h2 {
+        font-size: 1.1rem;
+      }
+      p, .small-text {
+        font-size: 0.95rem;
+      }
+      .time-pills {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+      }
+      .duration-text, .remaining-text {
+        width: 100%;
+        text-align: center;
+        font-size: 1rem;
+        padding: 0.5rem 0.25rem;
+        border-radius: 16px;
+      }
+    }
+  }
+
+  .exit-calculator {
+    padding: 1rem 0.5rem;
+    border-radius: 8px;
+    .calculator-header {
+      h3 {
+        font-size: 1rem;
+      }
+      p {
+        font-size: 0.95rem;
+      }
+    }
+    .work-hours-control {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+      label, span {
+        font-size: 0.95rem;
+      }
+      input {
+        width: 100%;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+      }
+    }
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.2rem;
+    width: 100%;
+    box-sizing: border-box;
+    button {
+      width: 100%;
+      font-size: 1.1rem;
+      padding: 1rem 0;
+      border-radius: 10px;
+    }
+  }
+
+  /* Widen todo-list container for mobile */
+  app-todo-list, .todo-container {
+    width: 100%;
+    box-sizing: border-box;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+
+  .dialog-overlay {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+  .dialog-content {
+    padding: 1rem 0.5rem;
+    max-width: 98vw;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    h2 {
+      font-size: 1.1rem;
+    }
+  }
+  .dialog-body {
+    margin-bottom: 1rem;
+    .separator {
+      margin: 0.5rem 0;
+    }
+    .custom-time-section label {
+      font-size: 0.95rem;
+    }
+    .custom-time-section input[type="datetime-local"] {
+      font-size: 1rem;
+    }
+  }
+  .form-group label {
+    font-size: 0.95rem;
+  }
+  .form-group input, .form-group textarea {
+    font-size: 1rem;
+    padding: 0.5rem;
+  }
+  .dialog-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    button {
+      width: 100%;
+      font-size: 1.05rem;
+      padding: 0.9rem 0;
+    }
+  }
+  .confirmation-dialog {
+    max-width: 98vw;
+    .confirmation-info .time-summary {
+      padding: 0.5rem;
+      .time-item {
+        font-size: 0.95rem;
+      }
+    }
+    .warning-box {
+      padding: 0.5rem;
+      font-size: 0.95rem;
+    }
+  }
+}
 }
 
 .header {
@@ -61,17 +225,47 @@
       margin-top: 0.25rem;
     }
 
+    .exit-time {
+      margin-top: 0.5rem;
+      
+      .exit-highlight {
+        color: #e74c3c;
+        font-weight: 700;
+      }
+    }
+
+    .time-pills {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }
+
     .duration-text {
       font-size: 1rem;
       color: #3498db;
-      margin-top: 0.5rem;
+      margin: 0;
       padding: 0.5rem 1rem;
       background: #e3f2fd;
-      border-radius: 6px;
+      border-radius: 20px;
       display: inline-block;
 
       strong {
         color: #1976d2;
+      }
+    }
+
+    .remaining-text {
+      font-size: 1rem;
+      color: #f39c12;
+      margin: 0;
+      padding: 0.5rem 1rem;
+      background: #fef5e7;
+      border-radius: 20px;
+      display: inline-block;
+
+      strong {
+        color: #e67e22;
       }
     }
   }
@@ -112,6 +306,15 @@
       color: #555;
       margin-top: 0.25rem;
     }
+
+    .exit-time {
+      margin-top: 0.5rem;
+      
+      .exit-highlight {
+        color: #e74c3c;
+        font-weight: 700;
+      }
+    }
   }
 }
 
@@ -133,8 +336,14 @@
       margin: 0;
       font-size: 1.1rem;
 
-      strong {
+      .exit-date {
+        color: #3498db;
+        font-weight: 700;
+      }
+
+      .exit-time {
         color: #e74c3c;
+        font-weight: 700;
       }
     }
   }

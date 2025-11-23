@@ -13,7 +13,7 @@
           <p>You submitted your entry/exit for today</p>
           <p class="small-text">Entry: <strong>{{ entryTimeDisplay() }}</strong></p>
           @if (entryLog()?.exitTime) {
-            <p class="small-text">Exit: <strong>{{ exitTimeDisplay() }}</strong></p>
+            <p class="small-text exit-time">Exit: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong></p>
             <p class="duration-text">⏱️ Total Duration: <strong>{{ totalDuration() }}</strong></p>
           }
         </div>
@@ -24,9 +24,12 @@
         <div class="status-text">
           <h2>Welcome!</h2>
           <p>You came to office at <strong>{{ entryTimeDisplay() }}</strong></p>
-          <p class="duration-text">⏱️ Duration: <strong>{{ durationSinceEntry() }}</strong></p>
+          <div class="time-pills">
+            <p class="duration-text">⏱️ Duration: <strong>{{ durationSinceEntry() }}</strong></p>
+            <p class="remaining-text">⏰ Remaining: <strong>{{ remainingTime() }}</strong></p>
+          </div>
           @if (hasExitedToday()) {
-            <p class="small-text">Exit marked at: <strong>{{ exitTimeDisplay() }}</strong></p>
+            <p class="small-text exit-time">Exit marked at: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong></p>
           }
         </div>
       </div>
@@ -35,7 +38,7 @@
         <div class="exit-calculator">
           <div class="calculator-header">
             <h3>Exit Time Calculator</h3>
-            <p>You can log off after: <strong>{{ calculatedExitTime() }}</strong></p>
+            <p>You can log off after: <strong class="exit-date">{{ calculatedExitDate() }}</strong>, <strong class="exit-time">{{ calculatedExitTimeOnly() }}</strong></p>
           </div>
           <div class="work-hours-control">
             <label for="workHours">Work Hours:</label>

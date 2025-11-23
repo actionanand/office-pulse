@@ -77,6 +77,39 @@ export class EntryLoggerComponent implements OnInit {
     return this.formatTo12Hour(exitDate);
   });
 
+  calculatedExitDate = computed(() => {
+    const log = this.entryLog();
+    if (!log || !log.entryTime) return '';
+    
+    const entryDate = new Date(log.entryTime);
+    const exitDate = new Date(entryDate.getTime() + this.workHours() * 60 * 60 * 1000);
+    
+    // Return only date part (DD/MM/YYYY)
+    return exitDate.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  });
+
+  calculatedExitTimeOnly = computed(() => {
+    const log = this.entryLog();
+    if (!log || !log.entryTime) return '';
+    
+    const entryDate = new Date(log.entryTime);
+    const exitDate = new Date(entryDate.getTime() + this.workHours() * 60 * 60 * 1000);
+    
+    // Return only time part (HH:MM:SS AM/PM)
+    return exitDate.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  });
+
   durationSinceEntry = computed(() => {
     const log = this.entryLog();
     if (!log || !log.entryTime) return '';
@@ -104,6 +137,32 @@ export class EntryLoggerComponent implements OnInit {
     const entryDate = new Date(log.entryTime);
     const exitDate = new Date(log.exitTime);
     const diffMs = exitDate.getTime() - entryDate.getTime();
+    
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours} hr ${minutes} min`;
+    }
+    return `${minutes} min`;
+  });
+
+  remainingTime = computed(() => {
+    const log = this.entryLog();
+    if (!log || !log.entryTime) return '';
+    
+    // Depend on currentTime to trigger updates every second
+    this.currentTime();
+    
+    const entryDate = new Date(log.entryTime);
+    const targetExitDate = new Date(entryDate.getTime() + this.workHours() * 60 * 60 * 1000);
+    const now = new Date();
+    const diffMs = targetExitDate.getTime() - now.getTime();
+    
+    // If time has passed, show 0
+    if (diffMs <= 0) {
+      return 'Time to log off!';
+    }
     
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));

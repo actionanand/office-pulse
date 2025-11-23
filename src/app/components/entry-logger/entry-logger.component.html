@@ -1,0 +1,209 @@
+<div class="entry-logger-container">
+  <div class="header">
+    <h1>Office Entry/Exit Logger</h1>
+    <div class="current-time">{{ currentTime() }}</div>
+  </div>
+
+  <div class="status-card">
+    @if (isSubmittedToday()) {
+      <div class="status-submitted">
+        <div class="status-icon">✅</div>
+        <div class="status-text">
+          <h2>Submitted!</h2>
+          <p>You submitted your entry/exit for today</p>
+          <p class="small-text">Entry: <strong>{{ entryTimeDisplay() }}</strong></p>
+          @if (entryLog()?.exitTime) {
+            <p class="small-text">Exit: <strong>{{ exitTimeDisplay() }}</strong></p>
+            <p class="duration-text">⏱️ Total Duration: <strong>{{ totalDuration() }}</strong></p>
+          }
+        </div>
+      </div>
+    } @else if (hasEnteredToday()) {
+      <div class="status-entered">
+        <div class="status-icon">✓</div>
+        <div class="status-text">
+          <h2>Welcome!</h2>
+          <p>You came to office at <strong>{{ entryTimeDisplay() }}</strong></p>
+          <p class="duration-text">⏱️ Duration: <strong>{{ durationSinceEntry() }}</strong></p>
+          @if (hasExitedToday()) {
+            <p class="small-text">Exit marked at: <strong>{{ exitTimeDisplay() }}</strong></p>
+          }
+        </div>
+      </div>
+      
+      @if (!hasExitedToday()) {
+        <div class="exit-calculator">
+          <div class="calculator-header">
+            <h3>Exit Time Calculator</h3>
+            <p>You can log off after: <strong>{{ calculatedExitTime() }}</strong></p>
+          </div>
+          <div class="work-hours-control">
+            <label for="workHours">Work Hours:</label>
+            <input 
+              type="number" 
+              id="workHours"
+              [value]="workHours()"
+              (input)="updateWorkHours(+$any($event.target).value)"
+              min="1"
+              max="24"
+              step="0.5"
+            />
+            <span>hours</span>
+          </div>
+        </div>
+      }
+    } @else {
+      <div class="status-not-entered">
+        <div class="status-icon">⏰</div>
+        <div class="status-text">
+          <h2>Not Checked In</h2>
+          <p>You have not come to office today</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="action-buttons">
+    <button 
+      class="btn btn-entry" 
+      (click)="openEntryDialog()"
+      [disabled]="hasEnteredToday() || isSubmittedToday()"
+    >
+      📥 Entry
+    </button>
+    
+    <button 
+      class="btn btn-exit" 
+      (click)="openExitDialog()"
+      [disabled]="!hasEnteredToday() || hasExitedToday() || isSubmittedToday()"
+    >
+      📤 Exit
+    </button>
+  </div>
+
+  @if (canShowTodos()) {
+    <app-todo-list />
+  }
+
+  <!-- Entry Dialog -->
+  @if (showEntryDialog()) {
+    <div class="dialog-overlay" (click)="closeEntryDialog()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <h2>Mark Entry Time</h2>
+        <div class="dialog-body">
+          <button class="btn btn-primary" (click)="handleEntrySubmit(false)">
+            Use Current Time
+          </button>
+          <div class="separator">OR</div>
+          <div class="custom-time-section">
+            <label for="customDateTime">Custom Date & Time:</label>
+            <input 
+              type="datetime-local" 
+              id="customDateTime"
+              #customDateTime
+            />
+            <button 
+              class="btn btn-secondary" 
+              (click)="handleEntrySubmit(true, customDateTime.value)"
+            >
+              Use Custom Time
+            </button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" (click)="closeEntryDialog()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Exit Dialog -->
+  @if (showExitDialog()) {
+    <div class="dialog-overlay" (click)="closeExitDialog()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <h2>Mark Exit & Submit to Google Form</h2>
+        <div class="dialog-body">
+          <form #exitForm="ngForm" (ngSubmit)="handleExitSubmit({companyName: companyName.value, comment: comment.value})">
+            <div class="form-group">
+              <label>Entry Time:</label>
+              <input type="text" [value]="entryTimeDisplay()" readonly />
+            </div>
+            
+            <div class="form-group">
+              <label>Exit Time:</label>
+              <input type="text" [value]="currentTime()" readonly />
+            </div>
+            
+            <div class="form-group">
+              <label for="companyName">Company Name:</label>
+              <input 
+                type="text" 
+                id="companyName"
+                #companyName
+                required
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="comment">Comments:</label>
+              <textarea 
+                id="comment"
+                #comment
+                rows="4"
+              ></textarea>
+            </div>
+            
+            <div class="dialog-actions">
+              <button type="button" class="btn btn-cancel" (click)="closeExitDialog()">Cancel</button>
+              <button type="submit" class="btn btn-primary">Continue</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Submission Confirmation Dialog -->
+  @if (showSubmissionDialog()) {
+    <div class="dialog-overlay" (click)="closeSubmissionDialog()">
+      <div class="dialog-content confirmation-dialog" (click)="$event.stopPropagation()">
+        <h2>🚀 Ready to Submit to Google Form?</h2>
+        <div class="dialog-body">
+          <div class="confirmation-info">
+            <p class="info-text">Your entry and exit times have been recorded:</p>
+            <div class="time-summary">
+              <div class="time-item">
+                <span class="time-label">Entry Time:</span>
+                <span class="time-value">{{ entryTimeDisplay() }}</span>
+              </div>
+              <div class="time-item">
+                <span class="time-label">Exit Time:</span>
+                <span class="time-value">{{ exitTimeDisplay() }}</span>
+              </div>
+            </div>
+            <div class="warning-box">
+              <p>⚠️ <strong>Important:</strong></p>
+              <ul>
+                <li>Clicking "Yes, Submit" will open the Google Form in a popup dialog</li>
+                <li>After submission, you won't be able to add another entry until tomorrow</li>
+                <li>Your todo list will remain accessible</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" (click)="cancelSubmission()">Cancel</button>
+          <button class="btn btn-success" (click)="confirmSubmission()">Yes, Submit</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Google Form Dialog -->
+  <app-google-form-dialog
+    [isOpen]="showGoogleFormDialog()"
+    [formUrl]="googleFormUrl()"
+    (closeDialog)="onGoogleFormClose()"
+    (formSubmitted)="onGoogleFormSubmitted()"
+  />
+</div>

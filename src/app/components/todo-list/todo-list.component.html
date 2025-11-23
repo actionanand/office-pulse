@@ -1,0 +1,84 @@
+<div class="todo-container">
+  <div class="todo-header">
+    <h2>📋 Today's Tasks</h2>
+    <div class="header-actions">
+      <button class="btn btn-add" (click)="openAddForm()">+ Add Todo</button>
+      <button class="btn btn-clear" (click)="clearAllTodos()">Clear All</button>
+    </div>
+  </div>
+
+  <div class="todo-list">
+    @if (todos().length === 0) {
+      <div class="empty-state">
+        <p>No todos yet. Click "Add Todo" to create one!</p>
+      </div>
+    } @else {
+      @for (todo of todos(); track todo.id) {
+        <div class="todo-item" [class.completed]="todo.completed">
+          <input 
+            type="checkbox" 
+            [checked]="todo.completed"
+            (change)="toggleTodo(todo.id)"
+            id="todo-{{todo.id}}"
+          />
+          
+          <label [for]="'todo-' + todo.id" class="todo-checkbox-label">
+            <span class="checkbox-custom"></span>
+          </label>
+          
+          <input 
+            type="time" 
+            class="todo-time"
+            [value]="todo.time"
+            (change)="updateTodoTime(todo.id, $any($event.target).value)"
+            [disabled]="todo.completed"
+          />
+          
+          <span class="todo-description">{{ todo.description }}</span>
+          
+          <button 
+            class="btn-delete" 
+            (click)="deleteTodo(todo.id)"
+            title="Delete todo"
+          >
+            🗑️
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Add Todo Dialog -->
+  @if (showAddForm()) {
+    <div class="dialog-overlay" (click)="closeAddForm()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <h2>Add New Todo</h2>
+        <div class="form-group">
+          <label for="newTodoTime">Time:</label>
+          <input 
+            type="time" 
+            id="newTodoTime"
+            [value]="newTodoTime()"
+            (input)="updateNewTodoTime($any($event.target).value)"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label for="newTodoDescription">Description:</label>
+          <input 
+            type="text" 
+            id="newTodoDescription"
+            [value]="newTodoDescription()"
+            (input)="updateNewTodoDescription($any($event.target).value)"
+            placeholder="Enter todo description"
+          />
+        </div>
+        
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" (click)="closeAddForm()">Cancel</button>
+          <button class="btn btn-primary" (click)="addTodo()">Add Todo</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

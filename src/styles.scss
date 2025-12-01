@@ -8,21 +8,33 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f7fa;
   min-height: 100vh;
-  padding: 1rem;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 600px) {
+  body {
+    padding: 0;
+  }
+  
+  /* Improve touch targets */
+  button, a, input[type="checkbox"], input[type="time"], select {
+    min-height: 44px;
+  }
+  
+  /* Prevent iOS zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Background fix for all devices when content exceeds viewport */
 html, body {
   height: auto;
   min-height: 100vh;
-}
-
-body {
-  background-attachment: fixed;
-}
-
-html, body {
-  height: 100%;
 }

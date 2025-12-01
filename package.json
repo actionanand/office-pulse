@@ -13,6 +13,7 @@
     "lint": "ng lint",
     "copy-error-page": "cp dist/office-pulse/browser/index.html dist/office-pulse/browser/404.html",
     "precommit": "run-s format:fix lint",
+    "echo-message": "echo \"Hello from an npm script!\"",
     "format:fix": "pretty-quick --staged",
     "format:check": "prettier --config ./.prettierrc --list-different \"src/{app,environments,assets}/**/*{.ts,.js,.json,.css,.scss}\"",
     "format:all": "prettier --config ./.prettierrc --write \"src/{app,environments,assets}/**/*{.ts,.js,.json,.css,.scss}\"",

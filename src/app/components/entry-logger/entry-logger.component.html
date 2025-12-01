@@ -12,9 +12,9 @@
           <h2>Submitted!</h2>
           <p>You submitted your entry/exit for today</p>
           <p class="small-text">Entry: <strong>{{ entryTimeDisplay() }}</strong></p>
-          @if (entryLog()?.exitTime) {
+          @if (hasExitedToday()) {
             <p class="small-text exit-time">Exit: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong></p>
-            <p class="duration-text">⏱️ Total Duration: <strong>{{ totalDuration() }}</strong></p>
+            <p class="duration-text">⏱️ Total Duration: <strong>{{ durationDisplay() }}</strong></p>
           }
         </div>
       </div>

@@ -1,27 +1,24 @@
-import { Component, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, computed, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { StorageService } from '../../services/storage.service';
+import { AttendanceStateService } from '../../services/attendance-state.service';
 import { EntryLog } from '../../models/entry-log.model';
 import { TodoListComponent } from '../todo-list/todo-list.component';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
-import { MonthlyCalendarComponent } from '../monthly-calendar/monthly-calendar.component';
 import { environment as env } from '../../../environments/environment';
 
 @Component({
   selector: 'app-entry-logger',
-  imports: [CommonModule, FormsModule, TodoListComponent, GoogleFormDialogComponent, MonthlyCalendarComponent],
+  imports: [CommonModule, FormsModule, TodoListComponent, GoogleFormDialogComponent],
   templateUrl: './entry-logger.component.html',
   styleUrls: ['./entry-logger.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EntryLoggerComponent implements OnInit {
   private storageService = new StorageService();
-
-  // Google Sheets configuration
-  googleSheetId = env.GOOGLE_SHEET_ID;
-  sheetGid = env.SHEET_GID;
+  private attendanceState = inject(AttendanceStateService);
 
   entryLog = signal<EntryLog | null>(null);
   currentTime = signal<string>('');
@@ -33,44 +30,50 @@ export class EntryLoggerComponent implements OnInit {
   googleFormUrl = signal<string>('');
   pendingFormData = signal<{ log: EntryLog; formData: { companyName: string; comment: string } } | null>(null);
 
-  hasEnteredToday = computed(() => {
-    const log = this.entryLog();
-    if (!log) return false;
+  // Use attendance state service for checking today's entry
+  hasEnteredToday = computed(() => this.attendanceState.hasEntryToday());
+  isSubmittedToday = computed(() => this.attendanceState.isSubmittedToday());
+  hasExitedToday = computed(() => this.attendanceState.hasExitToday());
 
-    const today = this.getTodayDateString();
-    return log.date === today && !!log.entryTime;
-  });
-
-  isSubmittedToday = computed(() => {
-    const log = this.entryLog();
-    if (!log) return false;
-
-    const today = this.getTodayDateString();
-    return log.date === today && log.isSubmitted === true;
-  });
-
-  hasExitedToday = computed(() => {
-    const log = this.entryLog();
-    if (!log) return false;
-
-    const today = this.getTodayDateString();
-    return log.date === today && !!log.exitTime;
-  });
+  // Get today's entry from API for display
+  todayApiEntry = computed(() => this.attendanceState.todayEntryFromAPI());
 
   canShowTodos = computed(() => {
     return this.hasEnteredToday();
   });
 
   entryTimeDisplay = computed(() => {
+    // First check API entry
+    const apiEntry = this.todayApiEntry();
+    if (apiEntry?.entryTime) {
+      return this.formatTimeString(apiEntry.entryTime);
+    }
+    
+    // Fallback to local storage
     const log = this.entryLog();
     if (!log || !log.entryTime) return '';
     return this.formatTo12Hour(new Date(log.entryTime));
   });
 
   exitTimeDisplay = computed(() => {
+    // First check API entry
+    const apiEntry = this.todayApiEntry();
+    if (apiEntry?.exitTime) {
+      return this.formatTimeString(apiEntry.exitTime);
+    }
+    
+    // Fallback to local storage
     const log = this.entryLog();
     if (!log || !log.exitTime) return '';
     return this.formatTo12Hour(new Date(log.exitTime));
+  });
+
+  durationDisplay = computed(() => {
+    const apiEntry = this.todayApiEntry();
+    if (apiEntry?.duration) {
+      return apiEntry.duration;
+    }
+    return this.totalDuration();
   });
 
   calculatedExitTime = computed(() => {
@@ -390,6 +393,18 @@ export class EntryLoggerComponent implements OnInit {
       second: '2-digit',
       hour12: true,
     });
+  }
+
+  private formatTimeString(timeStr: string): string {
+    if (!timeStr) return '';
+    try {
+      // Handle format: "12/1/2025 21:38:00"
+      const date = new Date(timeStr);
+      if (isNaN(date.getTime())) return timeStr;
+      return this.formatTo12Hour(date);
+    } catch {
+      return timeStr;
+    }
   }
 
   private formatTimeOnly(date: Date): string {

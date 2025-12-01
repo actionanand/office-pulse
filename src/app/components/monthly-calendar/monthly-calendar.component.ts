@@ -1,12 +1,14 @@
-import { Component, signal, computed, OnInit, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, signal, computed, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GvizService, SheetEntry } from '../../services/gviz.service';
+import { AttendanceStateService } from '../../services/attendance-state.service';
+import { SheetEntry } from '../../services/gviz.service';
 
 interface CalendarDay {
   date: number;
   fullDate: string;
   isCurrentMonth: boolean;
   isToday: boolean;
+  isFuture: boolean;
   entry?: SheetEntry;
 }
 
@@ -18,17 +20,16 @@ interface CalendarDay {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MonthlyCalendarComponent implements OnInit {
-  sheetId = input.required<string>();
-  gid = input<number>(0);
-
-  private gvizService = new GvizService();
+  private attendanceState = inject(AttendanceStateService);
 
   currentYear = signal<number>(new Date().getFullYear());
   currentMonth = signal<number>(new Date().getMonth() + 1); // 1-12
-  entries = signal<SheetEntry[]>([]);
-  isLoading = signal<boolean>(false);
-  error = signal<string>('');
   selectedDay = signal<CalendarDay | null>(null);
+
+  // Get data from shared attendance state service
+  entries = computed(() => this.attendanceState.allEntries());
+  isLoading = computed(() => this.attendanceState.isLoading());
+  error = signal<string>('');
 
   monthName = computed(() => {
     const date = new Date(this.currentYear(), this.currentMonth() - 1);
@@ -40,7 +41,9 @@ export class MonthlyCalendarComponent implements OnInit {
   });
 
   entriesMap = computed(() => {
-    return this.gvizService.groupByDateLatestOnly(this.entries());
+    const allEntries = this.entries();
+    const filteredEntries = this.filterEntriesByMonth(allEntries, this.currentYear(), this.currentMonth());
+    return this.groupByDateLatestOnly(filteredEntries);
   });
 
   totalDaysPresent = computed(() => {
@@ -49,7 +52,7 @@ export class MonthlyCalendarComponent implements OnInit {
 
   totalWorkingHours = computed(() => {
     let totalMinutes = 0;
-    this.entriesMap().forEach(entry => {
+    this.entriesMap().forEach((entry: SheetEntry) => {
       if (entry.duration) {
         const match = entry.duration.match(/(\d+)h\s*(\d+)m/);
         if (match) {
@@ -63,26 +66,9 @@ export class MonthlyCalendarComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadEntries();
-  }
-
-  loadEntries(): void {
-    this.isLoading.set(true);
-    this.error.set('');
-
-    this.gvizService
-      .fetchEntriesForMonth(this.sheetId(), this.currentYear(), this.currentMonth(), this.gid())
-      .subscribe({
-        next: entries => {
-          this.entries.set(entries);
-          this.isLoading.set(false);
-        },
-        error: err => {
-          this.error.set('Failed to load attendance data. Please check your Sheet ID and permissions.');
-          this.isLoading.set(false);
-          console.error('Error loading entries:', err);
-        },
-      });
+    // Data is already loaded by the app component
+    // Just refresh if needed
+    this.attendanceState.refreshIfNeeded(5);
   }
 
   previousMonth(): void {
@@ -97,7 +83,6 @@ export class MonthlyCalendarComponent implements OnInit {
     this.currentYear.set(year);
     this.currentMonth.set(month);
     this.selectedDay.set(null);
-    this.loadEntries();
   }
 
   nextMonth(): void {
@@ -121,7 +106,6 @@ export class MonthlyCalendarComponent implements OnInit {
     this.currentYear.set(year);
     this.currentMonth.set(month);
     this.selectedDay.set(null);
-    this.loadEntries();
   }
 
   canGoNext(): boolean {
@@ -132,12 +116,46 @@ export class MonthlyCalendarComponent implements OnInit {
   }
 
   selectDay(day: CalendarDay): void {
-    if (!day.isCurrentMonth) return;
+    if (!day.isCurrentMonth || day.isFuture) return;
     this.selectedDay.set(day);
   }
 
   closeDetails(): void {
     this.selectedDay.set(null);
+  }
+
+  retryLoadData(): void {
+    this.error.set('');
+    this.attendanceState.fetchAttendanceData();
+  }
+
+  private filterEntriesByMonth(entries: SheetEntry[], year: number, month: number): SheetEntry[] {
+    const targetYearMonth = `${year}-${String(month).padStart(2, '0')}`;
+    return entries.filter(entry => entry.date.startsWith(targetYearMonth));
+  }
+
+  private groupByDateLatestOnly(entries: SheetEntry[]): Map<string, SheetEntry> {
+    const grouped = new Map<string, SheetEntry>();
+
+    entries.forEach(entry => {
+      if (!entry.date) return;
+
+      const existing = grouped.get(entry.date);
+
+      if (!existing) {
+        grouped.set(entry.date, entry);
+      } else {
+        // Compare timestamps to keep the latest
+        const existingTime = new Date(existing.timestamp || existing.entryTime).getTime();
+        const currentTime = new Date(entry.timestamp || entry.entryTime).getTime();
+
+        if (currentTime > existingTime) {
+          grouped.set(entry.date, entry);
+        }
+      }
+    });
+
+    return grouped;
   }
 
   private generateCalendarDays(): CalendarDay[] {
@@ -155,33 +173,42 @@ export class MonthlyCalendarComponent implements OnInit {
 
     const days: CalendarDay[] = [];
 
+    // Get today's date for comparison
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
     // Add previous month's days
     const prevMonthLastDay = new Date(year, month - 1, 0).getDate();
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const date = prevMonthLastDay - i;
       const prevMonth = month - 1 < 1 ? 12 : month - 1;
       const prevYear = month - 1 < 1 ? year - 1 : year;
+      const fullDate = `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
       days.push({
         date,
-        fullDate: `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`,
+        fullDate,
         isCurrentMonth: false,
         isToday: false,
+        isFuture: false, // Previous month dates are not future
       });
     }
 
     // Add current month's days
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-
     for (let date = 1; date <= daysInMonth; date++) {
       const fullDate = `${year}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
       const entry = entriesMap.get(fullDate);
+      
+      // Check if this date is in the future (only for current month)
+      const dateObj = new Date(year, month - 1, date);
+      const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const isFutureDate = dateObj > todayDate;
 
       days.push({
         date,
         fullDate,
         isCurrentMonth: true,
         isToday: fullDate === todayStr,
+        isFuture: isFutureDate,
         entry,
       });
     }
@@ -192,11 +219,13 @@ export class MonthlyCalendarComponent implements OnInit {
     const nextYear = month + 1 > 12 ? year + 1 : year;
 
     for (let date = 1; date <= remainingDays; date++) {
+      const fullDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
       days.push({
         date,
-        fullDate: `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`,
+        fullDate,
         isCurrentMonth: false,
         isToday: false,
+        isFuture: false, // Next month dates are not marked as future (they're other-month)
       });
     }
 

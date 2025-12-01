@@ -1,8 +1,17 @@
 <div class="calendar-container">
   <div class="calendar-header">
-    <button class="nav-btn" (click)="previousMonth()" aria-label="Previous month">◀</button>
+    <button class="nav-btn" (click)="previousMonth()" aria-label="Previous month">
+      ◀
+    </button>
     <h2 class="month-title">{{ monthName() }}</h2>
-    <button class="nav-btn" (click)="nextMonth()" [disabled]="!canGoNext()" aria-label="Next month">▶</button>
+    <button 
+      class="nav-btn" 
+      (click)="nextMonth()" 
+      [disabled]="!canGoNext()"
+      aria-label="Next month"
+    >
+      ▶
+    </button>
   </div>
 
   <div class="calendar-stats">
@@ -25,7 +34,7 @@
     <div class="error-state">
       <p class="error-icon">⚠️</p>
       <p class="error-message">{{ error() }}</p>
-      <button class="btn btn-retry" (click)="loadEntries()">Retry</button>
+      <button class="btn btn-retry" (click)="retryLoadData()">Retry</button>
     </div>
   } @else {
     <div class="calendar-grid">
@@ -38,13 +47,16 @@
       <div class="weekday-header">Sat</div>
 
       @for (day of calendarDays(); track day.fullDate) {
-        <div
+        <div 
           class="calendar-day"
           [class.other-month]="!day.isCurrentMonth"
           [class.today]="day.isToday"
           [class.has-entry]="day.entry"
+          [class.future]="day.isFuture"
           [class.selected]="selectedDay()?.fullDate === day.fullDate"
-          (click)="selectDay(day)">
+          [class.clickable]="day.isCurrentMonth && !day.isFuture"
+          (click)="selectDay(day)"
+        >
           <span class="day-number">{{ day.date }}</span>
           @if (day.entry && day.isCurrentMonth) {
             <div class="entry-indicator">
@@ -71,37 +83,37 @@
           <h3>Attendance Details</h3>
           <button class="close-btn" (click)="closeDetails()" aria-label="Close">✕</button>
         </div>
-
+        
         <div class="details-body">
           <div class="detail-row">
             <span class="detail-label">📅 Date:</span>
             <span class="detail-value">{{ selectedDay()!.fullDate }}</span>
           </div>
-
+          
           <div class="detail-row">
             <span class="detail-label">🕐 Entry Time:</span>
             <span class="detail-value">{{ formatTime(selectedDay()!.entry!.entryTime) }}</span>
           </div>
-
+          
           <div class="detail-row">
             <span class="detail-label">🕐 Exit Time:</span>
             <span class="detail-value">{{ formatTime(selectedDay()!.entry!.exitTime) }}</span>
           </div>
-
+          
           @if (selectedDay()!.entry!.duration) {
             <div class="detail-row">
               <span class="detail-label">⏱️ Duration:</span>
               <span class="detail-value highlight">{{ selectedDay()!.entry!.duration }}</span>
             </div>
           }
-
+          
           @if (selectedDay()!.entry!.companyName) {
             <div class="detail-row">
               <span class="detail-label">🏢 Company:</span>
               <span class="detail-value">{{ selectedDay()!.entry!.companyName }}</span>
             </div>
           }
-
+          
           @if (selectedDay()!.entry!.comments) {
             <div class="detail-row full-width">
               <span class="detail-label">💬 Comments:</span>
@@ -109,7 +121,7 @@
             </div>
           }
         </div>
-
+        
         <div class="details-footer">
           <button class="btn btn-close" (click)="closeDetails()">Close</button>
         </div>

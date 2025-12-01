@@ -3,8 +3,12 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'logger',
+    redirectTo: 'calendar',
     pathMatch: 'full'
+  },
+  {
+    path: 'calendar',
+    loadComponent: () => import('./components/monthly-calendar/monthly-calendar.component').then(m => m.MonthlyCalendarComponent)
   },
   {
     path: 'logger',

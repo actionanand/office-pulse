@@ -97,7 +97,12 @@
           
           <div class="detail-row">
             <span class="detail-label">🕐 Exit Time:</span>
-            <span class="detail-value">{{ formatTime(selectedDay()!.entry!.exitTime) }}</span>
+            <span class="detail-value">
+              {{ formatTime(selectedDay()!.entry!.exitTime) }}
+              @if (getExitDateDisplay(selectedDay()!.entry!)) {
+                <span class="exit-date-badge">({{ getExitDateDisplay(selectedDay()!.entry!) }})</span>
+              }
+            </span>
           </div>
           
           @if (selectedDay()!.entry!.duration) {

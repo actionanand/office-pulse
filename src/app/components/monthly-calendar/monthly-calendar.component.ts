@@ -245,4 +245,31 @@ export class MonthlyCalendarComponent implements OnInit {
       return timeStr;
     }
   }
+
+  getExitDateDisplay(entry: SheetEntry): string {
+    if (!entry.entryTime || !entry.exitTime) return '';
+    
+    try {
+      const entryDate = new Date(entry.entryTime);
+      const exitDate = new Date(entry.exitTime);
+      
+      // Check if dates are different
+      const entryDateStr = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
+      const exitDateStr = `${exitDate.getFullYear()}-${String(exitDate.getMonth() + 1).padStart(2, '0')}-${String(exitDate.getDate()).padStart(2, '0')}`;
+      
+      if (entryDateStr !== exitDateStr) {
+        // Return formatted exit date for display
+        return exitDate.toLocaleDateString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      }
+      
+      return '';
+    } catch {
+      return '';
+    }
+  }
 }

@@ -30,6 +30,25 @@ export class EntryLoggerComponent implements OnInit {
   googleFormUrl = signal<string>('');
   pendingFormData = signal<{ log: EntryLog; formData: { companyName: string; comment: string } } | null>(null);
 
+  // ============================================================================
+  // ENTRY/EXIT LOGIC EXPLANATION:
+  // ============================================================================
+  // 1. LOCAL STORAGE: Stores pending entry/exit that hasn't been submitted yet
+  //    - Entry marked -> stored in local storage
+  //    - Exit marked -> stored in local storage  
+  //    - Form submitted -> data goes to API, can clear local storage
+  //
+  // 2. API DATA: Contains completed submissions with both entry & exit times
+  //    - If API has entry with today's entry date -> Both entry & exit are there
+  //    - Entry date determines the "day" (not exit date - supports night shift)
+  //    - Night shift example: Enter Dec 1 11PM, Exit Dec 2 7AM = Dec 1's entry
+  //
+  // 3. BUTTON RESTRICTIONS:
+  //    - Entry Button: Disabled if today's entry exists (local storage OR API)
+  //    - Exit Button: Disabled if no entry OR exit already marked OR submitted
+  //    - Check entry DATE (from entry time), not exit date
+  // ============================================================================
+
   // Use attendance state service for checking today's entry
   hasEnteredToday = computed(() => this.attendanceState.hasEntryToday());
   isSubmittedToday = computed(() => this.attendanceState.isSubmittedToday());
@@ -197,9 +216,18 @@ export class EntryLoggerComponent implements OnInit {
     const log = this.storageService.getEntryLog();
     const settings = this.storageService.getSettings();
 
-    // Check if entry is from today
-    if (log && log.date === this.getTodayDateString()) {
-      this.entryLog.set(log);
+    // Load local storage entry only if entry time is from today
+    // NOTE: Entry date is determined by entry time, not exit time (supports night shift)
+    // Local storage holds pending entries that haven't been submitted to API yet
+    // Once submitted to API (via Google Form), the entry includes both entry & exit times
+    if (log && log.entryTime) {
+      const entryDate = this.getDateFromTimeString(log.entryTime);
+      const today = this.getTodayDateString();
+      if (entryDate === today) {
+        this.entryLog.set(log);
+      } else {
+        this.entryLog.set(null);
+      }
     } else {
       this.entryLog.set(null);
     }
@@ -243,6 +271,10 @@ export class EntryLoggerComponent implements OnInit {
 
     this.storageService.saveEntryLog(log);
     this.entryLog.set(log);
+    
+    // Notify attendance state service to trigger reactivity
+    this.attendanceState.notifyLocalStorageChanged();
+    
     this.closeEntryDialog();
   }
 
@@ -274,6 +306,9 @@ export class EntryLoggerComponent implements OnInit {
     // Update storage with exit time
     this.storageService.saveEntryLog(log);
     this.entryLog.set(log);
+    
+    // Notify attendance state service to trigger reactivity
+    this.attendanceState.notifyLocalStorageChanged();
 
     // Store pending form data and show confirmation dialog
     this.pendingFormData.set({ log, formData });
@@ -309,6 +344,9 @@ export class EntryLoggerComponent implements OnInit {
       log.exitTime = undefined;
       this.storageService.saveEntryLog(log);
       this.entryLog.set({ ...log });
+      
+      // Notify attendance state service to trigger reactivity
+      this.attendanceState.notifyLocalStorageChanged();
     }
 
     this.showGoogleFormDialog.set(false);
@@ -323,6 +361,9 @@ export class EntryLoggerComponent implements OnInit {
       log.isSubmitted = true;
       this.storageService.saveEntryLog(log);
       this.entryLog.set({ ...log });
+      
+      // Notify attendance state service to trigger reactivity
+      this.attendanceState.notifyLocalStorageChanged();
     }
 
     this.showGoogleFormDialog.set(false);
@@ -425,5 +466,20 @@ export class EntryLoggerComponent implements OnInit {
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
     return `${year}-${month}-${day} ${hours}:${minutes}`;
+  }
+
+  private getDateFromTimeString(timeStr: string): string {
+    if (!timeStr) return '';
+    try {
+      const date = new Date(timeStr);
+      if (isNaN(date.getTime())) return '';
+      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch {
+      return '';
+    }
   }
 }

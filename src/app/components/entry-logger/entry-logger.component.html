@@ -11,10 +11,15 @@
         <div class="status-text">
           <h2>Submitted!</h2>
           <p>You submitted your entry/exit for today</p>
+          @if (todayApiEntry()) {
+            <p class="small-text api-info">📊 Data from server</p>
+          }
           <p class="small-text">Entry: <strong>{{ entryTimeDisplay() }}</strong></p>
           @if (hasExitedToday()) {
             <p class="small-text exit-time">Exit: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong></p>
             <p class="duration-text">⏱️ Total Duration: <strong>{{ durationDisplay() }}</strong></p>
+          } @else {
+            <p class="small-text info-text">Exit time not recorded yet</p>
           }
         </div>
       </div>

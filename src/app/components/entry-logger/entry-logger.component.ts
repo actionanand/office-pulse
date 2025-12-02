@@ -28,7 +28,7 @@ export class EntryLoggerComponent implements OnInit {
   showSubmissionDialog = signal<boolean>(false);
   showGoogleFormDialog = signal<boolean>(false);
   googleFormUrl = signal<string>('');
-  pendingFormData = signal<{ log: EntryLog; formData: { companyName: string; comment: string } } | null>(null);
+  pendingFormData = signal<{ log: EntryLog; formData: { companyName: string; comment: string; status: string } } | null>(null);
 
   // ============================================================================
   // ENTRY/EXIT LOGIC EXPLANATION:
@@ -296,7 +296,7 @@ export class EntryLoggerComponent implements OnInit {
     this.showExitDialog.set(false);
   }
 
-  handleExitSubmit(formData: { companyName: string; comment: string }): void {
+  handleExitSubmit(formData: { companyName: string; comment: string; status: string }): void {
     const log = this.entryLog();
     if (!log) return;
 
@@ -370,7 +370,7 @@ export class EntryLoggerComponent implements OnInit {
     this.pendingFormData.set(null);
   }
 
-  buildGoogleFormUrl(log: EntryLog, formData: { companyName: string; comment: string }): string {
+  buildGoogleFormUrl(log: EntryLog, formData: { companyName: string; comment: string; status: string }): string {
     // Get Form ID from environment
     const formId = env.YOUR_FORM_ID;
 
@@ -388,6 +388,7 @@ export class EntryLoggerComponent implements OnInit {
       'entry.1057727999': exitTime, // Exit Time (required)
       'entry.302638121': formData.companyName || '', // Company Name (optional)
       'entry.1773816160': formData.comment || '', // Comments (optional)
+      'entry.1264867401': formData.status || 'WFH', // Status (radio button)
       embedded: 'true',
     });
 

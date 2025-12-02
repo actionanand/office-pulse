@@ -131,7 +131,7 @@
       <div class="dialog-content" (click)="$event.stopPropagation()">
         <h2>Mark Exit & Submit to Google Form</h2>
         <div class="dialog-body">
-          <form #exitForm="ngForm" (ngSubmit)="handleExitSubmit({companyName: companyName.value, comment: comment.value})">
+          <form #exitForm="ngForm" (ngSubmit)="handleExitSubmit({companyName: companyName.value, comment: comment.value, status: statusField.value})">
             <div class="form-group">
               <label>Entry Time:</label>
               <input type="text" [value]="entryTimeDisplay()" readonly />
@@ -159,6 +159,32 @@
                 #comment
                 rows="4"
               ></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Status:</label>
+              <div class="radio-group">
+                <label class="radio-option">
+                  <input type="radio" name="status" value="WFH" #statusField checked />
+                  <span>WFH</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="status" value="Office" />
+                  <span>Office</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="status" value="First Half Off" />
+                  <span>First Half Off</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="status" value="Second Half Off" />
+                  <span>Second Half Off</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="status" value="Day Off" />
+                  <span>Day Off</span>
+                </label>
+              </div>
             </div>
             
             <div class="dialog-actions">

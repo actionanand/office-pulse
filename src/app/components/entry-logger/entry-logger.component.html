@@ -118,6 +118,15 @@
     </button>
   </div>
 
+  <div class="past-entry-section">
+    <button 
+      class="btn btn-past-entry" 
+      (click)="openPastDateDialog()"
+    >
+      📅 Add Past Date Entry
+    </button>
+  </div>
+
   @if (canShowTodos()) {
     <app-todo-list />
   }
@@ -257,6 +266,64 @@
         <div class="dialog-actions">
           <button class="btn btn-cancel" (click)="cancelSubmission()">Cancel</button>
           <button class="btn btn-success" (click)="confirmSubmission()">Yes, Submit</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Past Date Selection Dialog -->
+  @if (showPastDateDialog()) {
+    <div class="dialog-overlay" (click)="closePastDateDialog()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <h2>📅 Select Past Date</h2>
+        <div class="dialog-body">
+          <p class="info-message">Choose a date to add attendance record</p>
+          <div class="date-picker-section">
+            <label for="pastDate">Select Date:</label>
+            <input 
+              type="date" 
+              id="pastDate"
+              [max]="maxDate()"
+              #pastDateInput
+            />
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" (click)="closePastDateDialog()">Cancel</button>
+          <button 
+            class="btn btn-primary" 
+            (click)="handlePastDateSelected(pastDateInput.value)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Past Date Action Choice Dialog -->
+  @if (showPastActionDialog()) {
+    <div class="dialog-overlay" (click)="closePastActionDialog()">
+      <div class="dialog-content action-choice-dialog" (click)="$event.stopPropagation()">
+        <h2>What would you like to do?</h2>
+        <div class="dialog-body">
+          <p class="info-message">Selected Date: <strong>{{ selectedPastDate() }}</strong></p>
+          <div class="action-buttons-grid">
+            <button class="action-btn leave-btn" (click)="applyLeaveForPastDate()">
+              <span class="action-icon">🌴</span>
+              <span class="action-text">Apply Leave</span>
+              <span class="action-hint">Mark as Day Off</span>
+            </button>
+            
+            <button class="action-btn entry-btn" (click)="addEntryForPastDate()">
+              <span class="action-icon">📝</span>
+              <span class="action-text">Add Entry</span>
+              <span class="action-hint">Log work hours</span>
+            </button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" (click)="closePastActionDialog()">Back</button>
         </div>
       </div>
     </div>

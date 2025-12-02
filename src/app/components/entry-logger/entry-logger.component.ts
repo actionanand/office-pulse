@@ -30,6 +30,15 @@ export class EntryLoggerComponent implements OnInit {
   googleFormUrl = signal<string>('');
   pendingFormData = signal<{ log: EntryLog; formData: { companyName: string; comment: string; status: string } } | null>(null);
   showLeaveToggle = signal<boolean>(false);
+  showPastDateDialog = signal<boolean>(false);
+  showPastActionDialog = signal<boolean>(false);
+  selectedPastDate = signal<string>('');
+
+  maxDate = computed(() => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday.toISOString().split('T')[0];
+  });
 
   // ============================================================================
   // ENTRY/EXIT LOGIC EXPLANATION:
@@ -396,7 +405,7 @@ export class EntryLoggerComponent implements OnInit {
   }
 
   onGoogleFormClose(): void {
-    // User closed without submitting - revert exit time
+    // User closed without submitting - revert exit time only for today's entry
     const pending = this.pendingFormData();
     if (pending) {
       const log = pending.log;
@@ -410,6 +419,7 @@ export class EntryLoggerComponent implements OnInit {
 
     this.showGoogleFormDialog.set(false);
     this.pendingFormData.set(null);
+    this.selectedPastDate.set(''); // Clear past date selection
   }
 
   onGoogleFormSubmitted(): void {
@@ -427,6 +437,10 @@ export class EntryLoggerComponent implements OnInit {
 
     this.showGoogleFormDialog.set(false);
     this.pendingFormData.set(null);
+    this.selectedPastDate.set(''); // Clear past date selection
+    
+    // Refresh attendance data to show the newly added entry
+    this.attendanceState.fetchAttendanceData();
   }
 
   buildGoogleFormUrl(log: EntryLog, formData: { companyName: string; comment: string; status: string }): string {
@@ -541,5 +555,110 @@ export class EntryLoggerComponent implements OnInit {
     } catch {
       return '';
     }
+  }
+
+  openPastDateDialog(): void {
+    this.showPastDateDialog.set(true);
+  }
+
+  closePastDateDialog(): void {
+    this.showPastDateDialog.set(false);
+    this.selectedPastDate.set('');
+  }
+
+  handlePastDateSelected(dateStr: string): void {
+    if (!dateStr) {
+      alert('Please select a date');
+      return;
+    }
+
+    // Validate that the date is in the past
+    const selectedDate = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate >= today) {
+      alert('Please select a past date (not today or future)');
+      return;
+    }
+
+    this.selectedPastDate.set(dateStr);
+    this.showPastDateDialog.set(false);
+    this.showPastActionDialog.set(true);
+  }
+
+  closePastActionDialog(): void {
+    this.showPastActionDialog.set(false);
+    // Keep selectedPastDate for potential back navigation
+  }
+
+  applyLeaveForPastDate(): void {
+    const dateStr = this.selectedPastDate();
+    if (!dateStr) return;
+
+    // Parse the selected date
+    const dateObj = new Date(dateStr + 'T00:00:00');
+
+    // Set entry and exit time to noon of that day
+    const entryTime = new Date(dateObj);
+    entryTime.setHours(12, 0, 0, 0);
+
+    const exitTime = new Date(dateObj);
+    exitTime.setHours(12, 0, 0, 0);
+
+    // Build Google Form URL with Day Off data
+    const formUrl = this.buildGoogleFormUrlForPastDate(entryTime, exitTime, '', 'Day Off - Leave Applied', 'Day Off');
+    this.googleFormUrl.set(formUrl);
+
+    this.closePastActionDialog();
+    this.showGoogleFormDialog.set(true);
+  }
+
+  addEntryForPastDate(): void {
+    const dateStr = this.selectedPastDate();
+    if (!dateStr) return;
+
+    // Parse the selected date
+    const dateObj = new Date(dateStr + 'T00:00:00');
+
+    // Set entry time to 9 AM and exit time to 6 PM of that day
+    const entryTime = new Date(dateObj);
+    entryTime.setHours(9, 0, 0, 0);
+
+    const exitTime = new Date(dateObj);
+    exitTime.setHours(18, 0, 0, 0);
+
+    // Build Google Form URL with default entry/exit times
+    const formUrl = this.buildGoogleFormUrlForPastDate(entryTime, exitTime, '', '', 'WFH');
+    this.googleFormUrl.set(formUrl);
+
+    this.closePastActionDialog();
+    this.showGoogleFormDialog.set(true);
+  }
+
+  private buildGoogleFormUrlForPastDate(
+    entryTime: Date,
+    exitTime: Date,
+    companyName: string,
+    comment: string,
+    status: string
+  ): string {
+    const formId = env.YOUR_FORM_ID;
+    const baseUrl = `https://docs.google.com/forms/d/e/${formId}/viewform`;
+
+    const formattedEntry = this.formatForGoogleForm(entryTime);
+    const formattedExit = this.formatForGoogleForm(exitTime);
+
+    const params = new URLSearchParams({
+      usp: 'pp_url',
+      'entry.160031710': formattedEntry, // Entry Time
+      'entry.1057727999': formattedExit, // Exit Time
+      'entry.302638121': companyName, // Company Name
+      'entry.1773816160': comment, // Comments
+      'entry.1264867401': status, // Status
+      embedded: 'true',
+    });
+
+    return `${baseUrl}?${params.toString()}`;
   }
 }

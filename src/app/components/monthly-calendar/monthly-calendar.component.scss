@@ -119,10 +119,43 @@
     .entry-indicator {
       position: absolute;
       bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
 
       .present-dot {
         color: #27ae60;
         font-size: 0.8rem;
+      }
+      
+      &.day-off-indicator {
+        .status-icon {
+          font-size: 1rem;
+        }
+      }
+      
+      .status-mini-badge {
+        font-size: 0.5rem;
+        padding: 0.1rem 0.25rem;
+        border-radius: 4px;
+        font-weight: 600;
+        background: #e3f2fd;
+        color: #1976d2;
+        
+        &.status-wfh {
+          background: #e8f5e9;
+          color: #2e7d32;
+        }
+        
+        &.status-day-off {
+          background: #fff3cd;
+          color: #856404;
+        }
+        
+        &.status-half-off {
+          background: #fff9e6;
+          color: #f57c00;
+        }
       }
     }
 
@@ -169,6 +202,19 @@
 
       &.clickable:active {
         transform: scale(0.98);
+      }
+    }
+    
+    &.day-off {
+      background: #fff3cd !important;
+      
+      &.clickable:hover {
+        background: #ffe8a1 !important;
+      }
+      
+      .day-number {
+        color: #856404;
+        font-weight: 700;
       }
     }
 
@@ -381,8 +427,50 @@
         font-weight: 600;
         border: 1px solid #ffc107;
       }
+      
+      .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        background: #e3f2fd;
+        color: #1976d2;
+        
+        &.status-wfh {
+          background: #e8f5e9;
+          color: #2e7d32;
+        }
+        
+        &.status-office {
+          background: #e3f2fd;
+          color: #1976d2;
+        }
+        
+        &.status-day-off {
+          background: #fff3cd;
+          color: #856404;
+          border: 1px solid #ffc107;
+        }
+        
+        &.status-half-off {
+          background: #fff9e6;
+          color: #f57c00;
+          border: 1px solid #ffb300;
+        }
+      }
     }
   }
+}
+
+.day-off-message {
+  text-align: center;
+  padding: 1rem;
+  background: #fff3cd;
+  border-radius: 8px;
+  color: #856404;
+  font-weight: 600;
+  margin: 0;
 }
 
 .details-footer {

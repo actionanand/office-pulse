@@ -52,6 +52,7 @@
           [class.other-month]="!day.isCurrentMonth"
           [class.today]="day.isToday"
           [class.has-entry]="day.entry"
+          [class.day-off]="day.entry?.status === 'Day Off'"
           [class.future]="day.isFuture"
           [class.selected]="selectedDay()?.fullDate === day.fullDate"
           [class.clickable]="day.isCurrentMonth && !day.isFuture"
@@ -59,9 +60,20 @@
         >
           <span class="day-number">{{ day.date }}</span>
           @if (day.entry && day.isCurrentMonth) {
-            <div class="entry-indicator">
-              <span class="present-dot">●</span>
-            </div>
+            @if (day.entry.status === 'Day Off') {
+              <div class="entry-indicator day-off-indicator">
+                <span class="status-icon">🌴</span>
+              </div>
+            } @else {
+              <div class="entry-indicator">
+                <span class="present-dot">●</span>
+                @if (day.entry.status && day.entry.status !== 'Office') {
+                  <span class="status-mini-badge" [class]="getStatusClass(day.entry.status)">
+                    {{ getStatusLabel(day.entry.status) }}
+                  </span>
+                }
+              </div>
+            }
           }
         </div>
       }
@@ -90,25 +102,42 @@
             <span class="detail-value">{{ selectedDay()!.fullDate }}</span>
           </div>
           
-          <div class="detail-row">
-            <span class="detail-label">🕐 Entry Time:</span>
-            <span class="detail-value">{{ formatTime(selectedDay()!.entry!.entryTime) }}</span>
-          </div>
-          
-          <div class="detail-row">
-            <span class="detail-label">🕐 Exit Time:</span>
-            <span class="detail-value">
-              {{ formatTime(selectedDay()!.entry!.exitTime) }}
-              @if (getExitDateDisplay(selectedDay()!.entry!)) {
-                <span class="exit-date-badge">({{ getExitDateDisplay(selectedDay()!.entry!) }})</span>
-              }
-            </span>
-          </div>
-          
-          @if (selectedDay()!.entry!.duration) {
+          @if (selectedDay()!.entry!.status) {
             <div class="detail-row">
-              <span class="detail-label">⏱️ Duration:</span>
-              <span class="detail-value highlight">{{ selectedDay()!.entry!.duration }}</span>
+              <span class="detail-label">📋 Status:</span>
+              <span class="detail-value">
+                <span class="status-badge" [class]="getStatusClass(selectedDay()!.entry!.status!)">
+                  {{ selectedDay()!.entry!.status }}
+                </span>
+              </span>
+            </div>
+          }
+          
+          @if (selectedDay()!.entry!.status !== 'Day Off') {
+            <div class="detail-row">
+              <span class="detail-label">🕐 Entry Time:</span>
+              <span class="detail-value">{{ formatTime(selectedDay()!.entry!.entryTime) }}</span>
+            </div>
+            
+            <div class="detail-row">
+              <span class="detail-label">🕐 Exit Time:</span>
+              <span class="detail-value">
+                {{ formatTime(selectedDay()!.entry!.exitTime) }}
+                @if (getExitDateDisplay(selectedDay()!.entry!)) {
+                  <span class="exit-date-badge">({{ getExitDateDisplay(selectedDay()!.entry!) }})</span>
+                }
+              </span>
+            </div>
+            
+            @if (selectedDay()!.entry!.duration) {
+              <div class="detail-row">
+                <span class="detail-label">⏱️ Duration:</span>
+                <span class="detail-value highlight">{{ selectedDay()!.entry!.duration }}</span>
+              </div>
+            }
+          } @else {
+            <div class="detail-row full-width">
+              <p class="day-off-message">🌴 Day Off - No work hours recorded</p>
             </div>
           }
           

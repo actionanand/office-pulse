@@ -9,17 +9,29 @@
       <div class="status-submitted">
         <div class="status-icon">✅</div>
         <div class="status-text">
-          <h2>Submitted!</h2>
-          <p>You submitted your entry/exit for today</p>
-          @if (todayApiEntry()) {
-            <p class="small-text api-info">📊 Data from server</p>
-          }
-          <p class="small-text">Entry: <strong>{{ entryTimeDisplay() }}</strong></p>
-          @if (hasExitedToday()) {
-            <p class="small-text exit-time">Exit: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong></p>
-            <p class="duration-text">⏱️ Total Duration: <strong>{{ durationDisplay() }}</strong></p>
+          @if (isDayOffToday()) {
+            <h2>Day Off Applied!</h2>
+            <p>You have marked today as Day Off</p>
+            @if (todayApiEntry()) {
+              <p class="small-text api-info">📊 Data from server</p>
+              <p class="small-text">Status: <strong class="status-badge day-off">Day Off</strong></p>
+            }
           } @else {
-            <p class="small-text info-text">Exit time not recorded yet</p>
+            <h2>Submitted!</h2>
+            <p>You submitted your entry/exit for today</p>
+            @if (todayApiEntry()) {
+              <p class="small-text api-info">📊 Data from server</p>
+              @if (todayApiEntry()!.status) {
+                <p class="small-text">Status: <strong class="status-badge">{{ todayApiEntry()!.status }}</strong></p>
+              }
+            }
+            <p class="small-text">Entry: <strong>{{ entryTimeDisplay() }}</strong></p>
+            @if (hasExitedToday()) {
+              <p class="small-text exit-time">Exit: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong></p>
+              <p class="duration-text">⏱️ Total Duration: <strong>{{ durationDisplay() }}</strong></p>
+            } @else {
+              <p class="small-text info-text">Exit time not recorded yet</p>
+            }
           }
         </div>
       </div>
@@ -68,6 +80,23 @@
           <p>You have not come to office today</p>
         </div>
       </div>
+      
+      @if (shouldShowLeaveToggle()) {
+        <div class="leave-toggle-section">
+          <div class="toggle-container">
+            <span class="toggle-label">Apply Leave (Day Off)</span>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                (change)="applyLeave()"
+                [checked]="false"
+              />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <p class="toggle-hint">Toggle to mark today as Day Off</p>
+        </div>
+      }
     }
   </div>
 
@@ -86,6 +115,15 @@
       [disabled]="!hasEnteredToday() || hasExitedToday() || isSubmittedToday()"
     >
       📤 Exit
+    </button>
+  </div>
+
+  <div class="past-entry-section">
+    <button 
+      class="btn btn-past-entry" 
+      (click)="openPastDateDialog()"
+    >
+      📅 Add Past Date Entry
     </button>
   </div>
 
@@ -131,7 +169,7 @@
       <div class="dialog-content" (click)="$event.stopPropagation()">
         <h2>Mark Exit & Submit to Google Form</h2>
         <div class="dialog-body">
-          <form #exitForm="ngForm" (ngSubmit)="handleExitSubmit({companyName: companyName.value, comment: comment.value})">
+          <form #exitForm="ngForm" (ngSubmit)="handleExitSubmit({companyName: companyName.value, comment: comment.value, status: statusField.value})">
             <div class="form-group">
               <label>Entry Time:</label>
               <input type="text" [value]="entryTimeDisplay()" readonly />
@@ -159,6 +197,32 @@
                 #comment
                 rows="4"
               ></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Status:</label>
+              <div class="radio-group">
+                <label class="radio-option">
+                  <input type="radio" name="status" value="WFH" #statusField checked />
+                  <span>WFH</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="status" value="Office" />
+                  <span>Office</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="status" value="First Half Off" />
+                  <span>First Half Off</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="status" value="Second Half Off" />
+                  <span>Second Half Off</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="status" value="Day Off" />
+                  <span>Day Off</span>
+                </label>
+              </div>
             </div>
             
             <div class="dialog-actions">
@@ -202,6 +266,64 @@
         <div class="dialog-actions">
           <button class="btn btn-cancel" (click)="cancelSubmission()">Cancel</button>
           <button class="btn btn-success" (click)="confirmSubmission()">Yes, Submit</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Past Date Selection Dialog -->
+  @if (showPastDateDialog()) {
+    <div class="dialog-overlay" (click)="closePastDateDialog()">
+      <div class="dialog-content" (click)="$event.stopPropagation()">
+        <h2>📅 Select Past Date</h2>
+        <div class="dialog-body">
+          <p class="info-message">Choose a date to add attendance record</p>
+          <div class="date-picker-section">
+            <label for="pastDate">Select Date:</label>
+            <input 
+              type="date" 
+              id="pastDate"
+              [max]="maxDate()"
+              #pastDateInput
+            />
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" (click)="closePastDateDialog()">Cancel</button>
+          <button 
+            class="btn btn-primary" 
+            (click)="handlePastDateSelected(pastDateInput.value)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Past Date Action Choice Dialog -->
+  @if (showPastActionDialog()) {
+    <div class="dialog-overlay" (click)="closePastActionDialog()">
+      <div class="dialog-content action-choice-dialog" (click)="$event.stopPropagation()">
+        <h2>What would you like to do?</h2>
+        <div class="dialog-body">
+          <p class="info-message">Selected Date: <strong>{{ selectedPastDate() }}</strong></p>
+          <div class="action-buttons-grid">
+            <button class="action-btn leave-btn" (click)="applyLeaveForPastDate()">
+              <span class="action-icon">🌴</span>
+              <span class="action-text">Apply Leave</span>
+              <span class="action-hint">Mark as Day Off</span>
+            </button>
+            
+            <button class="action-btn entry-btn" (click)="addEntryForPastDate()">
+              <span class="action-icon">📝</span>
+              <span class="action-text">Add Entry</span>
+              <span class="action-hint">Log work hours</span>
+            </button>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" (click)="closePastActionDialog()">Back</button>
         </div>
       </div>
     </div>

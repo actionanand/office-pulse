@@ -8,6 +8,7 @@ export interface SheetEntry {
   exitTime: string;
   companyName?: string;
   comments?: string;
+  status?: string; // WFH, Office, First Half Off, Second Half Off, Day Off
   date: string; // Derived from entry time
   duration?: string; // Calculated duration
 }
@@ -43,9 +44,9 @@ export class GvizService {
     const baseUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq`;
 
     // SQL-like query to get last N entries ordered by timestamp descending
-    // Adjust column letters (A, B, C, D, E) based on your actual sheet structure
-    // Expected columns: Timestamp, Entry Time, Exit Time, Company Name, Comments
-    const query = `SELECT A, B, C, D, E ORDER BY A DESC LIMIT ${days}`;
+    // Adjust column letters (A, B, C, D, E, F) based on your actual sheet structure
+    // Expected columns: Timestamp, Entry Time, Exit Time, Company Name, Comments, Status
+    const query = `SELECT A, B, C, D, E, F ORDER BY A DESC LIMIT ${days}`;
 
     const params = {
       tq: query,
@@ -108,6 +109,7 @@ export class GvizService {
         const exitTime = cells[2]?.f || this.parseGVizDate(cells[2]?.v) || '';
         const companyName = cells[3]?.v || '';
         const comments = cells[4]?.v || '';
+        const status = cells[5]?.v || '';
 
         // Parse entry time to get date
         const date = this.extractDate(entryTime);
@@ -119,6 +121,7 @@ export class GvizService {
           exitTime,
           companyName,
           comments,
+          status,
           date,
           duration,
         };

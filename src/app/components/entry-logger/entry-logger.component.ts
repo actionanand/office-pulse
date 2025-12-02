@@ -29,6 +29,7 @@ export class EntryLoggerComponent implements OnInit {
   showGoogleFormDialog = signal<boolean>(false);
   googleFormUrl = signal<string>('');
   pendingFormData = signal<{ log: EntryLog; formData: { companyName: string; comment: string; status: string } } | null>(null);
+  showLeaveToggle = signal<boolean>(false);
 
   // ============================================================================
   // ENTRY/EXIT LOGIC EXPLANATION:
@@ -57,15 +58,32 @@ export class EntryLoggerComponent implements OnInit {
   // Get today's entry from API for display
   todayApiEntry = computed(() => this.attendanceState.todayEntryFromAPI());
 
+  // Check if today's entry is a Day Off
+  isDayOffToday = computed(() => {
+    const apiEntry = this.todayApiEntry();
+    return apiEntry?.status === 'Day Off';
+  });
+
   canShowTodos = computed(() => {
     return this.hasEnteredToday();
+  });
+
+  // Show leave toggle only when not entered and not submitted
+  shouldShowLeaveToggle = computed(() => {
+    return !this.hasEnteredToday() && !this.isSubmittedToday();
   });
 
   entryTimeDisplay = computed(() => {
     // First check API entry
     const apiEntry = this.todayApiEntry();
-    if (apiEntry?.entryTime) {
-      return this.formatTimeString(apiEntry.entryTime);
+    if (apiEntry) {
+      // If Day Off, don't show entry time
+      if (apiEntry.status === 'Day Off') {
+        return 'Day Off';
+      }
+      if (apiEntry.entryTime) {
+        return this.formatTimeString(apiEntry.entryTime);
+      }
     }
     
     // Fallback to local storage
@@ -77,8 +95,14 @@ export class EntryLoggerComponent implements OnInit {
   exitTimeDisplay = computed(() => {
     // First check API entry
     const apiEntry = this.todayApiEntry();
-    if (apiEntry?.exitTime) {
-      return this.formatTimeString(apiEntry.exitTime);
+    if (apiEntry) {
+      // If Day Off, don't show exit time
+      if (apiEntry.status === 'Day Off') {
+        return '';
+      }
+      if (apiEntry.exitTime) {
+        return this.formatTimeString(apiEntry.exitTime);
+      }
     }
     
     // Fallback to local storage
@@ -253,6 +277,41 @@ export class EntryLoggerComponent implements OnInit {
 
   closeEntryDialog(): void {
     this.showEntryDialog.set(false);
+  }
+
+  applyLeave(): void {
+    if (this.isSubmittedToday() || this.hasEnteredToday()) {
+      alert('You have already marked attendance for today.');
+      return;
+    }
+
+    const currentTime = new Date();
+    
+    // Create a log entry with current time for both entry and exit
+    const log: EntryLog = {
+      entryTime: currentTime.toISOString(),
+      exitTime: currentTime.toISOString(),
+      date: this.getTodayDateString(),
+    };
+
+    this.storageService.saveEntryLog(log);
+    this.entryLog.set(log);
+    
+    // Notify attendance state service to trigger reactivity
+    this.attendanceState.notifyLocalStorageChanged();
+
+    // Set pending form data with Day Off status
+    this.pendingFormData.set({ 
+      log, 
+      formData: { 
+        companyName: '', 
+        comment: 'Day Off - Leave Applied', 
+        status: 'Day Off' 
+      } 
+    });
+
+    // Show submission dialog
+    this.showSubmissionDialog.set(true);
   }
 
   handleEntrySubmit(useCustomTime: boolean, customDateTimeValue?: string): void {

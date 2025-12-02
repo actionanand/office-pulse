@@ -89,6 +89,25 @@
     }
   }
 
+  .leave-toggle-section {
+    padding: 1rem;
+    margin-top: 1rem;
+    
+    .toggle-container {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      
+      .toggle-label {
+        font-size: 1rem;
+      }
+    }
+    
+    .toggle-hint {
+      font-size: 0.8rem;
+    }
+  }
+
   .action-buttons {
     flex-direction: column;
     gap: 0.85rem;
@@ -353,6 +372,22 @@
       font-style: italic;
       margin-top: 0.5rem;
     }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: #e3f2fd;
+      color: #1976d2;
+      
+      &.day-off {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffc107;
+      }
+    }
 
     .exit-time {
       margin-top: 0.5rem;
@@ -411,6 +446,83 @@
       border: 1px solid #ddd;
       border-radius: 4px;
       font-size: 1rem;
+    }
+  }
+}
+
+.leave-toggle-section {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+  
+  .toggle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    
+    .toggle-label {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1.05rem;
+    }
+  }
+  
+  .toggle-hint {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin: 0;
+    font-style: italic;
+  }
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 54px;
+  height: 28px;
+  
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    
+    &:checked + .toggle-slider {
+      background-color: #ffc107;
+      
+      &:before {
+        transform: translateX(26px);
+      }
+    }
+    
+    &:focus + .toggle-slider {
+      box-shadow: 0 0 1px #ffc107;
+    }
+  }
+  
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 28px;
+    
+    &:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
     }
   }
 }

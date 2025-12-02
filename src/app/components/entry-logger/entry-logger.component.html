@@ -9,17 +9,29 @@
       <div class="status-submitted">
         <div class="status-icon">✅</div>
         <div class="status-text">
-          <h2>Submitted!</h2>
-          <p>You submitted your entry/exit for today</p>
-          @if (todayApiEntry()) {
-            <p class="small-text api-info">📊 Data from server</p>
-          }
-          <p class="small-text">Entry: <strong>{{ entryTimeDisplay() }}</strong></p>
-          @if (hasExitedToday()) {
-            <p class="small-text exit-time">Exit: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong></p>
-            <p class="duration-text">⏱️ Total Duration: <strong>{{ durationDisplay() }}</strong></p>
+          @if (isDayOffToday()) {
+            <h2>Day Off Applied!</h2>
+            <p>You have marked today as Day Off</p>
+            @if (todayApiEntry()) {
+              <p class="small-text api-info">📊 Data from server</p>
+              <p class="small-text">Status: <strong class="status-badge day-off">Day Off</strong></p>
+            }
           } @else {
-            <p class="small-text info-text">Exit time not recorded yet</p>
+            <h2>Submitted!</h2>
+            <p>You submitted your entry/exit for today</p>
+            @if (todayApiEntry()) {
+              <p class="small-text api-info">📊 Data from server</p>
+              @if (todayApiEntry()!.status) {
+                <p class="small-text">Status: <strong class="status-badge">{{ todayApiEntry()!.status }}</strong></p>
+              }
+            }
+            <p class="small-text">Entry: <strong>{{ entryTimeDisplay() }}</strong></p>
+            @if (hasExitedToday()) {
+              <p class="small-text exit-time">Exit: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong></p>
+              <p class="duration-text">⏱️ Total Duration: <strong>{{ durationDisplay() }}</strong></p>
+            } @else {
+              <p class="small-text info-text">Exit time not recorded yet</p>
+            }
           }
         </div>
       </div>
@@ -68,6 +80,23 @@
           <p>You have not come to office today</p>
         </div>
       </div>
+      
+      @if (shouldShowLeaveToggle()) {
+        <div class="leave-toggle-section">
+          <div class="toggle-container">
+            <span class="toggle-label">Apply Leave (Day Off)</span>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                (change)="applyLeave()"
+                [checked]="false"
+              />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <p class="toggle-hint">Toggle to mark today as Day Off</p>
+        </div>
+      }
     }
   </div>
 

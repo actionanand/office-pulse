@@ -272,4 +272,26 @@ export class MonthlyCalendarComponent implements OnInit {
       return '';
     }
   }
+
+  getStatusClass(status: string): string {
+    const statusMap: Record<string, string> = {
+      'Day Off': 'status-day-off',
+      'WFH': 'status-wfh',
+      'Office': 'status-office',
+      'First Half Off': 'status-half-off',
+      'Second Half Off': 'status-half-off'
+    };
+    return statusMap[status] || '';
+  }
+
+  getStatusLabel(status: string): string {
+    const labelMap: Record<string, string> = {
+      'WFH': 'WFH',
+      'Office': 'OFF',
+      'First Half Off': '1/2',
+      'Second Half Off': '1/2',
+      'Day Off': 'OFF'
+    };
+    return labelMap[status] || '';
+  }
 }

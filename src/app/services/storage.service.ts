@@ -96,6 +96,17 @@ export class StorageService {
       },
       {
         id: this.generateId(),
+        time: '16:00',
+        description: 'Update Google Sheets todos',
+        completed: false,
+        createdAt: new Date().toISOString(),
+        startDate: today,
+        recurrenceType: 'weekly',
+        daysOfWeek: ['friday'],
+        isDefaultTodo: true
+      },
+      {
+        id: this.generateId(),
         time: '17:00',
         description: 'End of day summary',
         completed: false,

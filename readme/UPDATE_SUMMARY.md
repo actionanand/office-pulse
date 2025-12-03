@@ -1,4 +1,4 @@
-# Office Entry/Exit Logger - Update Summary
+# InOut Register - Update Summary
 
 ## Changes Implemented ✅
 

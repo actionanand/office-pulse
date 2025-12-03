@@ -1,6 +1,6 @@
 <div class="entry-logger-container">
   <div class="header">
-    <h1>Office Entry/Exit Logger</h1>
+    <h1>InOut Register</h1>
     <div class="current-time">{{ currentTime() }}</div>
   </div>
 
@@ -127,7 +127,22 @@
     </button>
   </div>
 
-  @if (canShowTodos()) {
+  <!-- Todo List Toggle (Always Visible) -->
+  <div class="todo-toggle-section">
+    <div class="toggle-container">
+      <span class="toggle-label">Show Todo List</span>
+      <label class="toggle-switch">
+        <input 
+          type="checkbox" 
+          [checked]="showTodoList()"
+          (change)="toggleTodoList()"
+        />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  @if (showTodoList()) {
     <app-todo-list />
   }
 
@@ -203,12 +218,12 @@
               <label>Status:</label>
               <div class="radio-group">
                 <label class="radio-option">
-                  <input type="radio" name="status" value="WFH" #statusField checked />
-                  <span>WFH</span>
+                  <input type="radio" name="status" value="Office" #statusField checked />
+                  <span>Office</span>
                 </label>
                 <label class="radio-option">
-                  <input type="radio" name="status" value="Office" />
-                  <span>Office</span>
+                  <input type="radio" name="status" value="WFH" />
+                  <span>WFH</span>
                 </label>
                 <label class="radio-option">
                   <input type="radio" name="status" value="First Half Off" />
@@ -258,7 +273,6 @@
               <ul>
                 <li>Clicking "Yes, Submit" will open the Google Form in a popup dialog</li>
                 <li>After submission, you won't be able to add another entry until tomorrow</li>
-                <li>Your todo list will remain accessible</li>
               </ul>
             </div>
           </div>

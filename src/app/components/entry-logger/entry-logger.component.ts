@@ -33,6 +33,7 @@ export class EntryLoggerComponent implements OnInit {
   showPastDateDialog = signal<boolean>(false);
   showPastActionDialog = signal<boolean>(false);
   selectedPastDate = signal<string>('');
+  showTodoList = signal<boolean>(true);
 
   maxDate = computed(() => {
     const yesterday = new Date();
@@ -266,6 +267,7 @@ export class EntryLoggerComponent implements OnInit {
     }
 
     this.workHours.set(settings.defaultWorkHours);
+    this.showTodoList.set(settings.showTodoList);
   }
 
   openEntryDialog(): void {
@@ -342,6 +344,14 @@ export class EntryLoggerComponent implements OnInit {
     
     // Notify attendance state service to trigger reactivity
     this.attendanceState.notifyLocalStorageChanged();
+    
+    // Auto-enable todo list after entry
+    if (!this.showTodoList()) {
+      this.showTodoList.set(true);
+      const settings = this.storageService.getSettings();
+      settings.showTodoList = true;
+      this.storageService.saveSettings(settings);
+    }
     
     this.closeEntryDialog();
   }
@@ -461,7 +471,7 @@ export class EntryLoggerComponent implements OnInit {
       'entry.1057727999': exitTime, // Exit Time (required)
       'entry.302638121': formData.companyName || '', // Company Name (optional)
       'entry.1773816160': formData.comment || '', // Comments (optional)
-      'entry.1264867401': formData.status || 'WFH', // Status (radio button)
+      'entry.1264867401': formData.status || 'Office', // Status (radio button)
       embedded: 'true',
     });
 
@@ -489,6 +499,14 @@ export class EntryLoggerComponent implements OnInit {
     this.workHours.set(hours);
     const settings = this.storageService.getSettings();
     settings.defaultWorkHours = hours;
+    this.storageService.saveSettings(settings);
+  }
+
+  toggleTodoList(): void {
+    const newValue = !this.showTodoList();
+    this.showTodoList.set(newValue);
+    const settings = this.storageService.getSettings();
+    settings.showTodoList = newValue;
     this.storageService.saveSettings(settings);
   }
 
@@ -629,7 +647,7 @@ export class EntryLoggerComponent implements OnInit {
     exitTime.setHours(18, 0, 0, 0);
 
     // Build Google Form URL with default entry/exit times
-    const formUrl = this.buildGoogleFormUrlForPastDate(entryTime, exitTime, '', '', 'WFH');
+    const formUrl = this.buildGoogleFormUrlForPastDate(entryTime, exitTime, '', '', 'Office');
     this.googleFormUrl.set(formUrl);
 
     this.closePastActionDialog();

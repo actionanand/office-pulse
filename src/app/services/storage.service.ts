@@ -40,34 +40,69 @@ export class StorageService {
   }
 
   private getDefaultTodos(): TodoItem[] {
+    const today = new Date().toISOString().split('T')[0];
     return [
       {
         id: this.generateId(),
         time: '09:00',
         description: 'Send morning emails',
         completed: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        startDate: today,
+        recurrenceType: 'daily',
+        isDefaultTodo: true
       },
       {
         id: this.generateId(),
         time: '10:00',
         description: 'Team standup meeting',
         completed: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        startDate: today,
+        recurrenceType: 'daily',
+        isDefaultTodo: true
       },
       {
         id: this.generateId(),
         time: '14:00',
         description: 'Review pending tasks',
         completed: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        startDate: today,
+        recurrenceType: 'daily',
+        isDefaultTodo: true
+      },
+      {
+        id: this.generateId(),
+        time: '11:30',
+        description: 'Team sync (Mon & Thu)',
+        completed: false,
+        createdAt: new Date().toISOString(),
+        startDate: today,
+        recurrenceType: 'custom',
+        daysOfWeek: ['monday', 'thursday'],
+        isDefaultTodo: true
+      },
+      {
+        id: this.generateId(),
+        time: '15:00',
+        description: 'Client calls (Tue & Fri)',
+        completed: false,
+        createdAt: new Date().toISOString(),
+        startDate: today,
+        recurrenceType: 'custom',
+        daysOfWeek: ['tuesday', 'friday'],
+        isDefaultTodo: true
       },
       {
         id: this.generateId(),
         time: '17:00',
         description: 'End of day summary',
         completed: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        startDate: today,
+        recurrenceType: 'daily',
+        isDefaultTodo: true
       }
     ];
   }
@@ -82,10 +117,11 @@ export class StorageService {
     localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(settings));
   }
 
-  private getDefaultSettings(): AppSettings {
+  getDefaultSettings(): AppSettings {
     return {
       defaultWorkHours: 6,
-      exitCalculatorTime: '18:00'
+      exitCalculatorTime: '18:00',
+      showTodoList: false
     };
   }
 

@@ -1,4 +1,4 @@
-# Office Entry/Exit Logger - Visual Flow
+# InOut Register - Visual Flow
 
 ## Daily Workflow Diagram
 

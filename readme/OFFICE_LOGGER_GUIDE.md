@@ -1,4 +1,4 @@
-# Office Entry/Exit Logger
+# InOut Register
 
 An Angular application for tracking office entry and exit times with integrated Google Forms submission and todo management.
 

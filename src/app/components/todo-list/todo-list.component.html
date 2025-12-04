@@ -12,6 +12,18 @@
       <button class="btn-nav" (click)="changeDate('next')" title="Next day">▶</button>
     </div>
     <div class="header-actions">
+      <button 
+        class="btn btn-sync" 
+        (click)="syncFromGoogleSheets()"
+        [disabled]="isSyncing()"
+        title="Sync todos from Google Sheets"
+      >
+        @if (isSyncing()) {
+          🔄 Syncing...
+        } @else {
+          📊 Sync Sheet
+        }
+      </button>
       <button class="btn btn-add" (click)="openAddForm()">+ Add Todo</button>
       <button class="btn btn-clear" (click)="clearAllTodos()">Clear All</button>
     </div>

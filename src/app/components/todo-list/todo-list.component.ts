@@ -1,7 +1,7 @@
 import { Component, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { StorageService } from '../../services/storage.service';
+import { TodoService } from '../../services/todo.service';
 import { TodoItem, RecurrenceType, DayOfWeek } from '../../models/entry-log.model';
 
 @Component({
@@ -12,11 +12,12 @@ import { TodoItem, RecurrenceType, DayOfWeek } from '../../models/entry-log.mode
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TodoListComponent implements OnInit {
-  private storageService = new StorageService();
+  private todoService = new TodoService();
   
   allTodos = signal<TodoItem[]>([]);
   showAddForm = signal<boolean>(false);
   selectedDate = signal<string>(this.getTodayDateString());
+  isSyncing = signal<boolean>(false);
   
   // Edit state
   editingTodoId = signal<string | null>(null);
@@ -42,11 +43,31 @@ export class TodoListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTodos();
+    // Auto-sync from Google Sheets on init
+    this.syncFromGoogleSheets();
   }
 
   loadTodos(): void {
-    const todos = this.storageService.getTodoItems();
+    const todos = this.todoService.getTodoItems();
     this.allTodos.set(todos);
+  }
+
+  syncFromGoogleSheets(): void {
+    this.isSyncing.set(true);
+    
+    this.todoService.syncTodosFromSheet().subscribe({
+      next: (todos) => {
+        this.allTodos.set(todos);
+        this.isSyncing.set(false);
+        console.log('✅ Todos synced from Google Sheets:', todos.length);
+      },
+      error: (error) => {
+        console.error('❌ Error syncing todos:', error);
+        this.isSyncing.set(false);
+        // Load from local storage as fallback
+        this.loadTodos();
+      }
+    });
   }
 
   private getTodayDateString(): string {
@@ -148,6 +169,7 @@ export class TodoListComponent implements OnInit {
         
         return {
           ...t,
+          completed: !isCompleted, // Update completed flag for UI
           completedDates: isCompleted
             ? completedDates.filter(d => d !== dateStr)
             : [...completedDates, dateStr]
@@ -156,7 +178,7 @@ export class TodoListComponent implements OnInit {
     });
     
     this.allTodos.set(updatedTodos);
-    this.storageService.saveTodoItems(updatedTodos);
+    this.todoService.saveTodoItems(updatedTodos);
   }
 
   deleteTodo(id: string): void {
@@ -165,7 +187,7 @@ export class TodoListComponent implements OnInit {
     const todos = this.allTodos();
     const updatedTodos = todos.filter(todo => todo.id !== id);
     this.allTodos.set(updatedTodos);
-    this.storageService.saveTodoItems(updatedTodos);
+    this.todoService.saveTodoItems(updatedTodos);
   }
 
   // Edit functionality
@@ -192,7 +214,7 @@ export class TodoListComponent implements OnInit {
     );
     
     this.allTodos.set(updatedTodos);
-    this.storageService.saveTodoItems(updatedTodos);
+    this.todoService.saveTodoItems(updatedTodos);
     this.cancelEdit();
   }
 
@@ -239,7 +261,7 @@ export class TodoListComponent implements OnInit {
     }
 
     const newTodo: TodoItem = {
-      id: this.storageService.generateId(),
+      id: this.todoService.generateId(),
       time: this.newTodoTime(),
       description: description,
       completed: false,
@@ -271,13 +293,13 @@ export class TodoListComponent implements OnInit {
 
     const todos = [...this.allTodos(), newTodo];
     this.allTodos.set(todos);
-    this.storageService.saveTodoItems(todos);
+    this.todoService.saveTodoItems(todos);
     this.closeAddForm();
   }
 
   clearAllTodos(): void {
-    if (confirm('Are you sure you want to clear all todos? This will restore default todos.')) {
-      this.storageService.clearTodoItems();
+    if (confirm('Are you sure you want to clear all todos? This will reset to default todos.')) {
+      this.todoService.clearTodoItems();
       this.loadTodos();
     }
   }
@@ -289,7 +311,7 @@ export class TodoListComponent implements OnInit {
     );
     
     this.allTodos.set(updatedTodos);
-    this.storageService.saveTodoItems(updatedTodos);
+    this.todoService.saveTodoItems(updatedTodos);
   }
 
   changeDate(direction: 'prev' | 'next'): void {

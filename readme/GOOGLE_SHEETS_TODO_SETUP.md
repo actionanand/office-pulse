@@ -209,6 +209,66 @@ completedDates: [blank]
 
 ---
 
+## Ready-to-Use Google Sheets Data
+
+### Copy-Paste Ready Table (20 Practical Examples)
+
+Copy the table below directly into your Google Sheet (starting from row 2, after headers):
+
+| id | time | description | completed | createdAt | isDefaultTodo | startDate | recurrenceType | endDate | daysOfWeek | biweeklyOffset | dayOfMonth | monthOfYear | completedDates |
+|----|------|-------------|-----------|-----------|---------------|-----------|----------------|---------|------------|----------------|------------|-------------|----------------|
+| 1733241600001 | 09:00 | Check and respond to emails | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | daily | | | | | | |
+| 1733241600002 | 09:30 | Review calendar for the day | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | daily | | | | | | |
+| 1733241600003 | 10:00 | Team standup meeting | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | daily | | | | | | |
+| 1733241600004 | 10:30 | Sprint planning (Mon) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-02 | weekly | | monday | | | | |
+| 1733241600005 | 11:00 | One-on-one with manager (Thu) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | weekly | | thursday | | | | |
+| 1733241600006 | 11:30 | Team sync (Mon & Thu) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | custom | | monday,thursday | | | | |
+| 1733241600007 | 12:00 | Lunch break reminder | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | daily | | | | | | |
+| 1733241600008 | 13:00 | Review pull requests | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | daily | | | | | | |
+| 1733241600009 | 14:00 | Client calls (Tue & Fri) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | custom | | tuesday,friday | | | | |
+| 1733241600010 | 14:30 | Sprint retrospective (Fri) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | weekly | | friday | | | | |
+| 1733241600011 | 15:00 | Code review session (Mon/Wed/Fri) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | custom | | monday,wednesday,friday | | | | |
+| 1733241600012 | 15:30 | Team all-hands (Every 2 weeks) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-02 | biweekly | 2026-12-31 | monday | 0 | | | |
+| 1733241600013 | 16:00 | Update project documentation | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | weekly | | friday | | | | |
+| 1733241600014 | 16:30 | Weekly report submission | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | weekly | | friday | | | | |
+| 1733241600015 | 17:00 | End of day summary | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | daily | | | | | | |
+| 1733241600016 | 09:00 | Monthly expense report | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | monthly | | | | 25 | | |
+| 1733241600017 | 10:00 | Monthly team meeting | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | monthly | | | | 1 | | |
+| 1733241600018 | 11:00 | Quarterly goals review | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-01-15 | yearly | | | | 15 | 1 | |
+| 1733241600019 | 14:00 | Birthday party setup | FALSE | 2025-12-04T09:00:00.000Z | FALSE | 2025-12-20 | once | | | | | | |
+| 1733241600020 | 16:00 | Prepare year-end presentation | FALSE | 2025-12-04T09:00:00.000Z | FALSE | 2025-12-28 | once | | | | | | |
+
+### Simplified Version (10 Most Common Todos)
+
+If you want to start with fewer examples:
+
+| id | time | description | completed | createdAt | isDefaultTodo | startDate | recurrenceType | endDate | daysOfWeek | biweeklyOffset | dayOfMonth | monthOfYear | completedDates |
+|----|------|-------------|-----------|-----------|---------------|-----------|----------------|---------|------------|----------------|------------|-------------|----------------|
+| 1733241600001 | 09:00 | Check emails | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | daily | | | | | | |
+| 1733241600002 | 10:00 | Team standup | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | daily | | | | | | |
+| 1733241600003 | 11:00 | Manager 1-on-1 (Thu) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | weekly | | thursday | | | | |
+| 1733241600004 | 14:00 | Client calls (Tue/Fri) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | custom | | tuesday,friday | | | | |
+| 1733241600005 | 15:00 | Sprint planning (alternate Mon) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-02 | biweekly | | monday | 0 | | | |
+| 1733241600006 | 16:00 | Weekly report (Fri) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | weekly | | friday | | | | |
+| 1733241600007 | 17:00 | End of day summary | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | daily | | | | | | |
+| 1733241600008 | 09:00 | Monthly expense report (25th) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-12-01 | monthly | | | | 25 | | |
+| 1733241600009 | 10:00 | Annual review (Jan 15) | FALSE | 2025-12-04T09:00:00.000Z | TRUE | 2025-01-15 | yearly | | | | 15 | 1 | |
+| 1733241600010 | 14:00 | Project deadline | FALSE | 2025-12-04T09:00:00.000Z | FALSE | 2025-12-31 | once | | | | | | |
+
+### Quick Test Data (5 Items for Testing)
+
+For quick testing of all recurrence types:
+
+| id | time | description | completed | createdAt | isDefaultTodo | startDate | recurrenceType | endDate | daysOfWeek | biweeklyOffset | dayOfMonth | monthOfYear | completedDates |
+|----|------|-------------|-----------|-----------|---------------|-----------|----------------|---------|------------|----------------|------------|-------------|----------------|
+| TEST001 | 09:00 | Daily task test | FALSE | 2025-12-04T09:00:00.000Z | FALSE | 2025-12-04 | daily | 2025-12-10 | | | | | |
+| TEST002 | 10:00 | Weekly Monday test | FALSE | 2025-12-04T09:00:00.000Z | FALSE | 2025-12-02 | weekly | | monday | | | | |
+| TEST003 | 11:00 | Custom Tue/Thu test | FALSE | 2025-12-04T09:00:00.000Z | FALSE | 2025-12-03 | custom | | tuesday,thursday | | | | |
+| TEST004 | 14:00 | Monthly 15th test | FALSE | 2025-12-04T09:00:00.000Z | FALSE | 2025-12-01 | monthly | | | | 15 | | |
+| TEST005 | 15:00 | One-time test | FALSE | 2025-12-04T09:00:00.000Z | FALSE | 2025-12-05 | once | | | | | | |
+
+---
+
 ## Google Sheets Setup Steps
 
 ### 1. Create New Google Sheet
@@ -240,22 +300,64 @@ id | time | description | completed | createdAt | isDefaultTodo | startDate | re
 **For daysOfWeek column:**
 - Add note/comment with valid values: `monday,tuesday,wednesday,thursday,friday,saturday,sunday`
 
-### 5. Auto-Generate ID Formula
-In cell A2, use this formula to auto-generate IDs:
+### 5. Auto-Generate ID Formula (Fixed for Dragging)
+In cell **A2**, use this ARRAYFORMULA to auto-generate IDs for first 100 rows:
 ```
-=CONCATENATE(TEXT(NOW(),"YYYYMMDDHHmmss"),"-",RANDBETWEEN(100000,999999))
+=ARRAYFORMULA(IF(LEN(C2:C101), TEXT(ROW(C2:C101),"00000000000000") & "-" & TEXT(RANDBETWEEN(1,999999),"000000"), ""))
 ```
 
-### 6. Auto-Generate createdAt Formula
-In cell E2, use this formula:
+**Alternative (Manual Static IDs):** If you prefer static IDs that never change:
 ```
-=TEXT(NOW(),"YYYY-MM-DD")&"T"&TEXT(NOW(),"HH:mm:ss")&".000Z"
+=ARRAYFORMULA(IF(LEN(C2:C101), "TD-" & TEXT(ROW(C2:C101),"0000"), ""))
+```
+This creates IDs like: TD-0002, TD-0003, TD-0004, etc.
+
+### 6. Auto-Generate createdAt Formula (Fixed for Dragging)
+In cell **E2**, use this ARRAYFORMULA to auto-generate timestamps for first 100 rows:
+```
+=ARRAYFORMULA(IF(LEN(C2:C101), TEXT(TODAY(),"YYYY-MM-DD") & "T09:00:00.000Z", ""))
+```
+
+**For current timestamp:** If you want exact current time (but it will update):
+```
+=ARRAYFORMULA(IF(LEN(C2:C101), TEXT(NOW(),"YYYY-MM-DD") & "T" & TEXT(NOW(),"HH:mm:ss") & ".000Z", ""))
+```
+
+**Best Practice:** Use static date and manually set createdAt to avoid changes:
+```
+="2025-12-04T09:00:00.000Z"
 ```
 
 ### 7. Set Default Values
 - Set `completed` to FALSE (uncheck)
 - Set `isDefaultTodo` to TRUE (check) for default todos
 - Set `startDate` to today or desired start date
+
+### 8. Prevent Formula Recalculation (Important!)
+
+**Problem:** Formulas with `NOW()` or `RANDBETWEEN()` recalculate on every edit, changing IDs and timestamps.
+
+**Solution 1 - Convert to Values (Recommended):**
+1. After generating IDs and timestamps with formulas
+2. Select columns A (id) and E (createdAt)
+3. Copy (Ctrl+C)
+4. Right-click > Paste special > **Paste values only**
+5. This converts formulas to static text
+
+**Solution 2 - Use Row-Based Static IDs:**
+Put this in A2 and it auto-fills down:
+```
+=ARRAYFORMULA(IF(LEN(C2:C101), "TD-" & TEXT(ROW(C2:C101),"0000"), ""))
+```
+Put this in E2:
+```
+=ARRAYFORMULA(IF(LEN(C2:C101), "2025-12-04T09:00:00.000Z", ""))
+```
+
+**Solution 3 - Manual Entry:**
+Simply type static values:
+- id: `1733241600001`, `1733241600002`, etc.
+- createdAt: `2025-12-04T09:00:00.000Z` (same for all)
 
 ---
 

@@ -70,7 +70,7 @@
               <span class="todo-description">{{ todo.description }}</span>
             }
             
-            <div class="badges">
+            <div class="badges badges-desktop">
               @if (todo.isDefaultTodo) {
                 <span class="source-badge default-badge">📌 Default</span>
               } @else {
@@ -80,6 +80,17 @@
                 <span class="recurrence-badge">{{ getRecurrenceLabel(todo) }}</span>
               }
             </div>
+          </div>
+          
+          <div class="badges badges-mobile">
+            @if (todo.isDefaultTodo) {
+              <span class="source-badge default-badge">📌 Default</span>
+            } @else {
+              <span class="source-badge custom-badge">✏️ Custom</span>
+            }
+            @if (todo.recurrenceType !== 'once') {
+              <span class="recurrence-badge">{{ getRecurrenceLabel(todo) }}</span>
+            }
           </div>
           
           <div class="todo-actions">

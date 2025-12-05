@@ -3,8 +3,7 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'calendar',
-    pathMatch: 'full'
+    loadComponent: () => import('./components/home/home.component').then(m => m.HomeComponent)
   },
   {
     path: 'calendar',
@@ -29,5 +28,9 @@ export const routes: Routes = [
   {
     path: 'utilities',
     loadComponent: () => import('./components/utilities/utilities.component').then(m => m.UtilitiesComponent)
+  },
+  {
+    path: '**',
+    loadComponent: () => import('./components/not-found/not-found.component').then(m => m.NotFoundComponent)
   }
 ];

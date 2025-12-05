@@ -69,6 +69,8 @@
                   [class.past]="isPastDate(holiday.date)"
                   [class.today]="isTodayDate(holiday.date)"
                   [class.upcoming]="isUpcomingDate(holiday.date)"
+                  [class.this-month]="isThisMonth(holiday.date) && !isPastDate(holiday.date) && !isTodayDate(holiday.date)"
+                  [class.next-month]="isNextMonth(holiday.date)"
                 >
                   <td class="col-sno">{{ holiday.sno }}</td>
                   <td class="col-name">
@@ -85,6 +87,26 @@
               }
             </tbody>
           </table>
+        </div>
+
+        <!-- Color Legend -->
+        <div class="color-legend">
+          <div class="legend-item">
+            <span class="legend-color this-month-color"></span>
+            <span class="legend-text">This Month</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color next-month-color"></span>
+            <span class="legend-text">Next Month</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color today-color"></span>
+            <span class="legend-text">Today</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color past-color"></span>
+            <span class="legend-text">Past</span>
+          </div>
         </div>
 
         <!-- Summary -->
@@ -159,6 +181,8 @@
                   [class.past]="isPastDate(day.date)"
                   [class.today]="isTodayDate(day.date)"
                   [class.upcoming]="isUpcomingDate(day.date)"
+                  [class.this-month]="isThisMonth(day.date) && !isPastDate(day.date) && !isTodayDate(day.date)"
+                  [class.next-month]="isNextMonth(day.date)"
                 >
                   <td class="col-sno">{{ day.sno }}</td>
                   <td class="col-name">
@@ -188,6 +212,26 @@
               }
             </tbody>
           </table>
+        </div>
+
+        <!-- Color Legend -->
+        <div class="color-legend">
+          <div class="legend-item">
+            <span class="legend-color this-month-color"></span>
+            <span class="legend-text">This Month</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color next-month-color"></span>
+            <span class="legend-text">Next Month</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color today-color"></span>
+            <span class="legend-text">Today</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color past-color"></span>
+            <span class="legend-text">Past</span>
+          </div>
         </div>
 
         <!-- Summary -->

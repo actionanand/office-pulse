@@ -220,7 +220,35 @@
       }
     }
 
-    // Upcoming date (within 7 days)
+    // This month (light blue)
+    &.this-month {
+      background: #e3f2fd;
+      
+      &:hover {
+        background: #bbdefb;
+      }
+
+      .item-name {
+        color: #1565c0;
+        font-weight: 600;
+      }
+    }
+
+    // Next month (light purple/lavender)
+    &.next-month {
+      background: #f3e5f5;
+      
+      &:hover {
+        background: #e1bee7;
+      }
+
+      .item-name {
+        color: #7b1fa2;
+        font-weight: 600;
+      }
+    }
+
+    // Upcoming date (within 7 days) - higher priority than month colors
     &.upcoming {
       background: #fff8e1;
       
@@ -316,6 +344,54 @@
   50% {
     opacity: 0.7;
   }
+}
+
+// Color Legend
+.color-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legend-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.legend-text {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.this-month-color {
+  background: #e3f2fd;
+}
+
+.next-month-color {
+  background: #f3e5f5;
+}
+
+.today-color {
+  background: #e8f5e9;
+}
+
+.past-color {
+  background: #f5f5f5;
+  opacity: 0.6;
 }
 
 // Summary Section
@@ -525,6 +601,20 @@
     margin-left: 0;
     margin-top: 0.25rem;
     width: fit-content;
+  }
+
+  .color-legend {
+    gap: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .legend-color {
+    width: 12px;
+    height: 12px;
+  }
+
+  .legend-text {
+    font-size: 0.7rem;
   }
 
   .summary-card {

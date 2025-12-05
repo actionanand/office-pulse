@@ -122,6 +122,31 @@ export class OfficeHolidaysComponent implements OnInit {
     }
   }
 
+  isThisMonth(dateStr: string): boolean {
+    try {
+      const today = new Date();
+      const targetDate = new Date(dateStr);
+      
+      return targetDate.getMonth() === today.getMonth() && 
+             targetDate.getFullYear() === today.getFullYear();
+    } catch {
+      return false;
+    }
+  }
+
+  isNextMonth(dateStr: string): boolean {
+    try {
+      const today = new Date();
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+      const targetDate = new Date(dateStr);
+      
+      return targetDate.getMonth() === nextMonth.getMonth() && 
+             targetDate.getFullYear() === nextMonth.getFullYear();
+    } catch {
+      return false;
+    }
+  }
+
   isUpcomingDate(dateStr: string): boolean {
     try {
       const today = new Date();

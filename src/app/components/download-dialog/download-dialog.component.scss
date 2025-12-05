@@ -1,0 +1,302 @@
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dialog-container {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============ Header ============
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #eee;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+// ============ Body ============
+.dialog-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.section-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.section-hint {
+  margin: -0.5rem 0 0.75rem;
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
+// ============ Radio Group ============
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+
+  &:hover {
+    background: #f0f0f0;
+  }
+
+  &:has(input:checked) {
+    background: #e8f0fe;
+    border-color: #667eea;
+  }
+
+  input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #667eea;
+    cursor: pointer;
+  }
+}
+
+.radio-label {
+  font-size: 0.9rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+// ============ Select Row ============
+.select-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.select-group {
+  flex: 1;
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 0.4rem;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  }
+}
+
+// ============ Checkbox Group ============
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f0f0f0;
+  }
+
+  &:has(input:checked) {
+    background: #e8f5e9;
+  }
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #4caf50;
+    cursor: pointer;
+  }
+}
+
+.checkbox-label {
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
+// ============ Footer ============
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #eee;
+  background: #f8f9fa;
+}
+
+.btn {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+}
+
+.btn-secondary {
+  background: white;
+  color: #555;
+  border: 1px solid #ddd;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+.btn-icon {
+  font-size: 1rem;
+}
+
+// ============ Mobile Responsive ============
+@media (max-width: 480px) {
+  .dialog-container {
+    max-height: 95vh;
+  }
+
+  .dialog-header {
+    padding: 1rem;
+
+    h2 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .dialog-body {
+    padding: 1rem;
+  }
+
+  .select-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .dialog-footer {
+    flex-direction: column;
+    
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

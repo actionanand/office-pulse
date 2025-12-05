@@ -1,0 +1,41 @@
+<div class="home-container">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <span class="hero-icon">📊</span>
+      <h1 class="hero-title">{{ greeting }}!</h1>
+      <p class="hero-subtitle">Welcome to <strong>Office Pulse</strong> — your productivity companion</p>
+    </div>
+    <div class="hero-decoration">
+      <div class="floating-shape shape-1"></div>
+      <div class="floating-shape shape-2"></div>
+      <div class="floating-shape shape-3"></div>
+    </div>
+  </section>
+
+  <!-- Quick Links Section -->
+  <section class="quick-links-section">
+    <h2 class="section-title">Quick Access</h2>
+    <div class="quick-links-grid">
+      @for (link of quickLinks; track link.path) {
+        <a 
+          [routerLink]="link.path" 
+          class="quick-link-card"
+          [style.--card-color]="link.color"
+        >
+          <div class="card-icon">{{ link.icon }}</div>
+          <div class="card-content">
+            <h3 class="card-title">{{ link.title }}</h3>
+            <p class="card-description">{{ link.description }}</p>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+      }
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="home-footer">
+    <p>Made with ❤️ for productivity</p>
+  </footer>
+</div>

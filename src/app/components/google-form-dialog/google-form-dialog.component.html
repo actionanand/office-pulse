@@ -2,7 +2,7 @@
   <div class="form-dialog-overlay" (click)="onCloseWithoutSubmit()">
     <div class="form-dialog-container" (click)="$event.stopPropagation()">
       <div class="form-dialog-header">
-        <h2>📝 Office Attendance Form</h2>
+        <h2>{{ dialogTitle() }}</h2>
         <button class="close-btn" (click)="onCloseWithoutSubmit()" aria-label="Close dialog">
           ✕
         </button>

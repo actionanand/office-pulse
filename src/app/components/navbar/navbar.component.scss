@@ -10,7 +10,7 @@
 .navbar-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -21,39 +21,118 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
 
   .logo {
-    font-size: 2rem;
+    font-size: 1.75rem;
     line-height: 1;
   }
 
   .app-title {
     color: white;
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
+  }
+}
+
+// Hamburger Menu Toggle
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+  position: relative;
+
+  .hamburger-line {
+    position: absolute;
+    width: 22px;
+    height: 2.5px;
+    background: white;
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:nth-child(1) {
+      transform: translateY(-7px);
+    }
+    
+    &:nth-child(2) {
+      transform: translateY(0);
+    }
+    
+    &:nth-child(3) {
+      transform: translateY(7px);
+    }
+  }
+
+  &.active {
+    .hamburger-line:nth-child(1) {
+      transform: translateY(0) rotate(45deg);
+    }
+    .hamburger-line:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+    .hamburger-line:nth-child(3) {
+      transform: translateY(0) rotate(-45deg);
+    }
   }
 }
 
 .navbar-links {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.35rem;
   align-items: center;
+}
+
+.nav-group {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+
+  &.primary {
+    margin-right: 0.35rem;
+    padding-right: 0.75rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  &.secondary {
+    gap: 0.35rem;
+  }
 }
 
 .nav-link {
   color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  padding: 0.65rem 1.25rem;
+  padding: 0.5rem 0.7rem;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid transparent;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
+  white-space: nowrap;
+
+  .nav-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
 
   &:hover {
     background: rgba(255, 255, 255, 0.2);
@@ -72,43 +151,214 @@
   }
 }
 
-// Mobile responsive
-@media (max-width: 600px) {
+// Menu Overlay
+.menu-overlay {
+  display: none;
+}
+
+// Tablet/small laptop responsive
+@media (max-width: 1024px) {
   .navbar-container {
-    padding: 0.75rem 1rem;
-    flex-direction: column;
+    padding: 0.6rem 1rem;
     gap: 0.75rem;
-    align-items: stretch;
   }
 
   .navbar-brand {
-    justify-content: center;
-    gap: 0.5rem;
+    flex-shrink: 0;
 
     .logo {
       font-size: 1.5rem;
     }
 
     .app-title {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
+    }
+  }
+
+  .nav-group {
+    gap: 0.35rem;
+
+    &.primary {
+      margin-right: 0.35rem;
+      padding-right: 0.75rem;
+    }
+  }
+
+  .nav-link {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.8rem;
+    gap: 0.25rem;
+
+    .nav-icon {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Mobile responsive
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-brand {
+    .logo {
+      font-size: 1.5rem;
+    }
+
+    .app-title {
+      font-size: 1.15rem;
+    }
+  }
+
+  .menu-toggle {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    
+    &:active {
+      background: rgba(255, 255, 255, 0.2);
     }
   }
 
   .navbar-links {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 300px;
+    height: 100vh;
+    height: 100dvh;
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    align-items: stretch;
+    overflow-y: auto;
+
+    &.open {
+      right: 0;
+    }
+  }
+
+  // Mobile menu header
+  .nav-group {
+    flex-direction: column;
     width: 100%;
-    gap: 0.5rem;
+    padding: 0.5rem;
+    gap: 0.25rem;
+
+    &.primary {
+      margin-right: 0;
+      padding: 5rem 0.75rem 0.75rem;
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    &.secondary {
+      padding: 0.75rem;
+      gap: 0.25rem;
+    }
   }
 
   .nav-link {
-    flex: 1;
-    justify-content: center;
-    padding: 0.75rem 0.5rem;
+    width: 100%;
+    padding: 0.9rem 1rem;
     font-size: 0.95rem;
-    min-height: 48px;
-    touch-action: manipulation;
+    justify-content: flex-start;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    gap: 0.75rem;
 
+    .nav-icon {
+      font-size: 1.3rem;
+      width: 36px;
+      text-align: center;
+    }
+
+    .nav-text {
+      font-weight: 500;
+    }
+
+    &:hover,
     &:active {
-      transform: scale(0.98);
+      background: rgba(255, 255, 255, 0.15);
+      transform: none;
+    }
+
+    &.active {
+      background: rgba(255, 255, 255, 0.95);
+      color: #667eea;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+
+      .nav-text {
+        font-weight: 600;
+      }
+    }
+  }
+
+  .menu-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .navbar-brand {
+    .app-title {
+      font-size: 1rem;
+    }
+
+    .logo {
+      font-size: 1.35rem;
+    }
+  }
+
+  .navbar-links {
+    width: 85%;
+    max-width: 320px;
+    right: -85%;
+
+    &.open {
+      right: 0;
+    }
+  }
+
+  .nav-group {
+    &.primary {
+      padding-top: 4.5rem;
+    }
+  }
+
+  .nav-link {
+    padding: 0.85rem 0.9rem;
+    font-size: 0.9rem;
+
+    .nav-icon {
+      font-size: 1.2rem;
+      width: 32px;
     }
   }
 }

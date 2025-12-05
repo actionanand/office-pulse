@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -10,4 +10,13 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NavbarComponent {
+  readonly isMenuOpen = signal(false);
+
+  toggleMenu(): void {
+    this.isMenuOpen.update(v => !v);
+  }
+
+  closeMenu(): void {
+    this.isMenuOpen.set(false);
+  }
 }

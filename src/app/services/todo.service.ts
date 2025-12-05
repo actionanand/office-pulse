@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, catchError, map } from 'rxjs';
 import { TodoItem, DayOfWeek, RecurrenceType } from '../models/entry-log.model';
 import { environment } from '../../environments/environment';
+import { getISTDateString, getISTDateStringWithOffset } from '../utils/date-utils';
 
 @Injectable({
   providedIn: 'root'
@@ -36,7 +37,7 @@ export class TodoService {
 
   // Update todos to show correct completion status for today
   private updateTodosForToday(todos: TodoItem[]): TodoItem[] {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTDateString();
     
     return todos.map(todo => {
       // For once-only todos, completion is permanent
@@ -134,9 +135,7 @@ export class TodoService {
   // Clean up old completed dates to save localStorage space
   // Remove completed dates older than 10 days - no need to maintain past history
   private cleanupOldCompletedDates(todos: TodoItem[]): TodoItem[] {
-    const tenDaysAgo = new Date();
-    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-    const cutoffDate = tenDaysAgo.toISOString().split('T')[0];
+    const cutoffDate = getISTDateStringWithOffset(-10);
     
     return todos.map(todo => {
       if (!todo.completedDates || todo.completedDates.length === 0) {
@@ -154,7 +153,7 @@ export class TodoService {
   }
 
   getDefaultTodos(): TodoItem[] {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getISTDateString();
     return [
       {
         id: 'app-default-1',
@@ -269,7 +268,7 @@ export class TodoService {
         completed: row[3]?.toUpperCase() === 'TRUE',
         createdAt: row[4] || new Date().toISOString(),
         isDefaultTodo: row[5]?.toUpperCase() === 'TRUE',
-        startDate: row[6] || new Date().toISOString().split('T')[0],
+        startDate: row[6] || getISTDateString(),
         recurrenceType: (row[7] || 'once') as RecurrenceType,
         endDate: row[8] || undefined,
         daysOfWeek: row[9] ? this.parseDaysOfWeek(row[9]) : undefined,

@@ -1,0 +1,263 @@
+<div class="holidays-container">
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <div class="tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'holidays'"
+        (click)="setActiveTab('holidays')"
+      >
+        🎉 Holidays
+        <span class="tab-count">{{ holidays().length }}</span>
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab() === 'important-days'"
+        (click)="setActiveTab('important-days')"
+      >
+        ⭐ Important Days
+        <span class="tab-count">{{ importantDays().length }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Holidays Tab Content -->
+  @if (activeTab() === 'holidays') {
+    <div class="tab-content">
+      <div class="content-header">
+        <div class="header-info">
+          <h1 class="page-title">🎉 {{ holidayMeta().title }}</h1>
+          <span class="year-badge">{{ holidayMeta().year }}</span>
+        </div>
+        <button class="btn btn-refresh" (click)="refreshData()" [disabled]="isHolidaysLoading()">
+          @if (isHolidaysLoading()) {
+            🔄 Loading...
+          } @else {
+            🔄 Refresh
+          }
+        </button>
+      </div>
+
+      @if (isHolidaysLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading holidays...</p>
+        </div>
+      } @else if (holidaysError()) {
+        <div class="error-state">
+          <p>{{ holidaysError() }}</p>
+          <button class="btn btn-primary" (click)="refreshData()">Try Again</button>
+        </div>
+      } @else if (holidays().length === 0) {
+        <div class="empty-state">
+          <p>No holidays found for this year.</p>
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="col-sno">S.No</th>
+                <th class="col-name">Public Holiday</th>
+                <th class="col-date">Date</th>
+                <th class="col-day">Day</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (holiday of holidays(); track holiday.sno) {
+                <tr 
+                  [class.past]="isPastDate(holiday.date)"
+                  [class.today]="isTodayDate(holiday.date)"
+                  [class.upcoming]="isUpcomingDate(holiday.date)"
+                  [class.this-month]="isThisMonth(holiday.date) && !isPastDate(holiday.date) && !isTodayDate(holiday.date)"
+                  [class.next-month]="isNextMonth(holiday.date)"
+                >
+                  <td class="col-sno">{{ holiday.sno }}</td>
+                  <td class="col-name">
+                    <span class="item-name">{{ holiday.name }}</span>
+                    @if (isTodayDate(holiday.date)) {
+                      <span class="today-badge">Today!</span>
+                    } @else if (isTomorrowDate(holiday.date)) {
+                      <span class="tomorrow-badge">Tomorrow!</span>
+                    } @else if (isUpcomingDate(holiday.date)) {
+                      <span class="upcoming-badge">Coming Soon</span>
+                    }
+                  </td>
+                  <td class="col-date">{{ holiday.date }}</td>
+                  <td class="col-day">{{ holiday.day }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Color Legend -->
+        <div class="color-legend">
+          <div class="legend-item">
+            <span class="legend-color this-month-color"></span>
+            <span class="legend-text">This Month</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color next-month-color"></span>
+            <span class="legend-text">Next Month</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color today-color"></span>
+            <span class="legend-text">Today</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color past-color"></span>
+            <span class="legend-text">Past</span>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-section">
+          <div class="summary-card">
+            <span class="summary-value">{{ holidays().length }}</span>
+            <span class="summary-label">Total Holidays</span>
+          </div>
+        </div>
+      }
+
+      <!-- Notes Section -->
+      @if (holidayMeta().notes.length > 0) {
+        <div class="notes-section">
+          <h3>📝 Notes</h3>
+          <ul class="notes-list">
+            @for (note of holidayMeta().notes; track note) {
+              <li>{{ note }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Important Days Tab Content -->
+  @if (activeTab() === 'important-days') {
+    <div class="tab-content">
+      <div class="content-header">
+        <div class="header-info">
+          <h1 class="page-title">⭐ Important Days</h1>
+          <span class="year-badge">{{ importantDayMeta().year }}</span>
+        </div>
+        <button class="btn btn-refresh" (click)="refreshData()" [disabled]="isImportantDaysLoading()">
+          @if (isImportantDaysLoading()) {
+            🔄 Loading...
+          } @else {
+            🔄 Refresh
+          }
+        </button>
+      </div>
+
+      @if (isImportantDaysLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading important days...</p>
+        </div>
+      } @else if (importantDaysError()) {
+        <div class="error-state">
+          <p>{{ importantDaysError() }}</p>
+          <button class="btn btn-primary" (click)="refreshData()">Try Again</button>
+        </div>
+      } @else if (importantDays().length === 0) {
+        <div class="empty-state">
+          <p>No important days found for this year.</p>
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table class="data-table important-days-table">
+            <thead>
+              <tr>
+                <th class="col-sno">S.No</th>
+                <th class="col-name">Important Day</th>
+                <th class="col-date">Date</th>
+                <th class="col-day">Day</th>
+                <th class="col-tamil">Tamil Day</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (day of importantDays(); track day.sno) {
+                <tr 
+                  [class.past]="isPastDate(day.date)"
+                  [class.today]="isTodayDate(day.date)"
+                  [class.upcoming]="isUpcomingDate(day.date)"
+                  [class.this-month]="isThisMonth(day.date) && !isPastDate(day.date) && !isTodayDate(day.date)"
+                  [class.next-month]="isNextMonth(day.date)"
+                >
+                  <td class="col-sno">{{ day.sno }}</td>
+                  <td class="col-name">
+                    <span class="item-name">{{ day.name }}</span>
+                    @if (isTodayDate(day.date)) {
+                      <span class="today-badge">Today!</span>
+                    } @else if (isTomorrowDate(day.date)) {
+                      <span class="tomorrow-badge">Tomorrow!</span>
+                    } @else if (isUpcomingDate(day.date)) {
+                      <span class="upcoming-badge">Coming Soon</span>
+                    }
+                  </td>
+                  <td class="col-date">{{ day.date }}</td>
+                  <td class="col-day">
+                    @if (day.day) {
+                      {{ day.day }}
+                    } @else {
+                      <span class="no-data">—</span>
+                    }
+                  </td>
+                  <td class="col-tamil">
+                    @if (day.tamilDay) {
+                      <span class="tamil-day">{{ day.tamilDay }}</span>
+                    } @else {
+                      <span class="no-data">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Color Legend -->
+        <div class="color-legend">
+          <div class="legend-item">
+            <span class="legend-color this-month-color"></span>
+            <span class="legend-text">This Month</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color next-month-color"></span>
+            <span class="legend-text">Next Month</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color today-color"></span>
+            <span class="legend-text">Today</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color past-color"></span>
+            <span class="legend-text">Past</span>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-section">
+          <div class="summary-card">
+            <span class="summary-value">{{ importantDays().length }}</span>
+            <span class="summary-label">Total Important Days</span>
+          </div>
+        </div>
+      }
+
+      <!-- Notes Section -->
+      @if (importantDayMeta().notes.length > 0) {
+        <div class="notes-section">
+          <h3>📝 Notes</h3>
+          <ul class="notes-list">
+            @for (note of importantDayMeta().notes; track note) {
+              <li>{{ note }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  }
+</div>

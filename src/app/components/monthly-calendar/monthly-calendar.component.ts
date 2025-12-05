@@ -2,6 +2,9 @@ import { Component, signal, computed, OnInit, ChangeDetectionStrategy, inject } 
 import { CommonModule } from '@angular/common';
 import { AttendanceStateService } from '../../services/attendance-state.service';
 import { SheetEntry } from '../../services/gviz.service';
+import { PdfExportService } from '../../services/pdf-export.service';
+import { PdfExportOptions } from '../../models/pdf-export.model';
+import { DownloadDialogComponent } from '../download-dialog/download-dialog.component';
 
 interface CalendarDay {
   date: number;
@@ -14,17 +17,19 @@ interface CalendarDay {
 
 @Component({
   selector: 'app-monthly-calendar',
-  imports: [CommonModule],
+  imports: [CommonModule, DownloadDialogComponent],
   templateUrl: './monthly-calendar.component.html',
   styleUrls: ['./monthly-calendar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MonthlyCalendarComponent implements OnInit {
   private attendanceState = inject(AttendanceStateService);
+  private pdfExportService = inject(PdfExportService);
 
   currentYear = signal<number>(new Date().getFullYear());
   currentMonth = signal<number>(new Date().getMonth() + 1); // 1-12
   selectedDay = signal<CalendarDay | null>(null);
+  showDownloadDialog = signal<boolean>(false);
 
   // Get data from shared attendance state service
   entries = computed(() => this.attendanceState.allEntries());
@@ -122,6 +127,20 @@ export class MonthlyCalendarComponent implements OnInit {
 
   closeDetails(): void {
     this.selectedDay.set(null);
+  }
+
+  // Download PDF functionality
+  openDownloadDialog(): void {
+    this.showDownloadDialog.set(true);
+  }
+
+  closeDownloadDialog(): void {
+    this.showDownloadDialog.set(false);
+  }
+
+  downloadPdf(options: PdfExportOptions): void {
+    const entries = this.entries();
+    this.pdfExportService.generatePdf(entries, options);
   }
 
   retryLoadData(): void {

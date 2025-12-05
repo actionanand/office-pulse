@@ -165,6 +165,23 @@ export class OfficeHolidaysComponent implements OnInit {
     }
   }
 
+  isTomorrowDate(dateStr: string): boolean {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const targetDate = new Date(dateStr);
+      targetDate.setHours(0, 0, 0, 0);
+      
+      return targetDate.getTime() === tomorrow.getTime();
+    } catch {
+      return false;
+    }
+  }
+
   isTodayDate(dateStr: string): boolean {
     try {
       const today = new Date();

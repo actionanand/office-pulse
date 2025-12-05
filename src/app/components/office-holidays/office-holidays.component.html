@@ -77,6 +77,8 @@
                     <span class="item-name">{{ holiday.name }}</span>
                     @if (isTodayDate(holiday.date)) {
                       <span class="today-badge">Today!</span>
+                    } @else if (isTomorrowDate(holiday.date)) {
+                      <span class="tomorrow-badge">Tomorrow!</span>
                     } @else if (isUpcomingDate(holiday.date)) {
                       <span class="upcoming-badge">Coming Soon</span>
                     }
@@ -189,6 +191,8 @@
                     <span class="item-name">{{ day.name }}</span>
                     @if (isTodayDate(day.date)) {
                       <span class="today-badge">Today!</span>
+                    } @else if (isTomorrowDate(day.date)) {
+                      <span class="tomorrow-badge">Tomorrow!</span>
                     } @else if (isUpcomingDate(day.date)) {
                       <span class="upcoming-badge">Coming Soon</span>
                     }

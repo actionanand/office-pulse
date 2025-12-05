@@ -325,6 +325,19 @@
   animation: pulse 2s infinite;
 }
 
+.tomorrow-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  background: #0288d1;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  animation: pulse 2s infinite;
+}
+
 .upcoming-badge {
   display: inline-block;
   margin-left: 0.5rem;
@@ -596,6 +609,7 @@
   }
 
   .today-badge,
+  .tomorrow-badge,
   .upcoming-badge {
     display: block;
     margin-left: 0;

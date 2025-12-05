@@ -18,6 +18,7 @@ export class GoogleFormDialogComponent {
   // Inputs
   isOpen = input<boolean>(false);
   formUrl = input<string>('');
+  dialogTitle = input<string>('📝 Office Attendance Form');
   
   // Outputs
   closeDialog = output<void>();

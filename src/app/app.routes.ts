@@ -21,5 +21,9 @@ export const routes: Routes = [
   {
     path: 'holidays',
     loadComponent: () => import('./components/office-holidays/office-holidays.component').then(m => m.OfficeHolidaysComponent)
+  },
+  {
+    path: 'achievements',
+    loadComponent: () => import('./components/achievements/achievements.component').then(m => m.AchievementsComponent)
   }
 ];

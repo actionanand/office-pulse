@@ -13,5 +13,9 @@ export const routes: Routes = [
   {
     path: 'logger',
     loadComponent: () => import('./components/entry-logger/entry-logger.component').then(m => m.EntryLoggerComponent)
+  },
+  {
+    path: 'bandwidth',
+    loadComponent: () => import('./components/sprint-bandwidth/sprint-bandwidth.component').then(m => m.SprintBandwidthComponent)
   }
 ];

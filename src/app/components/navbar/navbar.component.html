@@ -4,24 +4,85 @@
       <span class="logo">📊</span>
       <h1 class="app-title">Office Pulse</h1>
     </div>
+
+    <!-- Hamburger Menu Button (Mobile) -->
+    <button 
+      class="menu-toggle" 
+      (click)="toggleMenu()" 
+      [class.active]="isMenuOpen()"
+      aria-label="Toggle navigation menu"
+    >
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
     
-    <div class="navbar-links">
-      <a 
-        routerLink="/calendar" 
-        routerLinkActive="active"
-        class="nav-link"
-        aria-label="Calendar View"
-      >
-        📅 Calendar
-      </a>
-      <a 
-        routerLink="/logger" 
-        routerLinkActive="active"
-        class="nav-link"
-        aria-label="Entry Logger"
-      >
-        📝 Logger
-      </a>
+    <div class="navbar-links" [class.open]="isMenuOpen()">
+      <!-- Primary Links (Always visible on desktop) -->
+      <div class="nav-group primary">
+        <a 
+          routerLink="/calendar" 
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="Calendar View"
+          (click)="closeMenu()"
+        >
+          <span class="nav-icon">📅</span>
+          <span class="nav-text">Calendar</span>
+        </a>
+        <a 
+          routerLink="/logger" 
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="Entry Logger"
+          (click)="closeMenu()"
+        >
+          <span class="nav-icon">📝</span>
+          <span class="nav-text">Logger</span>
+        </a>
+      </div>
+
+      <!-- Secondary Links -->
+      <div class="nav-group secondary">
+        <a 
+          routerLink="/bandwidth" 
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="Sprint Bandwidth Calculator"
+          (click)="closeMenu()"
+        >
+          <span class="nav-icon">⚡</span>
+          <span class="nav-text">Bandwidth</span>
+        </a>
+        <!-- Placeholder for future routes -->
+        <!-- 
+        <a 
+          routerLink="/reports" 
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="Reports"
+          (click)="closeMenu()"
+        >
+          <span class="nav-icon">📈</span>
+          <span class="nav-text">Reports</span>
+        </a>
+        <a 
+          routerLink="/settings" 
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="Settings"
+          (click)="closeMenu()"
+        >
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-text">Settings</span>
+        </a>
+        -->
+      </div>
     </div>
   </div>
 </nav>
+
+<!-- Overlay for mobile menu -->
+@if (isMenuOpen()) {
+  <div class="menu-overlay" (click)="closeMenu()"></div>
+}

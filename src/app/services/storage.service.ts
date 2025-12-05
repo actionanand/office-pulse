@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-import { EntryLog, TodoItem, AppSettings } from '../models/entry-log.model';
+import { EntryLog, AppSettings } from '../models/entry-log.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StorageService {
   private readonly ENTRY_LOG_KEY = 'office_entry_log';
-  private readonly TODO_ITEMS_KEY = 'office_todo_items';
   private readonly SETTINGS_KEY = 'office_settings';
 
   // Entry Log Methods
@@ -21,90 +20,6 @@ export class StorageService {
 
   clearEntryLog(): void {
     localStorage.removeItem(this.ENTRY_LOG_KEY);
-  }
-
-  // Todo Items Methods
-  getTodoItems(): TodoItem[] {
-    const data = localStorage.getItem(this.TODO_ITEMS_KEY);
-    return data ? JSON.parse(data) : this.getDefaultTodos();
-  }
-
-  saveTodoItems(items: TodoItem[]): void {
-    localStorage.setItem(this.TODO_ITEMS_KEY, JSON.stringify(items));
-  }
-
-  clearTodoItems(): void {
-    localStorage.removeItem(this.TODO_ITEMS_KEY);
-    // Restore default todos after clearing
-    this.saveTodoItems(this.getDefaultTodos());
-  }
-
-  private getDefaultTodos(): TodoItem[] {
-    const today = new Date().toISOString().split('T')[0];
-    return [
-      {
-        id: this.generateId(),
-        time: '09:00',
-        description: 'Send morning emails',
-        completed: false,
-        createdAt: new Date().toISOString(),
-        startDate: today,
-        recurrenceType: 'daily',
-        isDefaultTodo: true
-      },
-      {
-        id: this.generateId(),
-        time: '10:00',
-        description: 'Team standup meeting',
-        completed: false,
-        createdAt: new Date().toISOString(),
-        startDate: today,
-        recurrenceType: 'daily',
-        isDefaultTodo: true
-      },
-      {
-        id: this.generateId(),
-        time: '14:00',
-        description: 'Review pending tasks',
-        completed: false,
-        createdAt: new Date().toISOString(),
-        startDate: today,
-        recurrenceType: 'daily',
-        isDefaultTodo: true
-      },
-      {
-        id: this.generateId(),
-        time: '11:30',
-        description: 'Team sync (Mon & Thu)',
-        completed: false,
-        createdAt: new Date().toISOString(),
-        startDate: today,
-        recurrenceType: 'custom',
-        daysOfWeek: ['monday', 'thursday'],
-        isDefaultTodo: true
-      },
-      {
-        id: this.generateId(),
-        time: '15:00',
-        description: 'Client calls (Tue & Fri)',
-        completed: false,
-        createdAt: new Date().toISOString(),
-        startDate: today,
-        recurrenceType: 'custom',
-        daysOfWeek: ['tuesday', 'friday'],
-        isDefaultTodo: true
-      },
-      {
-        id: this.generateId(),
-        time: '17:00',
-        description: 'End of day summary',
-        completed: false,
-        createdAt: new Date().toISOString(),
-        startDate: today,
-        recurrenceType: 'daily',
-        isDefaultTodo: true
-      }
-    ];
   }
 
   // Settings Methods
@@ -130,3 +45,4 @@ export class StorageService {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
+

@@ -1,0 +1,191 @@
+<div class="utilities-container">
+  <h1 class="page-title">🛠️ Utilities</h1>
+
+  <div class="utilities-grid">
+    <!-- ============ COPY/TRANSFER Section ============ -->
+    <section class="utility-card copy-section">
+      <div class="card-header">
+        <h2>📋 Copy / Transfer</h2>
+        <p class="card-subtitle">Transfer links or text between devices</p>
+      </div>
+
+      <div class="form-group">
+        <label for="copyLink">Link (optional)</label>
+        <input 
+          type="url" 
+          id="copyLink"
+          [value]="copyFormData().link"
+          (input)="updateCopyField('link', $any($event.target).value)"
+          placeholder="https://example.com"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="copyComment">Comment / Text (optional)</label>
+        <textarea 
+          id="copyComment"
+          [value]="copyFormData().comment"
+          (input)="updateCopyField('comment', $any($event.target).value)"
+          placeholder="Any text or notes to transfer..."
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn btn-primary" (click)="submitCopy()">📤 Send</button>
+        <button class="btn btn-secondary" (click)="openEmptyCopyForm()">📝 Open Form</button>
+      </div>
+
+      <!-- Toggle to show existing items -->
+      <div class="toggle-section">
+        <button class="btn btn-text" (click)="toggleCopiedItems()">
+          {{ showCopiedItems() ? '▼ Hide' : '▶ Show' }} Copied Items
+        </button>
+        @if (showCopiedItems()) {
+          <button class="btn btn-icon" (click)="loadCopiedItems()" [disabled]="isCopyLoading()">
+            🔄
+          </button>
+        }
+      </div>
+
+      @if (showCopiedItems()) {
+        <div class="copied-items-list">
+          @if (isCopyLoading()) {
+            <div class="loading-inline">
+              <span class="spinner-small"></span> Loading...
+            </div>
+          } @else if (copiedItems().length === 0) {
+            <p class="empty-text">No copied items found.</p>
+          } @else {
+            @for (item of copiedItems(); track item.timestamp; let i = $index) {
+              @if (i < 10) {
+                <div class="copied-item">
+                  <div class="item-timestamp">{{ item.timestamp }}</div>
+                  @if (item.link) {
+                    <div class="item-link">
+                      @if (isValidUrl(item.link)) {
+                        <a [href]="item.link" target="_blank" rel="noopener">{{ item.link }}</a>
+                      } @else {
+                        <span>{{ item.link }}</span>
+                      }
+                      <button class="btn-copy" (click)="copyToClipboard(item.link)" title="Copy link">📋</button>
+                    </div>
+                  }
+                  @if (item.comment) {
+                    <div class="item-comment">
+                      <span>{{ item.comment }}</span>
+                      <button class="btn-copy" (click)="copyToClipboard(item.comment)" title="Copy text">📋</button>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ============ STOPWATCH Section ============ -->
+    <section class="utility-card stopwatch-section">
+      <div class="card-header">
+        <h2>⏱️ Stopwatch</h2>
+      </div>
+
+      <div class="stopwatch-display">
+        <span class="time-display">{{ displayTime() }}</span>
+      </div>
+
+      <div class="stopwatch-controls">
+        @if (!stopwatch().isRunning) {
+          <button class="btn btn-start" (click)="startStopwatch()">▶ Start</button>
+        } @else {
+          <button class="btn btn-pause" (click)="pauseStopwatch()">⏸ Pause</button>
+        }
+        <button class="btn btn-lap" (click)="addLap()" [disabled]="!stopwatch().isRunning">🏁 Lap</button>
+        <button class="btn btn-reset" (click)="resetStopwatch()">↺ Reset</button>
+      </div>
+
+      @if (stopwatch().laps.length > 0) {
+        <div class="laps-section">
+          <div class="laps-header">
+            <span>Laps ({{ stopwatch().laps.length }})</span>
+            <button class="btn btn-text-small" (click)="clearLaps()">Clear</button>
+          </div>
+          <div class="laps-list">
+            @for (lap of stopwatch().laps; track $index; let i = $index) {
+              <div class="lap-item">
+                <span class="lap-number">#{{ i + 1 }}</span>
+                <span class="lap-time">{{ formatTime(lap) }}</span>
+                @if (i > 0) {
+                  <span class="lap-diff">+{{ formatTime(lap - stopwatch().laps[i - 1]) }}</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- ============ MEMO/CHECKLIST Section ============ -->
+    <section class="utility-card memo-section">
+      <div class="card-header">
+        <h2>📝 Memo / Checklist</h2>
+        @if (memoItems().length > 0) {
+          <span class="memo-stats">
+            {{ getCompletedCount() }}/{{ memoItems().length }} done
+          </span>
+        }
+      </div>
+
+      <div class="memo-input">
+        <input 
+          type="text"
+          [value]="newMemoText()"
+          (input)="newMemoText.set($any($event.target).value)"
+          (keyup.enter)="addMemoItem()"
+          placeholder="Add item... (press Enter)"
+        />
+        <button class="btn btn-add-memo" (click)="addMemoItem()">+</button>
+      </div>
+
+      @if (memoItems().length > 0) {
+        <div class="memo-list">
+          @for (item of memoItems(); track item.id) {
+            <div class="memo-item" [class.completed]="item.completed">
+              <label class="checkbox-container">
+                <input 
+                  type="checkbox" 
+                  [checked]="item.completed"
+                  (change)="toggleMemoItem(item.id)"
+                />
+                <span class="checkmark"></span>
+              </label>
+              <span class="memo-text" [class.strike]="item.completed">{{ item.text }}</span>
+              <button class="btn-delete" (click)="deleteMemoItem(item.id)" title="Delete">🗑️</button>
+            </div>
+          }
+        </div>
+
+        <div class="memo-actions">
+          @if (getCompletedCount() > 0) {
+            <button class="btn btn-text-small" (click)="clearCompletedMemos()">
+              Clear completed ({{ getCompletedCount() }})
+            </button>
+          }
+          <button class="btn btn-text-small danger" (click)="clearAllMemos()">Clear all</button>
+        </div>
+      } @else {
+        <p class="empty-text">No items yet. Add something above!</p>
+      }
+    </section>
+  </div>
+
+  <!-- Google Form Dialog -->
+  <app-google-form-dialog
+    [isOpen]="showGoogleFormDialog()"
+    [formUrl]="googleFormUrl()"
+    [dialogTitle]="'📋 Copy / Transfer'"
+    (closeDialog)="onGoogleFormClose()"
+    (formSubmitted)="onGoogleFormSubmitted()"
+  />
+</div>

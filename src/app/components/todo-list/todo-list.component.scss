@@ -452,6 +452,8 @@
       text-align: center;
       box-sizing: border-box;
       margin-top: 5px;
+      position: relative;
+      z-index: 2;
     }
 
     .badges-mobile {
@@ -462,6 +464,8 @@
       gap: 0.3rem;
       align-items: flex-start;
       padding-left: 110px;
+      position: relative;
+      z-index: 1;
 
       .source-badge,
       .recurrence-badge {
@@ -480,6 +484,8 @@
       justify-self: end;
       align-self: start;
       margin-top: -20px;
+      position: relative;
+      z-index: 3;
 
       .btn-action {
         font-size: 1rem;

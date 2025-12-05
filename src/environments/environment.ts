@@ -5,5 +5,6 @@ export const environment = {
   SHEET_GID: 0, // Sheet tab number (0 for first tab)
   TODO_SHEET_GID: 1219554792, // Sheet tab number (1 for second tab)
   HOLIDAY_SHEET_GID: 1338469281,
+  IMP_DAYS_SHEET_GID: 1294772822,
   passwordHash: 'PASSWORD_HASH_PLACEHOLDER', // To be replaced during build with actual hash
 };

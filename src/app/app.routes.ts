@@ -17,5 +17,9 @@ export const routes: Routes = [
   {
     path: 'bandwidth',
     loadComponent: () => import('./components/sprint-bandwidth/sprint-bandwidth.component').then(m => m.SprintBandwidthComponent)
+  },
+  {
+    path: 'holidays',
+    loadComponent: () => import('./components/office-holidays/office-holidays.component').then(m => m.OfficeHolidaysComponent)
   }
 ];

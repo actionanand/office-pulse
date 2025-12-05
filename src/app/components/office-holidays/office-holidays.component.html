@@ -1,0 +1,85 @@
+<div class="holidays-container">
+  <div class="holidays-header">
+    <div class="header-info">
+      <h1 class="page-title">🎉 {{ meta().title }}</h1>
+      <span class="year-badge">{{ meta().year }}</span>
+    </div>
+    <button class="btn btn-refresh" (click)="refreshData()" [disabled]="isLoading()">
+      @if (isLoading()) {
+        🔄 Loading...
+      } @else {
+        🔄 Refresh
+      }
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading holidays...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn btn-primary" (click)="refreshData()">Try Again</button>
+    </div>
+  } @else if (holidays().length === 0) {
+    <div class="empty-state">
+      <p>No holidays found for this year.</p>
+    </div>
+  } @else {
+    <div class="holidays-table-wrapper">
+      <table class="holidays-table">
+        <thead>
+          <tr>
+            <th class="col-sno">S.No</th>
+            <th class="col-name">Public Holiday</th>
+            <th class="col-date">Date</th>
+            <th class="col-day">Day</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (holiday of holidays(); track holiday.sno) {
+            <tr 
+              [class.past]="isPastHoliday(holiday.date)"
+              [class.today]="isTodayHoliday(holiday.date)"
+              [class.upcoming]="isUpcomingHoliday(holiday.date)"
+            >
+              <td class="col-sno">{{ holiday.sno }}</td>
+              <td class="col-name">
+                <span class="holiday-name">{{ holiday.name }}</span>
+                @if (isTodayHoliday(holiday.date)) {
+                  <span class="today-badge">Today!</span>
+                } @else if (isUpcomingHoliday(holiday.date)) {
+                  <span class="upcoming-badge">Coming Soon</span>
+                }
+              </td>
+              <td class="col-date">{{ holiday.date }}</td>
+              <td class="col-day">{{ holiday.day }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-section">
+      <div class="summary-card">
+        <span class="summary-value">{{ holidays().length }}</span>
+        <span class="summary-label">Total Holidays</span>
+      </div>
+    </div>
+  }
+
+  <!-- Notes Section -->
+  @if (meta().notes.length > 0) {
+    <div class="notes-section">
+      <h3>📝 Notes</h3>
+      <ul class="notes-list">
+        @for (note of meta().notes; track note) {
+          <li>{{ note }}</li>
+        }
+      </ul>
+    </div>
+  }
+</div>

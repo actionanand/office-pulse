@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TodoService } from '../../services/todo.service';
 import { TodoItem, RecurrenceType, DayOfWeek } from '../../models/entry-log.model';
+import { getISTDateString, getISTDay, getISTMonth } from '../../utils/date-utils';
 
 @Component({
   selector: 'app-todo-list',
@@ -71,7 +72,7 @@ export class TodoListComponent implements OnInit {
   }
 
   private getTodayDateString(): string {
-    return new Date().toISOString().split('T')[0];
+    return getISTDateString();
   }
 
   private getTodosForDate(todos: TodoItem[], dateStr: string): TodoItem[] {
@@ -240,8 +241,8 @@ export class TodoListComponent implements OnInit {
     this.newTodoRecurrence.set('once');
     this.newTodoDaysOfWeek.set([]);
     this.newTodoBiweeklyOffset.set(0);
-    this.newTodoDayOfMonth.set(new Date().getDate());
-    this.newTodoMonthOfYear.set(new Date().getMonth() + 1);
+    this.newTodoDayOfMonth.set(getISTDay());
+    this.newTodoMonthOfYear.set(getISTMonth());
   }
 
   addTodo(): void {
@@ -315,9 +316,13 @@ export class TodoListComponent implements OnInit {
   }
 
   changeDate(direction: 'prev' | 'next'): void {
-    const current = new Date(this.selectedDate());
+    const current = new Date(this.selectedDate() + 'T00:00:00');
     current.setDate(current.getDate() + (direction === 'next' ? 1 : -1));
-    this.selectedDate.set(current.toISOString().split('T')[0]);
+    // Format as YYYY-MM-DD without timezone conversion
+    const year = current.getFullYear();
+    const month = String(current.getMonth() + 1).padStart(2, '0');
+    const day = String(current.getDate()).padStart(2, '0');
+    this.selectedDate.set(`${year}-${month}-${day}`);
   }
 
   goToToday(): void {

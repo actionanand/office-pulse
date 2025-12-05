@@ -23,6 +23,9 @@
       <span class="stat-label">Total Hours:</span>
       <span class="stat-value">{{ totalWorkingHours() }}</span>
     </div>
+    <button class="btn-download" (click)="openDownloadDialog()" aria-label="Download Entry Logs">
+      📥 Download
+    </button>
   </div>
 
   @if (isLoading()) {
@@ -163,3 +166,10 @@
     </div>
   }
 </div>
+
+<!-- Download Dialog -->
+<app-download-dialog
+  [isOpen]="showDownloadDialog()"
+  (closeDialog)="closeDownloadDialog()"
+  (download)="downloadPdf($event)"
+/>

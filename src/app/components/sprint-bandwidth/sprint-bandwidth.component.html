@@ -3,31 +3,27 @@
   <div class="bandwidth-header">
     <div class="header-info">
       <div class="editable-field">
-        <label>Sprint Name</label>
-        <input 
-          type="text" 
+        <label for="sprintNameInput">Sprint Name</label>
+        <input
+          type="text"
+          id="sprintNameInput"
           [value]="config().sprintName"
           (input)="updateSprintName($any($event.target).value)"
-          class="inline-input"
-        />
+          class="inline-input" />
       </div>
       <div class="editable-field">
-        <label>Team Name</label>
-        <input 
-          type="text" 
+        <label for="teamNameInput">Team Name</label>
+        <input
+          type="text"
+          id="teamNameInput"
           [value]="config().teamName"
           (input)="updateTeamName($any($event.target).value)"
-          class="inline-input"
-        />
+          class="inline-input" />
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn btn-clear" (click)="clearAll()" title="Clear all except team name">
-        🧹 Clear
-      </button>
-      <button class="btn btn-reset" (click)="resetAll()" title="Reset everything">
-        🔄 Reset
-      </button>
+      <button class="btn btn-clear" (click)="clearAll()" title="Clear all except team name">🧹 Clear</button>
+      <button class="btn btn-reset" (click)="resetAll()" title="Reset everything">🔄 Reset</button>
     </div>
   </div>
 
@@ -36,43 +32,41 @@
     <h3>⚙️ Sprint Configuration</h3>
     <div class="config-grid">
       <div class="config-item">
-        <label>Sprint Duration (weeks)</label>
-        <input 
-          type="number" 
+        <label for="sprintDurationInput">Sprint Duration (weeks)</label>
+        <input
+          type="number"
+          id="sprintDurationInput"
           [value]="config().sprintDurationWeeks"
           (input)="updateSprintDuration(+$any($event.target).value)"
           min="1"
           max="8"
-          class="config-input"
-        />
+          class="config-input" />
       </div>
       <div class="config-item">
-        <label>Days Off / Week</label>
-        <input 
-          type="number" 
+        <label for="daysOffInput">Days Off / Week</label>
+        <input
+          type="number"
+          id="daysOffInput"
           [value]="config().daysOffPerWeek"
           (input)="updateDaysOff(+$any($event.target).value)"
           min="0"
           max="6"
-          class="config-input"
-        />
+          class="config-input" />
       </div>
       <div class="config-item">
-        <label>Hours / Day</label>
-        <input 
-          type="number" 
+        <label for="hoursPerDayInput">Hours / Day</label>
+        <input
+          type="number"
+          id="hoursPerDayInput"
           [value]="config().hoursPerDay"
           (input)="updateHoursPerDay(+$any($event.target).value)"
           min="1"
           max="24"
-          class="config-input"
-        />
+          class="config-input" />
       </div>
       <div class="config-item holidays-item">
-        <label>Holidays ({{ config().holidays.length }})</label>
-        <button class="btn btn-sm btn-add-holiday" (click)="openHolidayForm()">
-          ➕ Add
-        </button>
+        <label for="addHolidayBtn">Holidays ({{ config().holidays.length }})</label>
+        <button id="addHolidayBtn" class="btn btn-sm btn-add-holiday" (click)="openHolidayForm()">➕ Add</button>
       </div>
     </div>
 
@@ -118,19 +112,25 @@
     <!-- Progress Bar -->
     <div class="progress-container">
       <div class="progress-bar">
-        <div 
-          class="progress-fill allocated-fill" 
-          [style.width.%]="Math.min(100, (summary().allocatedDays / summary().availableDays) * 100)"
-        ></div>
-        <div 
-          class="progress-fill spillover-fill" 
-          [style.width.%]="Math.min(100 - Math.min(100, (summary().allocatedDays / summary().availableDays) * 100), (summary().spilloverDays / summary().availableDays) * 100)"
-          [style.left.%]="Math.min(100, (summary().allocatedDays / summary().availableDays) * 100)"
-        ></div>
+        <div
+          class="progress-fill allocated-fill"
+          [style.width.%]="Math.min(100, (summary().allocatedDays / summary().availableDays) * 100)"></div>
+        <div
+          class="progress-fill spillover-fill"
+          [style.width.%]="
+            Math.min(
+              100 - Math.min(100, (summary().allocatedDays / summary().availableDays) * 100),
+              (summary().spilloverDays / summary().availableDays) * 100
+            )
+          "
+          [style.left.%]="Math.min(100, (summary().allocatedDays / summary().availableDays) * 100)"></div>
       </div>
       <div class="progress-labels">
         <span>0%</span>
-        <span>{{ Math.round(((summary().allocatedDays + summary().spilloverDays) / summary().availableDays) * 100) }}% utilized</span>
+        <span
+          >{{ Math.round(((summary().allocatedDays + summary().spilloverDays) / summary().availableDays) * 100) }}%
+          utilized</span
+        >
         <span>100%</span>
       </div>
     </div>
@@ -140,9 +140,7 @@
   <div class="tasks-section">
     <div class="tasks-header">
       <h3>📋 Sprint Tasks</h3>
-      <button class="btn btn-add" (click)="openAddTaskForm(false)">
-        ➕ Add Task
-      </button>
+      <button class="btn btn-add" (click)="openAddTaskForm(false)">➕ Add Task</button>
     </div>
 
     @if (regularTasks().length === 0) {
@@ -156,9 +154,7 @@
             <div class="task-info">
               <span class="task-name">{{ task.name }}</span>
               @if (task.jiraLink) {
-                <button class="jira-link" (click)="openJiraLink(task.jiraLink)" title="Open Jira">
-                  🔗
-                </button>
+                <button class="jira-link" (click)="openJiraLink(task.jiraLink)" title="Open Jira">🔗</button>
               }
               @if (task.deadline) {
                 <span class="task-deadline" [class.urgent]="isDeadlineUrgent(task.deadline)">
@@ -183,9 +179,7 @@
   <div class="tasks-section spillover-section">
     <div class="tasks-header">
       <h3>🔄 Spillover Stories</h3>
-      <button class="btn btn-add spillover-btn" (click)="openAddTaskForm(true)">
-        ➕ Add Spillover
-      </button>
+      <button class="btn btn-add spillover-btn" (click)="openAddTaskForm(true)">➕ Add Spillover</button>
     </div>
 
     @if (spilloverTasks().length === 0) {
@@ -199,9 +193,7 @@
             <div class="task-info">
               <span class="task-name">{{ task.name }}</span>
               @if (task.jiraLink) {
-                <button class="jira-link" (click)="openJiraLink(task.jiraLink)" title="Open Jira">
-                  🔗
-                </button>
+                <button class="jira-link" (click)="openJiraLink(task.jiraLink)" title="Open Jira">🔗</button>
               }
               @if (task.deadline) {
                 <span class="task-deadline" [class.urgent]="isDeadlineUrgent(task.deadline)">
@@ -210,7 +202,9 @@
               }
             </div>
             <div class="task-days">
-              <span class="days-badge spillover">{{ task.requiredDays }} day{{ task.requiredDays !== 1 ? 's' : '' }}</span>
+              <span class="days-badge spillover"
+                >{{ task.requiredDays }} day{{ task.requiredDays !== 1 ? 's' : '' }}</span
+              >
             </div>
             <div class="task-actions">
               <button class="btn-icon" (click)="startEditTask(task)" title="Edit">✏️</button>
@@ -224,67 +218,67 @@
 
   <!-- Add/Edit Task Dialog -->
   @if (showAddTaskForm()) {
-    <div class="dialog-overlay" (click)="closeAddTaskForm()">
-      <div class="dialog-content" (click)="$event.stopPropagation()">
-        <h2>{{ editingTaskId() ? 'Edit Task' : (newTaskIsSpillover() ? 'Add Spillover Story' : 'Add Task') }}</h2>
-        
+    <div class="dialog-overlay" (click)="closeAddTaskForm()" (keyup.escape)="closeAddTaskForm()" tabindex="-1">
+      <div
+        class="dialog-content"
+        (click)="$event.stopPropagation()"
+        (keyup)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true">
+        <h2>{{ editingTaskId() ? 'Edit Task' : newTaskIsSpillover() ? 'Add Spillover Story' : 'Add Task' }}</h2>
+
         <div class="form-group">
           <label for="taskName">Task Name *</label>
-          <input 
+          <input
             id="taskName"
-            type="text" 
+            type="text"
             [value]="newTaskName()"
             (input)="newTaskName.set($any($event.target).value)"
             placeholder="Enter task name"
-            class="form-control"
-          />
+            class="form-control" />
         </div>
 
         <div class="form-group">
           <label for="jiraLink">Jira Link (optional)</label>
-          <input 
+          <input
             id="jiraLink"
-            type="url" 
+            type="url"
             [value]="newTaskJiraLink()"
             (input)="newTaskJiraLink.set($any($event.target).value)"
             placeholder="https://jira.example.com/browse/PROJ-123"
-            class="form-control"
-          />
+            class="form-control" />
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label for="requiredDays">Required Days *</label>
-            <input 
+            <input
               id="requiredDays"
-              type="number" 
+              type="number"
               [value]="newTaskDays()"
               (input)="newTaskDays.set(+$any($event.target).value)"
               min="0.5"
               step="0.5"
-              class="form-control"
-            />
+              class="form-control" />
           </div>
 
           <div class="form-group">
             <label for="deadline">Deadline (optional)</label>
-            <input 
+            <input
               id="deadline"
-              type="date" 
+              type="date"
               [value]="newTaskDeadline()"
               (input)="newTaskDeadline.set($any($event.target).value)"
-              class="form-control"
-            />
+              class="form-control" />
           </div>
         </div>
 
         <div class="form-group checkbox-group">
           <label>
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               [checked]="newTaskIsSpillover()"
-              (change)="newTaskIsSpillover.set($any($event.target).checked)"
-            />
+              (change)="newTaskIsSpillover.set($any($event.target).checked)" />
             <span>Mark as Spillover Story</span>
           </label>
         </div>
@@ -296,9 +290,7 @@
               Save Changes
             </button>
           } @else {
-            <button class="btn btn-primary" (click)="addTask()" [disabled]="!newTaskName().trim()">
-              Add Task
-            </button>
+            <button class="btn btn-primary" (click)="addTask()" [disabled]="!newTaskName().trim()">Add Task</button>
           }
         </div>
       </div>
@@ -307,26 +299,28 @@
 
   <!-- Add Holiday Dialog -->
   @if (showHolidayForm()) {
-    <div class="dialog-overlay" (click)="closeHolidayForm()">
-      <div class="dialog-content dialog-sm" (click)="$event.stopPropagation()">
+    <div class="dialog-overlay" (click)="closeHolidayForm()" (keyup.escape)="closeHolidayForm()" tabindex="-1">
+      <div
+        class="dialog-content dialog-sm"
+        (click)="$event.stopPropagation()"
+        (keyup)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true">
         <h2>Add Holiday</h2>
-        
+
         <div class="form-group">
           <label for="holidayDate">Holiday Date</label>
-          <input 
+          <input
             id="holidayDate"
-            type="date" 
+            type="date"
             [value]="newHoliday()"
             (input)="newHoliday.set($any($event.target).value)"
-            class="form-control"
-          />
+            class="form-control" />
         </div>
 
         <div class="dialog-actions">
           <button class="btn btn-cancel" (click)="closeHolidayForm()">Cancel</button>
-          <button class="btn btn-primary" (click)="addHoliday()" [disabled]="!newHoliday()">
-            Add Holiday
-          </button>
+          <button class="btn btn-primary" (click)="addHoliday()" [disabled]="!newHoliday()">Add Holiday</button>
         </div>
       </div>
     </div>

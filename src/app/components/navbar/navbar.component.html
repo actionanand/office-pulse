@@ -6,37 +6,34 @@
     </a>
 
     <!-- Hamburger Menu Button (Mobile) -->
-    <button 
-      class="menu-toggle" 
-      (click)="toggleMenu()" 
+    <button
+      class="menu-toggle"
+      (click)="toggleMenu()"
       [class.active]="isMenuOpen()"
-      aria-label="Toggle navigation menu"
-    >
+      aria-label="Toggle navigation menu">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
     </button>
-    
+
     <div class="navbar-links" [class.open]="isMenuOpen()">
       <!-- Primary Links (Always visible on desktop) -->
       <div class="nav-group primary">
-        <a 
-          routerLink="/calendar" 
+        <a
+          routerLink="/calendar"
           routerLinkActive="active"
           class="nav-link"
           aria-label="Calendar View"
-          (click)="closeMenu()"
-        >
+          (click)="closeMenu()">
           <span class="nav-icon">📅</span>
           <span class="nav-text">Calendar</span>
         </a>
-        <a 
-          routerLink="/logger" 
+        <a
+          routerLink="/logger"
           routerLinkActive="active"
           class="nav-link"
           aria-label="Entry Logger"
-          (click)="closeMenu()"
-        >
+          (click)="closeMenu()">
           <span class="nav-icon">📝</span>
           <span class="nav-text">Logger</span>
         </a>
@@ -44,43 +41,39 @@
 
       <!-- Secondary Links -->
       <div class="nav-group secondary">
-        <a 
-          routerLink="/bandwidth" 
+        <a
+          routerLink="/bandwidth"
           routerLinkActive="active"
           class="nav-link"
           aria-label="Sprint Bandwidth Calculator"
-          (click)="closeMenu()"
-        >
+          (click)="closeMenu()">
           <span class="nav-icon">⚡</span>
           <span class="nav-text">Bandwidth</span>
         </a>
-        <a 
-          routerLink="/holidays" 
+        <a
+          routerLink="/holidays"
           routerLinkActive="active"
           class="nav-link"
           aria-label="Office Holidays"
-          (click)="closeMenu()"
-        >
+          (click)="closeMenu()">
           <span class="nav-icon">🎉</span>
           <span class="nav-text">Holidays</span>
         </a>
-        <a 
-          routerLink="/achievements" 
+        <a
+          routerLink="/achievements"
           routerLinkActive="active"
           class="nav-link"
           aria-label="My Achievements"
-          (click)="closeMenu()"
-        >
+          (click)="closeMenu()">
           <span class="nav-icon">🏆</span>
           <span class="nav-text">Achievements</span>
         </a>
-        <a 
-          routerLink="/utilities" 
+        <a
+          routerLink="/utilities"
           routerLinkActive="active"
           class="nav-link"
           aria-label="Utilities"
-          (click)="closeMenu()"
-        >
+          (click)="closeMenu()">
           <span class="nav-icon">🛠️</span>
           <span class="nav-text">Utilities</span>
         </a>
@@ -114,5 +107,5 @@
 
 <!-- Overlay for mobile menu -->
 @if (isMenuOpen()) {
-  <div class="menu-overlay" (click)="closeMenu()"></div>
+  <div class="menu-overlay" (click)="closeMenu()" (keyup.escape)="closeMenu()" tabindex="-1"></div>
 }

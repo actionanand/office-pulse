@@ -1,13 +1,20 @@
 @if (isOpen()) {
-  <div class="form-dialog-overlay" (click)="onCloseWithoutSubmit()">
-    <div class="form-dialog-container" (click)="$event.stopPropagation()">
+  <div
+    class="form-dialog-overlay"
+    (click)="onCloseWithoutSubmit()"
+    (keyup.escape)="onCloseWithoutSubmit()"
+    tabindex="-1">
+    <div
+      class="form-dialog-container"
+      (click)="$event.stopPropagation()"
+      (keyup)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true">
       <div class="form-dialog-header">
         <h2>{{ dialogTitle() }}</h2>
-        <button class="close-btn" (click)="onCloseWithoutSubmit()" aria-label="Close dialog">
-          ✕
-        </button>
+        <button class="close-btn" (click)="onCloseWithoutSubmit()" aria-label="Close dialog">✕</button>
       </div>
-      
+
       <div class="form-dialog-body">
         <div class="iframe-container">
           <iframe
@@ -18,13 +25,12 @@
             frameborder="0"
             marginheight="0"
             marginwidth="0"
-            title="Google Form"
-          >
+            title="Google Form">
             Loading form...
           </iframe>
         </div>
       </div>
-      
+
       <div class="form-dialog-footer">
         <p class="footer-note">After submitting the form above, click the button below.</p>
         <button class="btn btn-primary" (click)="onSubmitAndClose()">I've Submitted</button>

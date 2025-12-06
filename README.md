@@ -230,6 +230,8 @@ To configure the pre-commit hook, simply add a `precommit` npm script. We want t
 
    7. For more, please [check](https://prettier.io/docs/en/ignore.html)
 
+   8. For generating [SHA1](https://emn178.github.io/online-tools/sha1.html)
+
 ## Resources
 
 - [GitHub Actions for Angular](https://github.com/rodrigokamada/angular-github-actions)

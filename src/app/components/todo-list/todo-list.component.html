@@ -12,12 +12,11 @@
       <button class="btn-nav" (click)="changeDate('next')" title="Next day">▶</button>
     </div>
     <div class="header-actions">
-      <button 
-        class="btn btn-sync" 
+      <button
+        class="btn btn-sync"
         (click)="syncFromGoogleSheets()"
         [disabled]="isSyncing()"
-        title="Sync todos from Google Sheets"
-      >
+        title="Sync todos from Google Sheets">
         @if (isSyncing()) {
           🔄 Syncing...
         } @else {
@@ -37,39 +36,36 @@
     } @else {
       @for (todo of todosForSelectedDate(); track todo.id) {
         <div class="todo-item" [class.completed]="isTodoCompletedOnDate(todo, selectedDate())">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             [checked]="isTodoCompletedOnDate(todo, selectedDate())"
             (change)="toggleTodo(todo)"
-            id="todo-{{todo.id}}"
-          />
-          
+            id="todo-{{ todo.id }}" />
+
           <label [for]="'todo-' + todo.id" class="todo-checkbox-label">
             <span class="checkbox-custom"></span>
           </label>
-          
-          <input 
-            type="time" 
+
+          <input
+            type="time"
             class="todo-time"
             [value]="todo.time"
             (change)="updateTodoTime(todo.id, $any($event.target).value)"
-            [disabled]="isTodoCompletedOnDate(todo, selectedDate()) || todo.isDefaultTodo"
-          />
-          
+            [disabled]="isTodoCompletedOnDate(todo, selectedDate()) || todo.isDefaultTodo" />
+
           <div class="todo-info">
             @if (isEditing(todo.id)) {
-              <input 
-                type="text" 
+              <input
+                type="text"
                 class="edit-input"
                 [value]="editDescription()"
                 (input)="editDescription.set($any($event.target).value)"
                 (keyup.enter)="saveEdit(todo.id)"
-                (keyup.escape)="cancelEdit()"
-              />
+                (keyup.escape)="cancelEdit()" />
             } @else {
               <span class="todo-description">{{ todo.description }}</span>
             }
-            
+
             <div class="badges badges-desktop">
               @if (todo.isDefaultTodo) {
                 <span class="source-badge default-badge">📌 Default</span>
@@ -81,7 +77,7 @@
               }
             </div>
           </div>
-          
+
           <div class="badges badges-mobile">
             @if (todo.isDefaultTodo) {
               <span class="source-badge default-badge">📌 Default</span>
@@ -92,40 +88,21 @@
               <span class="recurrence-badge">{{ getRecurrenceLabel(todo) }}</span>
             }
           </div>
-          
+
           <div class="todo-actions">
             @if (!todo.isDefaultTodo) {
               @if (isEditing(todo.id)) {
-                <button 
-                  class="btn-action btn-save" 
-                  (click)="saveEdit(todo.id)"
-                  title="Save"
-                >
-                  ✓
-                </button>
-                <button 
-                  class="btn-action btn-cancel" 
-                  (click)="cancelEdit()"
-                  title="Cancel"
-                >
-                  ✕
-                </button>
+                <button class="btn-action btn-save" (click)="saveEdit(todo.id)" title="Save">✓</button>
+                <button class="btn-action btn-cancel" (click)="cancelEdit()" title="Cancel">✕</button>
               } @else {
-                <button 
-                  class="btn-action btn-edit" 
-                  (click)="startEditTodo(todo)"
-                  title="Edit"
-                >
-                  ✏️
-                </button>
+                <button class="btn-action btn-edit" (click)="startEditTodo(todo)" title="Edit">✏️</button>
               }
             }
-            <button 
-              class="btn-action btn-delete" 
+            <button
+              class="btn-action btn-delete"
               (click)="deleteTodo(todo.id)"
               title="Delete todo"
-              [disabled]="todo.isDefaultTodo"
-            >
+              [disabled]="todo.isDefaultTodo">
               🗑️
             </button>
           </div>
@@ -136,44 +113,46 @@
 
   <!-- Add Todo Dialog -->
   @if (showAddForm()) {
-    <div class="dialog-overlay" (click)="closeAddForm()">
-      <div class="dialog-content dialog-wide" (click)="$event.stopPropagation()">
+    <div class="dialog-overlay" (click)="closeAddForm()" (keyup.escape)="closeAddForm()" tabindex="-1">
+      <div
+        class="dialog-content dialog-wide"
+        (click)="$event.stopPropagation()"
+        (keyup)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true">
         <h2>Add New Todo</h2>
-        
+
         <div class="form-section">
           <div class="form-group">
             <label for="newTodoDescription">Description:</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               id="newTodoDescription"
               [value]="newTodoDescription()"
               (input)="updateNewTodoDescription($any($event.target).value)"
               placeholder="Enter todo description"
-              class="form-control"
-            />
+              class="form-control" />
           </div>
-          
+
           <div class="form-row">
             <div class="form-group">
               <label for="newTodoTime">Time:</label>
-              <input 
-                type="time" 
+              <input
+                type="time"
                 id="newTodoTime"
                 [value]="newTodoTime()"
                 (input)="updateNewTodoTime($any($event.target).value)"
-                class="form-control"
-              />
+                class="form-control" />
             </div>
-            
+
             <div class="form-group">
               <label for="newTodoStartDate">Start Date:</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 id="newTodoStartDate"
                 [value]="newTodoStartDate()"
                 (input)="newTodoStartDate.set($any($event.target).value)"
-                class="form-control"
-              />
+                class="form-control" />
             </div>
           </div>
         </div>
@@ -181,12 +160,11 @@
         <div class="form-section">
           <div class="form-group">
             <label for="newTodoRecurrence">Recurrence:</label>
-            <select 
+            <select
               id="newTodoRecurrence"
               [value]="newTodoRecurrence()"
               (change)="newTodoRecurrence.set($any($event.target).value)"
-              class="form-control"
-            >
+              class="form-control">
               <option value="once">One Time</option>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
@@ -197,65 +175,75 @@
             </select>
           </div>
 
-          @if (newTodoRecurrence() === 'weekly' || newTodoRecurrence() === 'biweekly' || newTodoRecurrence() === 'custom') {
+          @if (
+            newTodoRecurrence() === 'weekly' || newTodoRecurrence() === 'biweekly' || newTodoRecurrence() === 'custom'
+          ) {
             <div class="form-group">
-              <label>Days of Week:</label>
-              <div class="days-selector">
-                <button 
-                  type="button"
-                  class="day-btn"
-                  [class.selected]="isDaySelected('monday')"
-                  (click)="toggleDayOfWeek('monday')"
-                >MON</button>
-                <button 
-                  type="button"
-                  class="day-btn"
-                  [class.selected]="isDaySelected('tuesday')"
-                  (click)="toggleDayOfWeek('tuesday')"
-                >TUE</button>
-                <button 
-                  type="button"
-                  class="day-btn"
-                  [class.selected]="isDaySelected('wednesday')"
-                  (click)="toggleDayOfWeek('wednesday')"
-                >WED</button>
-                <button 
-                  type="button"
-                  class="day-btn"
-                  [class.selected]="isDaySelected('thursday')"
-                  (click)="toggleDayOfWeek('thursday')"
-                >THU</button>
-                <button 
-                  type="button"
-                  class="day-btn"
-                  [class.selected]="isDaySelected('friday')"
-                  (click)="toggleDayOfWeek('friday')"
-                >FRI</button>
-                <button 
-                  type="button"
-                  class="day-btn"
-                  [class.selected]="isDaySelected('saturday')"
-                  (click)="toggleDayOfWeek('saturday')"
-                >SAT</button>
-                <button 
-                  type="button"
-                  class="day-btn"
-                  [class.selected]="isDaySelected('sunday')"
-                  (click)="toggleDayOfWeek('sunday')"
-                >SUN</button>
-              </div>
+              <fieldset>
+                <legend>Days of Week:</legend>
+                <div class="days-selector">
+                  <button
+                    type="button"
+                    class="day-btn"
+                    [class.selected]="isDaySelected('monday')"
+                    (click)="toggleDayOfWeek('monday')">
+                    MON
+                  </button>
+                  <button
+                    type="button"
+                    class="day-btn"
+                    [class.selected]="isDaySelected('tuesday')"
+                    (click)="toggleDayOfWeek('tuesday')">
+                    TUE
+                  </button>
+                  <button
+                    type="button"
+                    class="day-btn"
+                    [class.selected]="isDaySelected('wednesday')"
+                    (click)="toggleDayOfWeek('wednesday')">
+                    WED
+                  </button>
+                  <button
+                    type="button"
+                    class="day-btn"
+                    [class.selected]="isDaySelected('thursday')"
+                    (click)="toggleDayOfWeek('thursday')">
+                    THU
+                  </button>
+                  <button
+                    type="button"
+                    class="day-btn"
+                    [class.selected]="isDaySelected('friday')"
+                    (click)="toggleDayOfWeek('friday')">
+                    FRI
+                  </button>
+                  <button
+                    type="button"
+                    class="day-btn"
+                    [class.selected]="isDaySelected('saturday')"
+                    (click)="toggleDayOfWeek('saturday')">
+                    SAT
+                  </button>
+                  <button
+                    type="button"
+                    class="day-btn"
+                    [class.selected]="isDaySelected('sunday')"
+                    (click)="toggleDayOfWeek('sunday')">
+                    SUN
+                  </button>
+                </div>
+              </fieldset>
             </div>
           }
 
           @if (newTodoRecurrence() === 'biweekly') {
             <div class="form-group">
               <label for="biweeklyOffset">Starting Week:</label>
-              <select 
+              <select
                 id="biweeklyOffset"
                 [value]="newTodoBiweeklyOffset()"
                 (change)="newTodoBiweeklyOffset.set(+$any($event.target).value)"
-                class="form-control"
-              >
+                class="form-control">
                 <option value="0">This Week</option>
                 <option value="1">Next Week</option>
               </select>
@@ -265,27 +253,25 @@
           @if (newTodoRecurrence() === 'monthly' || newTodoRecurrence() === 'yearly') {
             <div class="form-group">
               <label for="dayOfMonth">Day of Month:</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 id="dayOfMonth"
                 [value]="newTodoDayOfMonth()"
                 (input)="newTodoDayOfMonth.set(+$any($event.target).value)"
                 min="1"
                 max="31"
-                class="form-control"
-              />
+                class="form-control" />
             </div>
           }
 
           @if (newTodoRecurrence() === 'yearly') {
             <div class="form-group">
               <label for="monthOfYear">Month:</label>
-              <select 
+              <select
                 id="monthOfYear"
                 [value]="newTodoMonthOfYear()"
                 (change)="newTodoMonthOfYear.set(+$any($event.target).value)"
-                class="form-control"
-              >
+                class="form-control">
                 <option value="1">January</option>
                 <option value="2">February</option>
                 <option value="3">March</option>
@@ -305,19 +291,18 @@
           @if (newTodoRecurrence() !== 'once') {
             <div class="form-group">
               <label for="newTodoEndDate">End Date (Optional):</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 id="newTodoEndDate"
                 [value]="newTodoEndDate()"
                 (input)="newTodoEndDate.set($any($event.target).value)"
                 [min]="newTodoStartDate()"
-                class="form-control"
-              />
+                class="form-control" />
               <small class="form-hint">Leave empty for no end date</small>
             </div>
           }
         </div>
-        
+
         <div class="dialog-actions">
           <button class="btn btn-cancel" (click)="closeAddForm()">Cancel</button>
           <button class="btn btn-primary" (click)="addTodo()">Add Todo</button>

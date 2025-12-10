@@ -2,14 +2,14 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SprintBandwidthService } from '../../services/sprint-bandwidth.service';
-import { SprintTask } from '../../models/sprint-bandwidth.model';
+import { SprintTask, TaskStatus } from '../../models/sprint-bandwidth.model';
 
 @Component({
   selector: 'app-sprint-bandwidth',
   imports: [CommonModule, FormsModule],
   templateUrl: './sprint-bandwidth.component.html',
   styleUrl: './sprint-bandwidth.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SprintBandwidthComponent {
   private bandwidthService = inject(SprintBandwidthService);
@@ -23,6 +23,8 @@ export class SprintBandwidthComponent {
   // Form signals
   readonly showAddTaskForm = signal(false);
   readonly showHolidayForm = signal(false);
+  readonly showHolidayRangeForm = signal(false);
+  readonly showWeekoffForm = signal(false);
   readonly editingTaskId = signal<string | null>(null);
 
   // New task form
@@ -34,6 +36,12 @@ export class SprintBandwidthComponent {
 
   // Holiday form
   readonly newHoliday = signal('');
+  readonly holidayRangeStart = signal('');
+  readonly holidayRangeEnd = signal('');
+
+  // Sprint settings
+  readonly sprintEndDate = signal('');
+  readonly selectedWeekoffDays = signal<number[]>([]);
 
   // Computed for bandwidth status
   readonly bandwidthStatus = computed(() => {
@@ -44,13 +52,9 @@ export class SprintBandwidthComponent {
     return 'available';
   });
 
-  readonly regularTasks = computed(() => 
-    this.config().tasks.filter(t => !t.isSpillover)
-  );
+  readonly regularTasks = computed(() => this.config().tasks.filter(t => !t.isSpillover));
 
-  readonly spilloverTasks = computed(() => 
-    this.config().tasks.filter(t => t.isSpillover)
-  );
+  readonly spilloverTasks = computed(() => this.config().tasks.filter(t => t.isSpillover));
 
   updateSprintName(value: string): void {
     this.bandwidthService.updateConfig({ sprintName: value });
@@ -64,12 +68,43 @@ export class SprintBandwidthComponent {
     this.bandwidthService.updateConfig({ sprintDurationWeeks: Math.max(1, value) });
   }
 
-  updateDaysOff(value: number): void {
-    this.bandwidthService.updateConfig({ daysOffPerWeek: Math.max(0, Math.min(6, value)) });
-  }
-
   updateHoursPerDay(value: number): void {
     this.bandwidthService.updateConfig({ hoursPerDay: Math.max(1, Math.min(24, value)) });
+  }
+
+  openWeekoffForm(): void {
+    this.selectedWeekoffDays.set([...this.config().weekOffDays]);
+    this.showWeekoffForm.set(true);
+  }
+
+  closeWeekoffForm(): void {
+    this.showWeekoffForm.set(false);
+    this.selectedWeekoffDays.set([]);
+  }
+
+  toggleWeekoffDay(day: number): void {
+    this.selectedWeekoffDays.update(days => {
+      const index = days.indexOf(day);
+      if (index > -1) {
+        return days.filter((_, i) => i !== index);
+      } else {
+        return [...days, day];
+      }
+    });
+  }
+
+  saveWeekoffDays(): void {
+    if (this.selectedWeekoffDays().length === 0) {
+      alert('At least one weekoff day is required');
+      return;
+    }
+    this.bandwidthService.updateWeekOffDays(this.selectedWeekoffDays());
+    this.closeWeekoffForm();
+  }
+
+  updateSprintEndDate(value: string): void {
+    this.sprintEndDate.set(value);
+    this.bandwidthService.updateSprintEndDate(value || undefined);
   }
 
   openAddTaskForm(isSpillover: boolean = false): void {
@@ -100,7 +135,8 @@ export class SprintBandwidthComponent {
       jiraLink: this.newTaskJiraLink().trim() || undefined,
       requiredDays: this.newTaskDays(),
       deadline: this.newTaskDeadline() || undefined,
-      isSpillover: this.newTaskIsSpillover()
+      isSpillover: this.newTaskIsSpillover(),
+      status: 'open',
     });
 
     this.closeAddTaskForm();
@@ -125,7 +161,8 @@ export class SprintBandwidthComponent {
       jiraLink: this.newTaskJiraLink().trim() || undefined,
       requiredDays: this.newTaskDays(),
       deadline: this.newTaskDeadline() || undefined,
-      isSpillover: this.newTaskIsSpillover()
+      isSpillover: this.newTaskIsSpillover(),
+      status: 'open',
     });
 
     this.closeAddTaskForm();
@@ -155,16 +192,37 @@ export class SprintBandwidthComponent {
     this.closeHolidayForm();
   }
 
+  openHolidayRangeForm(): void {
+    this.holidayRangeStart.set('');
+    this.holidayRangeEnd.set('');
+    this.showHolidayRangeForm.set(true);
+  }
+
+  closeHolidayRangeForm(): void {
+    this.showHolidayRangeForm.set(false);
+    this.holidayRangeStart.set('');
+    this.holidayRangeEnd.set('');
+  }
+
+  addHolidayRange(): void {
+    const start = this.holidayRangeStart();
+    const end = this.holidayRangeEnd();
+    if (start && end && start <= end) {
+      this.bandwidthService.addHolidayRange(start, end);
+    }
+    this.closeHolidayRangeForm();
+  }
+
   removeHoliday(date: string): void {
     this.bandwidthService.removeHoliday(date);
   }
 
   formatDate(dateStr: string): string {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
     });
   }
 
@@ -191,5 +249,134 @@ export class SprintBandwidthComponent {
     const today = new Date();
     const diffDays = Math.ceil((deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return diffDays <= 3 && diffDays >= 0;
+  }
+
+  getDeadlineText(deadline: string): string {
+    const deadlineDate = new Date(deadline);
+    deadlineDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const diffTime = deadlineDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return `${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} overdue`;
+    if (diffDays === 0) return 'Due today';
+    if (diffDays === 1) return 'Due tomorrow';
+    if (diffDays <= 7) return `Due in ${diffDays} days`;
+    return this.formatDate(deadline);
+  }
+
+  startSprint(): void {
+    if (confirm('Start sprint? This will enable task tracking and disable configuration changes.')) {
+      this.bandwidthService.startSprint();
+    }
+  }
+
+  completeSprint(): void {
+    if (confirm('Complete this sprint? You can then move incomplete tasks to the next sprint.')) {
+      this.bandwidthService.completeSprint();
+    }
+  }
+
+  startNewSprint(): void {
+    if (
+      confirm('Start new sprint? This will move all incomplete tasks to spillover and reset the sprint configuration.')
+    ) {
+      this.bandwidthService.startNewSprint();
+    }
+  }
+
+  moveTaskToNextSprint(taskId: string): void {
+    this.bandwidthService.moveTaskToNextSprint(taskId);
+  }
+
+  updateTaskStatus(taskId: string, status: TaskStatus): void {
+    this.bandwidthService.updateTaskStatus(taskId, status);
+  }
+
+  getNextStatus(currentStatus: TaskStatus): TaskStatus | null {
+    const workflow: Record<TaskStatus, TaskStatus | null> = {
+      open: 'working',
+      working: 'dev-finished',
+      'dev-finished': 'testing',
+      testing: 'completed',
+      completed: null,
+      reopened: 'working',
+      cancelled: null,
+    };
+    return workflow[currentStatus];
+  }
+
+  getStatusLabel(status: TaskStatus): string {
+    const labels: Record<TaskStatus, string> = {
+      open: 'Open',
+      working: 'Working',
+      'dev-finished': 'Dev Finished',
+      testing: 'Testing',
+      completed: 'Completed',
+      reopened: 'Reopened',
+      cancelled: 'Cancelled',
+    };
+    return labels[status];
+  }
+
+  getStatusIcon(status: TaskStatus): string {
+    const icons: Record<TaskStatus, string> = {
+      open: '⚪',
+      working: '🔵',
+      'dev-finished': '🟢',
+      testing: '🟡',
+      completed: '✅',
+      reopened: '🔴',
+      cancelled: '⛔',
+    };
+    return icons[status];
+  }
+
+  canReopenTask(status: TaskStatus): boolean {
+    return status === 'completed' || status === 'testing';
+  }
+
+  canCancelTask(status: TaskStatus): boolean {
+    return status !== 'completed' && status !== 'cancelled';
+  }
+
+  cancelTask(taskId: string): void {
+    if (confirm('Cancel this task? Cancelled tasks cannot be reopened.')) {
+      this.bandwidthService.updateTaskStatus(taskId, 'cancelled');
+    }
+  }
+
+  getSprintDaysRemaining(): number {
+    const cfg = this.config();
+    if (!cfg.sprintStartDate || !cfg.sprintEndDate) return -1;
+
+    const endDate = new Date(cfg.sprintEndDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    const diffTime = endDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  }
+
+  sanitizeUrl(url: string): string {
+    // Ensure absolute URL for external links
+    if (!url) return '';
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return 'https://' + url;
+    }
+    return url;
+  }
+
+  getWeekdayName(dayIndex: number): string {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[dayIndex];
+  }
+
+  isTaskAddedAfterSprintStart(task: SprintTask): boolean {
+    return task.addedAfterSprintStart === true;
   }
 }

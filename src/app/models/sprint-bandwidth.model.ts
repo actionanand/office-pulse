@@ -1,3 +1,5 @@
+export type TaskStatus = 'open' | 'working' | 'dev-finished' | 'testing' | 'completed' | 'reopened' | 'cancelled';
+
 export interface SprintTask {
   id: string;
   name: string;
@@ -5,16 +7,24 @@ export interface SprintTask {
   requiredDays: number;
   deadline?: string;
   isSpillover: boolean;
+  status: TaskStatus;
+  createdAt: string;
+  addedAfterSprintStart?: boolean;
+  moveToNextSprint?: boolean;
 }
 
 export interface SprintConfig {
   sprintName: string;
   teamName: string;
   sprintDurationWeeks: number;
-  daysOffPerWeek: number;
+  sprintEndDate?: string;
+  weekOffDays: number[]; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday (default: [0, 6])
   hoursPerDay: number;
   holidays: string[];
   tasks: SprintTask[];
+  sprintStarted: boolean;
+  sprintStartDate?: string;
+  sprintCompleted?: boolean;
 }
 
 export interface BandwidthSummary {

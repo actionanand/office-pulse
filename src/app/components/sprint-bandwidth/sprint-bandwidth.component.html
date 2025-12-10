@@ -22,14 +22,44 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn btn-clear" (click)="clearAll()" title="Clear all except team name">🧹 Clear</button>
-      <button class="btn btn-reset" (click)="resetAll()" title="Reset everything">🔄 Reset</button>
+      @if (config().sprintStarted) {
+        <button class="btn btn-sprint started" (click)="completeSprint()">✅ Complete Sprint</button>
+      } @else if (config().sprintCompleted) {
+        <button
+          class="btn btn-new-sprint"
+          (click)="startNewSprint()"
+          title="Start new sprint (moves marked tasks to spillover)">
+          🆕 New Sprint
+        </button>
+      } @else {
+        <button class="btn btn-sprint" (click)="startSprint()">🚀 Start Sprint</button>
+      }
+      <button
+        class="btn btn-clear"
+        (click)="clearAll()"
+        [disabled]="config().sprintStarted"
+        title="Clear all except team name">
+        🧹 Clear
+      </button>
+      <button class="btn btn-reset" (click)="resetAll()" [disabled]="config().sprintStarted" title="Reset everything">
+        🔄 Reset
+      </button>
     </div>
   </div>
 
   <!-- Configuration Section -->
   <div class="config-section">
-    <h3>⚙️ Sprint Configuration</h3>
+    <div class="config-header">
+      <h3>⚙️ Sprint Configuration</h3>
+      @if (config().sprintStarted && getSprintDaysRemaining() >= 0) {
+        <div class="sprint-countdown">
+          <span class="countdown-label">Days Remaining:</span>
+          <span class="countdown-value" [class.critical]="getSprintDaysRemaining() <= 3">{{
+            getSprintDaysRemaining()
+          }}</span>
+        </div>
+      }
+    </div>
     <div class="config-grid">
       <div class="config-item">
         <label for="sprintDurationInput">Sprint Duration (weeks)</label>
@@ -38,20 +68,32 @@
           id="sprintDurationInput"
           [value]="config().sprintDurationWeeks"
           (input)="updateSprintDuration(+$any($event.target).value)"
+          [disabled]="config().sprintStarted"
           min="1"
           max="8"
           class="config-input" />
       </div>
+
       <div class="config-item">
-        <label for="daysOffInput">Days Off / Week</label>
+        <label for="sprintEndInput">Sprint End Date (optional)</label>
         <input
-          type="number"
-          id="daysOffInput"
-          [value]="config().daysOffPerWeek"
-          (input)="updateDaysOff(+$any($event.target).value)"
-          min="0"
-          max="6"
+          type="date"
+          id="sprintEndInput"
+          [value]="config().sprintEndDate || ''"
+          (input)="updateSprintEndDate($any($event.target).value)"
+          [disabled]="config().sprintStarted"
           class="config-input" />
+      </div>
+
+      <div class="config-item weekoff-item">
+        <label for="weekoffBtn">Week Off Days</label>
+        <button
+          id="weekoffBtn"
+          class="btn btn-sm btn-add-holiday"
+          (click)="openWeekoffForm()"
+          [disabled]="config().sprintStarted">
+          📅 Configure
+        </button>
       </div>
       <div class="config-item">
         <label for="hoursPerDayInput">Hours / Day</label>
@@ -60,13 +102,29 @@
           id="hoursPerDayInput"
           [value]="config().hoursPerDay"
           (input)="updateHoursPerDay(+$any($event.target).value)"
+          [disabled]="config().sprintStarted"
           min="1"
           max="24"
           class="config-input" />
       </div>
       <div class="config-item holidays-item">
         <label for="addHolidayBtn">Holidays ({{ config().holidays.length }})</label>
-        <button id="addHolidayBtn" class="btn btn-sm btn-add-holiday" (click)="openHolidayForm()">➕ Add</button>
+        <div class="holiday-buttons">
+          <button
+            id="addHolidayBtn"
+            class="btn btn-sm btn-add-holiday"
+            (click)="openHolidayForm()"
+            [disabled]="config().sprintStarted">
+            ➕ Add Day
+          </button>
+          <button
+            class="btn btn-sm btn-add-holiday"
+            (click)="openHolidayRangeForm()"
+            [disabled]="config().sprintStarted || !config().sprintEndDate"
+            [title]="!config().sprintEndDate ? 'Set sprint end date first' : 'Add holiday range'">
+            📅 Add Range
+          </button>
+        </div>
       </div>
     </div>
 
@@ -150,25 +208,90 @@
     } @else {
       <div class="tasks-list">
         @for (task of regularTasks(); track task.id) {
-          <div class="task-item">
+          <div class="task-item" [attr.data-status]="task.status">
             <div class="task-info">
               <span class="task-name">{{ task.name }}</span>
+              @if (isTaskAddedAfterSprintStart(task)) {
+                <span class="new-task-badge" title="Added after sprint started">✨ New</span>
+              }
               @if (task.jiraLink) {
-                <button class="jira-link" (click)="openJiraLink(task.jiraLink)" title="Open Jira">🔗</button>
+                <button class="jira-link" (click)="openJiraLink(sanitizeUrl(task.jiraLink))" title="Open Jira">
+                  🔗
+                </button>
               }
               @if (task.deadline) {
                 <span class="task-deadline" [class.urgent]="isDeadlineUrgent(task.deadline)">
-                  📅 {{ formatDate(task.deadline) }}
+                  📅 {{ getDeadlineText(task.deadline) }}
                 </span>
               }
             </div>
             <div class="task-days">
               <span class="days-badge">{{ task.requiredDays }} day{{ task.requiredDays !== 1 ? 's' : '' }}</span>
             </div>
-            <div class="task-actions">
-              <button class="btn-icon" (click)="startEditTask(task)" title="Edit">✏️</button>
-              <button class="btn-icon" (click)="deleteTask(task.id)" title="Delete">🗑️</button>
-            </div>
+
+            @if (config().sprintStarted && task.status !== 'cancelled') {
+              <div class="task-status-workflow">
+                <span class="status-badge" [attr.data-status]="task.status">
+                  {{ getStatusIcon(task.status) }} {{ getStatusLabel(task.status) }}
+                </span>
+                @if (getNextStatus(task.status)) {
+                  <button
+                    class="btn-status-next"
+                    (click)="updateTaskStatus(task.id, getNextStatus(task.status)!)"
+                    title="Move to {{ getStatusLabel(getNextStatus(task.status)!) }}">
+                    → {{ getStatusLabel(getNextStatus(task.status)!) }}
+                  </button>
+                }
+                @if (task.status !== 'completed') {
+                  <button
+                    class="btn-status-complete"
+                    (click)="updateTaskStatus(task.id, 'completed')"
+                    title="Mark as completed">
+                    ✅ Complete
+                  </button>
+                }
+                @if (canReopenTask(task.status)) {
+                  <button class="btn-status-reopen" (click)="updateTaskStatus(task.id, 'reopened')" title="Reopen task">
+                    🔄 Reopen
+                  </button>
+                }
+                @if (canCancelTask(task.status)) {
+                  <button
+                    class="btn-status-cancel"
+                    (click)="cancelTask(task.id)"
+                    title="Cancel task (cannot be reopened)">
+                    ❌ Cancel
+                  </button>
+                }
+              </div>
+            } @else if (config().sprintCompleted && task.status !== 'completed' && task.status !== 'cancelled') {
+              <div class="task-move-next">
+                <button
+                  class="btn-move-next-sprint"
+                  [class.marked]="task.moveToNextSprint"
+                  (click)="moveTaskToNextSprint(task.id)"
+                  title="Mark to move to next sprint">
+                  @if (task.moveToNextSprint) {
+                    ✓ Marked
+                  } @else {
+                    ➡️ Move
+                  }
+                </button>
+              </div>
+            } @else if (task.status === 'cancelled') {
+              <div class="task-status-cancelled">
+                <span class="status-badge" [attr.data-status]="'cancelled'">
+                  {{ getStatusIcon('cancelled') }} Cancelled
+                </span>
+              </div>
+            }
+
+            @if (!config().sprintStarted && !config().sprintCompleted) {
+              <div class="task-actions">
+                <button class="btn-icon" (click)="startEditTask(task)" title="Edit">✏️</button>
+                <button class="btn-icon" (click)="deleteTask(task.id)" title="Delete">🗑️</button>
+              </div>
+            }
           </div>
         }
       </div>
@@ -179,7 +302,9 @@
   <div class="tasks-section spillover-section">
     <div class="tasks-header">
       <h3>🔄 Spillover Stories</h3>
-      <button class="btn btn-add spillover-btn" (click)="openAddTaskForm(true)">➕ Add Spillover</button>
+      <button class="btn btn-add spillover-btn" (click)="openAddTaskForm(true)" [disabled]="config().sprintStarted">
+        ➕ Add Spillover
+      </button>
     </div>
 
     @if (spilloverTasks().length === 0) {
@@ -189,15 +314,20 @@
     } @else {
       <div class="tasks-list">
         @for (task of spilloverTasks(); track task.id) {
-          <div class="task-item spillover">
+          <div class="task-item spillover" [attr.data-status]="task.status">
             <div class="task-info">
               <span class="task-name">{{ task.name }}</span>
+              @if (isTaskAddedAfterSprintStart(task)) {
+                <span class="new-task-badge" title="Added after sprint started">✨ New</span>
+              }
               @if (task.jiraLink) {
-                <button class="jira-link" (click)="openJiraLink(task.jiraLink)" title="Open Jira">🔗</button>
+                <button class="jira-link" (click)="openJiraLink(sanitizeUrl(task.jiraLink))" title="Open Jira">
+                  🔗
+                </button>
               }
               @if (task.deadline) {
                 <span class="task-deadline" [class.urgent]="isDeadlineUrgent(task.deadline)">
-                  📅 {{ formatDate(task.deadline) }}
+                  📅 {{ getDeadlineText(task.deadline) }}
                 </span>
               }
             </div>
@@ -206,10 +336,70 @@
                 >{{ task.requiredDays }} day{{ task.requiredDays !== 1 ? 's' : '' }}</span
               >
             </div>
-            <div class="task-actions">
-              <button class="btn-icon" (click)="startEditTask(task)" title="Edit">✏️</button>
-              <button class="btn-icon" (click)="deleteTask(task.id)" title="Delete">🗑️</button>
-            </div>
+
+            @if (config().sprintStarted && task.status !== 'cancelled') {
+              <div class="task-status-workflow">
+                <span class="status-badge" [attr.data-status]="task.status">
+                  {{ getStatusIcon(task.status) }} {{ getStatusLabel(task.status) }}
+                </span>
+                @if (getNextStatus(task.status)) {
+                  <button
+                    class="btn-status-next"
+                    (click)="updateTaskStatus(task.id, getNextStatus(task.status)!)"
+                    title="Move to {{ getStatusLabel(getNextStatus(task.status)!) }}">
+                    → {{ getStatusLabel(getNextStatus(task.status)!) }}
+                  </button>
+                }
+                @if (task.status !== 'completed') {
+                  <button
+                    class="btn-status-complete"
+                    (click)="updateTaskStatus(task.id, 'completed')"
+                    title="Mark as completed">
+                    ✅ Complete
+                  </button>
+                }
+                @if (canReopenTask(task.status)) {
+                  <button class="btn-status-reopen" (click)="updateTaskStatus(task.id, 'reopened')" title="Reopen task">
+                    🔄 Reopen
+                  </button>
+                }
+                @if (canCancelTask(task.status)) {
+                  <button
+                    class="btn-status-cancel"
+                    (click)="cancelTask(task.id)"
+                    title="Cancel task (cannot be reopened)">
+                    ❌ Cancel
+                  </button>
+                }
+              </div>
+            } @else if (config().sprintCompleted && task.status !== 'completed' && task.status !== 'cancelled') {
+              <div class="task-move-next">
+                <button
+                  class="btn-move-next-sprint"
+                  [class.marked]="task.moveToNextSprint"
+                  (click)="moveTaskToNextSprint(task.id)"
+                  title="Mark to move to next sprint">
+                  @if (task.moveToNextSprint) {
+                    ✓ Marked
+                  } @else {
+                    ➡️ Move
+                  }
+                </button>
+              </div>
+            } @else if (task.status === 'cancelled') {
+              <div class="task-status-cancelled">
+                <span class="status-badge" [attr.data-status]="'cancelled'">
+                  {{ getStatusIcon('cancelled') }} Cancelled
+                </span>
+              </div>
+            }
+
+            @if (!config().sprintStarted && !config().sprintCompleted) {
+              <div class="task-actions">
+                <button class="btn-icon" (click)="startEditTask(task)" title="Edit">✏️</button>
+                <button class="btn-icon" (click)="deleteTask(task.id)" title="Delete">🗑️</button>
+              </div>
+            }
           </div>
         }
       </div>
@@ -269,6 +459,7 @@
               type="date"
               [value]="newTaskDeadline()"
               (input)="newTaskDeadline.set($any($event.target).value)"
+              [max]="config().sprintEndDate || ''"
               class="form-control" />
           </div>
         </div>
@@ -315,12 +506,94 @@
             type="date"
             [value]="newHoliday()"
             (input)="newHoliday.set($any($event.target).value)"
+            [max]="config().sprintEndDate || ''"
             class="form-control" />
         </div>
 
         <div class="dialog-actions">
           <button class="btn btn-cancel" (click)="closeHolidayForm()">Cancel</button>
           <button class="btn btn-primary" (click)="addHoliday()" [disabled]="!newHoliday()">Add Holiday</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Add Holiday Range Dialog -->
+  @if (showHolidayRangeForm()) {
+    <div
+      class="dialog-overlay"
+      (click)="closeHolidayRangeForm()"
+      (keyup.escape)="closeHolidayRangeForm()"
+      tabindex="-1">
+      <div
+        class="dialog-content dialog-sm"
+        (click)="$event.stopPropagation()"
+        (keyup)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true">
+        <h2>Add Holiday Range</h2>
+
+        <div class="form-group">
+          <label for="holidayRangeStart">Start Date</label>
+          <input
+            id="holidayRangeStart"
+            type="date"
+            [value]="holidayRangeStart()"
+            (input)="holidayRangeStart.set($any($event.target).value)"
+            [max]="config().sprintEndDate || ''"
+            class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label for="holidayRangeEnd">End Date</label>
+          <input
+            id="holidayRangeEnd"
+            type="date"
+            [value]="holidayRangeEnd()"
+            (input)="holidayRangeEnd.set($any($event.target).value)"
+            [min]="holidayRangeStart()"
+            [max]="config().sprintEndDate || ''"
+            class="form-control" />
+        </div>
+
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" (click)="closeHolidayRangeForm()">Cancel</button>
+          <button
+            class="btn btn-primary"
+            (click)="addHolidayRange()"
+            [disabled]="!holidayRangeStart() || !holidayRangeEnd() || holidayRangeStart() > holidayRangeEnd()">
+            Add Range
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Configure Week Off Days Dialog -->
+  @if (showWeekoffForm()) {
+    <div class="dialog-overlay" (click)="closeWeekoffForm()" (keyup.escape)="closeWeekoffForm()" tabindex="-1">
+      <div
+        class="dialog-content"
+        (click)="$event.stopPropagation()"
+        (keyup)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true">
+        <h2>Configure Week Off Days</h2>
+
+        <div class="weekoff-grid">
+          @for (day of [0, 1, 2, 3, 4, 5, 6]; track day) {
+            <label class="weekoff-checkbox">
+              <input type="checkbox" [checked]="selectedWeekoffDays().includes(day)" (change)="toggleWeekoffDay(day)" />
+              <span>{{ getWeekdayName(day) }}</span>
+            </label>
+          }
+        </div>
+
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" (click)="closeWeekoffForm()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveWeekoffDays()" [disabled]="selectedWeekoffDays().length === 0">
+            Save Week Off Days
+          </button>
         </div>
       </div>
     </div>

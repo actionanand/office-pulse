@@ -219,26 +219,36 @@
 
   &.available {
     background: #e8f5e9;
-    .summary-value { color: #2e7d32; }
+    .summary-value {
+      color: #2e7d32;
+    }
   }
 
   &.allocated {
     background: #e3f2fd;
-    .summary-value { color: #1976d2; }
+    .summary-value {
+      color: #1976d2;
+    }
   }
 
   &.spillover {
     background: #fff3e0;
-    .summary-value { color: #f57c00; }
+    .summary-value {
+      color: #f57c00;
+    }
   }
 
   &.remaining {
     background: #f3e5f5;
-    .summary-value { color: #7b1fa2; }
+    .summary-value {
+      color: #7b1fa2;
+    }
 
     &.negative {
       background: #ffebee;
-      .summary-value { color: #c62828; }
+      .summary-value {
+        color: #c62828;
+      }
     }
   }
 }
@@ -407,7 +417,9 @@
   font-size: 1.1rem;
   padding: 0.25rem;
   opacity: 0.6;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 
   &:hover {
     opacity: 1;
@@ -590,7 +602,7 @@
     gap: 0.5rem;
     cursor: pointer;
 
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       width: 18px;
       height: 18px;
       cursor: pointer;
@@ -683,7 +695,7 @@
 
   .dialog-actions {
     flex-direction: column;
-    
+
     button {
       width: 100%;
     }
@@ -719,5 +731,361 @@
       width: 100%;
       justify-content: center;
     }
+  }
+}
+
+// Sprint button styles
+.btn-sprint {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  &.started {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.btn-new-sprint {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+// Holiday buttons container
+.holiday-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+// Task status workflow
+.task-status-workflow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+  flex: 1;
+}
+
+.status-badge {
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &[data-status='open'] {
+    background: #e9ecef;
+    color: #495057;
+  }
+
+  &[data-status='working'] {
+    background: #cfe2ff;
+    color: #084298;
+  }
+
+  &[data-status='dev-finished'] {
+    background: #d1e7dd;
+    color: #0a3622;
+  }
+
+  &[data-status='testing'] {
+    background: #fff3cd;
+    color: #664d03;
+  }
+
+  &[data-status='completed'] {
+    background: #d1e7dd;
+    color: #0a3622;
+  }
+
+  &[data-status='reopened'] {
+    background: #f8d7da;
+    color: #842029;
+  }
+}
+
+.btn-status-next,
+.btn-status-complete,
+.btn-status-reopen {
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-status-next {
+  background: #667eea;
+  color: white;
+
+  &:hover {
+    background: #5568d3;
+    transform: translateY(-1px);
+  }
+}
+
+.btn-status-complete {
+  background: #10b981;
+  color: white;
+
+  &:hover {
+    background: #059669;
+    transform: translateY(-1px);
+  }
+}
+
+.btn-status-reopen {
+  background: #ef4444;
+  color: white;
+
+  &:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+  }
+}
+
+.btn-status-cancel {
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  background: #dc2626;
+  color: white;
+
+  &:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+  }
+}
+
+// Task cancelled state
+.task-status-cancelled {
+  padding: 0.5rem;
+  background: #fee2e2;
+  border-radius: 6px;
+  flex: 1;
+}
+
+// New task badge
+.new-task-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  margin: 0 0.25rem;
+}
+
+// Sprint countdown
+.config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.sprint-countdown {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+
+  .countdown-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e40af;
+  }
+
+  .countdown-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e40af;
+    min-width: 2rem;
+    text-align: center;
+
+    &.critical {
+      color: #ef4444;
+      animation: pulse-critical 1s infinite;
+    }
+  }
+}
+
+@keyframes pulse-critical {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+// Weekoff configuration
+.weekoff-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin: 1rem 0;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.weekoff-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  input[type='checkbox'] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+  }
+
+  span {
+    font-weight: 500;
+    color: #374151;
+    flex: 1;
+  }
+
+  &:hover {
+    border-color: #667eea;
+    background: #f3f4f6;
+  }
+
+  input[type='checkbox']:checked + span {
+    color: #667eea;
+    font-weight: 600;
+  }
+
+  input[type='checkbox']:checked {
+    accent-color: #667eea;
+  }
+}
+
+// Move to next sprint button
+.task-move-next {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-move-next-sprint {
+  padding: 0.35rem 0.75rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: #5568d3;
+    transform: translateY(-1px);
+  }
+
+  &.marked {
+    background: #10b981;
+
+    &:hover {
+      background: #059669;
+    }
+  }
+}
+
+// Task item with status
+.task-item {
+  flex-direction: column;
+  align-items: stretch;
+
+  &[data-status='completed'] {
+    opacity: 0.7;
+
+    .task-name {
+      text-decoration: line-through;
+    }
+  }
+}
+
+// Deadline improvements
+.task-deadline {
+  &.urgent {
+    animation: pulse 2s infinite;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
   }
 }

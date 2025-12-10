@@ -1,0 +1,24 @@
+<div class="markdown-viewer">
+  <h2>Markdown Viewer</h2>
+  <div class="upload-section">
+    <input type="file" accept=".md,.markdown,text/markdown" (change)="onFileSelected($event)" />
+    <span *ngIf="fileName()"
+      >Loaded: <b>{{ fileName() }}</b></span
+    >
+  </div>
+
+  <div class="history-section" *ngIf="history().length > 0">
+    <h3>Recent Files</h3>
+    <ul>
+      <li *ngFor="let entry of history()">
+        <button (click)="loadFromHistory(entry)">{{ entry.name }}</button>
+        <button class="remove-btn" (click)="removeHistoryEntry(entry.name)">✖</button>
+      </li>
+    </ul>
+    <button class="clear-btn" (click)="clearHistory()">Clear History</button>
+  </div>
+
+  <div class="markdown-content" *ngIf="markdownContent()">
+    <markdown [data]="markdownContent()"></markdown>
+  </div>
+</div>

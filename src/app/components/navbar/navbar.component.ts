@@ -7,10 +7,11 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
   readonly isMenuOpen = signal(false);
+  readonly isDropdownOpen = signal(false);
 
   toggleMenu(): void {
     this.isMenuOpen.update(v => !v);
@@ -18,5 +19,18 @@ export class NavbarComponent {
 
   closeMenu(): void {
     this.isMenuOpen.set(false);
+  }
+
+  toggleDropdown(): void {
+    this.isDropdownOpen.update(v => !v);
+  }
+
+  closeDropdown(): void {
+    this.isDropdownOpen.set(false);
+  }
+
+  closeAll(): void {
+    this.closeMenu();
+    this.closeDropdown();
   }
 }

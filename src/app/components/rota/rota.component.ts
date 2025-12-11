@@ -81,23 +81,23 @@ export class RotaComponent implements OnInit {
 
     // "You are on [category]"
     if (rota.category) {
-      parts.push(`You are on <strong>${rota.category}</strong>`);
+      parts.push(`You are on <span class="highlight-category">${rota.category}</span>`);
     } else {
-      parts.push('You are on <strong>duty</strong>');
+      parts.push('You are on <span class="highlight-category">duty</span>');
     }
 
     // "with [others]"
     if (rota.othersInvolved) {
-      parts.push(`with <strong>${rota.othersInvolved}</strong>`);
+      parts.push(`with <span class="highlight-people">${rota.othersInvolved}</span>`);
     }
 
     // "during/on [time]"
     if (rota.dateRange) {
-      parts.push(`during <strong>${rota.dateRange}</strong>`);
+      parts.push(`during <span class="highlight-date">${rota.dateRange}</span>`);
     } else if (rota.date) {
-      parts.push(`on <strong>${this.formatDate(rota.date)}</strong>`);
+      parts.push(`on <span class="highlight-date">${this.formatDate(rota.date)}</span>`);
     } else if (rota.month) {
-      parts.push(`in <strong>${this.getMonthName(rota.month)}</strong>`);
+      parts.push(`in <span class="highlight-date">${this.getMonthName(rota.month)}</span>`);
     }
 
     return parts.join(' ');

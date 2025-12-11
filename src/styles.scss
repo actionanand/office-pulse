@@ -21,20 +21,64 @@ body {
   body {
     padding: 0;
   }
-  
+
   /* Improve touch targets */
-  button, a, input[type="checkbox"], input[type="time"], select {
+  button,
+  a,
+  input[type='checkbox'],
+  input[type='time'],
+  select {
     min-height: 44px;
   }
-  
+
   /* Prevent iOS zoom on input focus */
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px !important;
   }
 }
 
 /* Background fix for all devices when content exceeds viewport */
-html, body {
+html,
+body {
   height: auto;
   min-height: 100vh;
+}
+
+// custom clipboard toolbar styles
+.markdown-clipboard-toolbar {
+  top: 16px;
+  right: 16px;
+  opacity: 0;
+  transition: opacity 250ms ease-out;
+}
+
+.markdown-clipboard-toolbar.hover {
+  opacity: 1;
+}
+
+.markdown-clipboard-button {
+  background-color: rgba(255, 255, 255, 0.07);
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px 0;
+  width: 50px;
+  transition: all 250ms ease-out;
+}
+
+.markdown-clipboard-button:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.markdown-clipboard-button:active {
+  transform: scale(0.95);
+}
+
+.markdown-clipboard-button.copied {
+  background-color: rgba(0, 255, 0, 0.1);
+  color: #00ff00;
 }

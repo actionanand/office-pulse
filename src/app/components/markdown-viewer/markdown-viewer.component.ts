@@ -1,12 +1,29 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MarkdownModule } from 'ngx-markdown';
+import { MarkdownModule, MarkdownService } from 'ngx-markdown';
+import { HttpClient } from '@angular/common/http';
+import { getISTDate } from '../../utils/date-utils';
 
-interface HistoryEntry {
+interface ViewedFile {
   name: string;
-  content: string;
+  filePath: string;
   uploadedAt: string;
+  source: 'upload' | 'url';
+}
+
+declare global {
+  interface Window {
+    Prism: {
+      highlightAll(): void;
+      highlightElement(element: HTMLElement): void;
+    };
+    mermaid: {
+      contentLoaded(): void;
+      render(id: string, text: string): Promise<{ svg: string }>;
+    };
+    renderMathInElement: (element: HTMLElement, options?: Record<string, unknown>) => void;
+  }
 }
 
 @Component({
@@ -16,236 +33,200 @@ interface HistoryEntry {
   styleUrl: './markdown-viewer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MarkdownViewerComponent {
+export class MarkdownViewerComponent implements OnInit, AfterViewInit {
+  private http = inject(HttpClient);
+  private markdownService = inject(MarkdownService);
+
   readonly markdownContent = signal<string>('');
+  readonly instructionsMarkdown = signal<string>('');
   readonly fileName = signal<string>('');
+  readonly filePath = signal<string>('');
   readonly showInstructions = signal<boolean>(true);
-  readonly history = signal<HistoryEntry[]>(this.loadHistory());
+  readonly isLoading = signal<boolean>(false);
+  readonly viewedFiles = signal<ViewedFile[]>(this.loadViewedFiles());
+  readonly showLoadDialog = signal<boolean>(false);
+  readonly urlInput = signal<string>('');
+  readonly availableFiles = signal<string[]>([]);
+  readonly lastUsedLocation = signal<string>('');
 
-  readonly instructionsMarkdown = `# Markdown Viewer Guide
+  ngOnInit(): void {
+    this.loadInstructions();
+  }
 
-Welcome to the Markdown Viewer! This tool supports **advanced markdown features** including syntax highlighting, math equations, and diagrams.
+  ngAfterViewInit(): void {
+    this.initializeLibraries();
+  }
 
-## 📝 Basic Markdown Syntax
-
-### Headers
-Use \`#\` for headers (H1-H6):
-\`\`\`markdown
-# H1 Header
-## H2 Header
-### H3 Header
-\`\`\`
-
-### Text Formatting
-- **Bold**: \`**text**\` or \`__text__\`
-- *Italic*: \`*text*\` or \`_text_\`
-- ~~Strikethrough~~: \`~~text~~\`
-- \`Inline code\`: \`\\\`code\\\`\`
-
-### Lists
-**Unordered:**
-\`\`\`markdown
-- Item 1
-- Item 2
-  - Sub-item
-\`\`\`
-
-**Ordered:**
-\`\`\`markdown
-1. First
-2. Second
-3. Third
-\`\`\`
-
----
-
-## 💻 Prism.js Syntax Highlighting
-
-Wrap code blocks with triple backticks and specify the language:
-
-\`\`\`typescript
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-const getUser = async (id: number): Promise<User> => {
-  const response = await fetch(\`/api/users/\${id}\`);
-  return response.json();
-};
-\`\`\`
-
-\`\`\`python
-def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
-
-print([fibonacci(i) for i in range(10)])
-\`\`\`
-
-\`\`\`bash
-npm install ngx-markdown prismjs mermaid katex
-ng serve --open
-\`\`\`
-
----
-
-## 🧮 KaTeX Math Equations
-
-### Inline Math
-Use single dollar signs: \`$E = mc^2$\` renders as $E = mc^2$
-
-### Block Math
-Use double dollar signs:
-
-\`\`\`
-$$
-\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
-$$
-\`\`\`
-
-Renders as:
-
-$$
-\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}
-$$
-
-**Common Symbols:**
-- Greek: \`$\\alpha, \\beta, \\gamma, \\Delta, \\Omega$\`
-- Operators: \`$\\sum, \\prod, \\int, \\lim$\`
-- Relations: \`$\\leq, \\geq, \\neq, \\approx$\`
-
----
-
-## 📊 Mermaid.js Diagrams
-
-### Flowchart
-\`\`\`mermaid
-graph TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Debug]
-    D --> B
-    C --> E[End]
-\`\`\`
-
-### Sequence Diagram
-\`\`\`mermaid
-sequenceDiagram
-    participant User
-    participant Browser
-    participant Server
-    User->>Browser: Enter URL
-    Browser->>Server: HTTP Request
-    Server->>Browser: HTML Response
-    Browser->>User: Render Page
-\`\`\`
-
-### Class Diagram
-\`\`\`mermaid
-classDiagram
-    class Animal {
-        +String name
-        +int age
-        +makeSound()
+  private initializeLibraries(): void {
+    if (typeof window.mermaid !== 'undefined') {
+      window.mermaid.contentLoaded();
     }
-    class Dog {
-        +String breed
-        +bark()
-    }
-    Animal <|-- Dog
-\`\`\`
+  }
 
-### Gantt Chart
-\`\`\`mermaid
-gantt
-    title Project Timeline
-    dateFormat YYYY-MM-DD
-    section Phase 1
-    Design           :a1, 2024-01-01, 30d
-    Development      :a2, after a1, 45d
-    section Phase 2
-    Testing          :a3, after a2, 20d
-    Deployment       :a4, after a3, 10d
-\`\`\`
+  loadInstructions(): void {
+    this.isLoading.set(true);
+    this.http.get('markdown-instructions.md', { responseType: 'text' }).subscribe({
+      next: content => {
+        this.instructionsMarkdown.set(content);
+        this.isLoading.set(false);
+        // renderMarkdown() will be called via markdown component's (ready) event
+      },
+      error: err => {
+        console.error('Failed to load instructions:', err);
+        this.instructionsMarkdown.set('# Markdown Viewer\n\nInstructions file not found.');
+        this.isLoading.set(false);
+      },
+    });
+  }
 
----
-
-## 📋 Tables
-
-\`\`\`markdown
-| Feature | Status | Priority |
-|---------|--------|----------|
-| Markdown | ✅ | High |
-| Prism.js | ✅ | High |
-| Mermaid | ✅ | Medium |
-| KaTeX | ✅ | Medium |
-\`\`\`
-
-Renders as:
-
-| Feature | Status | Priority |
-|---------|--------|----------|
-| Markdown | ✅ | High |
-| Prism.js | ✅ | High |
-| Mermaid | ✅ | Medium |
-| KaTeX | ✅ | Medium |
-
----
-
-## 🔗 Links and Images
-
-**Links:** \`[Google](https://google.com)\`
-
-**Images:** \`![Alt text](image-url.jpg)\`
-
----
-
-## 💡 Tips
-
-1. **Upload your markdown file** using the file input above
-2. Files are saved in history (max 5) for quick access
-3. Click on history items to reload them
-4. Clear individual entries or all history as needed
-5. All content is stored locally in your browser
-
-**Happy documenting! 🚀**
-`;
+  renderMarkdown(): void {
+    // ngx-markdown with [katex], [lineNumbers], [mermaid], and [clipboard]
+    // attributes now handles all rendering automatically
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
+      this.isLoading.set(true);
       const reader = new FileReader();
       reader.onload = () => {
         const content = reader.result as string;
         this.fileName.set(file.name);
+        this.filePath.set(file.name); // For uploaded files, just store the name
         this.markdownContent.set(content);
         this.showInstructions.set(false);
-        this.addToHistory(file.name, content);
+        this.isLoading.set(false);
+        this.addToViewedFiles(file.name, file.name, 'upload');
+      };
+      reader.onerror = () => {
+        console.error('Failed to read file');
+        this.isLoading.set(false);
       };
       reader.readAsText(file);
+      input.value = '';
     }
   }
 
-  addToHistory(name: string, content: string): void {
-    let hist = this.history().filter(h => h.name !== name);
-    hist.unshift({
-      name,
-      content,
-      uploadedAt: new Date().toISOString(),
+  openUrlDialog(): void {
+    this.showLoadDialog.set(true);
+    this.urlInput.set(this.lastUsedLocation());
+  }
+
+  closeUrlDialog(): void {
+    this.showLoadDialog.set(false);
+    this.urlInput.set('');
+    this.availableFiles.set([]);
+  }
+
+  loadFromUrl(): void {
+    const urlPath = this.urlInput().trim();
+    if (!urlPath) return;
+
+    // Check if it's a local file path
+    if (this.isLocalFilePath(urlPath)) {
+      alert(
+        '⚠️ Local file paths cannot be loaded directly due to browser security.\n\n' +
+          'Local paths like "C:\\Users\\..." or "/home/user/..." are blocked by CORS policy.\n\n' +
+          '✅ Solution: Use the "Choose Markdown File" button to browse and select files from your computer.\n\n' +
+          '💡 URL loading works only for HTTP/HTTPS URLs (e.g., https://example.com/file.md)',
+      );
+      this.isLoading.set(false);
+      return;
+    }
+
+    this.isLoading.set(true);
+
+    // Try to load the file via HTTP/HTTPS
+    this.http.get(urlPath, { responseType: 'text' }).subscribe({
+      next: content => {
+        // Successfully loaded as a file
+        const fileName = this.extractFileName(urlPath);
+        this.fileName.set(fileName);
+        this.filePath.set(urlPath);
+        this.markdownContent.set(content);
+        this.showInstructions.set(false);
+        this.isLoading.set(false);
+        this.lastUsedLocation.set(urlPath);
+        this.addToViewedFiles(fileName, urlPath, 'url');
+        this.closeUrlDialog();
+      },
+      error: err => {
+        console.error('Failed to load URL:', err);
+        alert(
+          '❌ Failed to load the URL.\n\n' +
+            'Possible reasons:\n' +
+            '• Invalid URL format\n' +
+            '• File not found (404)\n' +
+            '• CORS policy blocking the request\n' +
+            '• Network error\n\n' +
+            'Please check the URL and try again.',
+        );
+        this.isLoading.set(false);
+      },
     });
-    if (hist.length > 5) {
-      hist = hist.slice(0, 5);
-    }
-    this.history.set(hist);
-    localStorage.setItem('markdownHistory', JSON.stringify(hist));
   }
 
-  loadHistory(): HistoryEntry[] {
-    const raw = localStorage.getItem('markdownHistory');
+  private isLocalFilePath(path: string): boolean {
+    // Check for Windows paths (C:\, D:\, \\network\path)
+    const windowsPath = /^[a-zA-Z]:\\|^\\\\/;
+    // Check for Unix/Linux paths (/home, /usr, etc.)
+    const unixPath = /^\/[^/]/;
+    // Check for file:// protocol
+    const fileProtocol = /^file:\/\//i;
+
+    return windowsPath.test(path) || unixPath.test(path) || fileProtocol.test(path);
+  }
+
+  loadFromHistory(file: ViewedFile): void {
+    this.isLoading.set(true);
+
+    if (file.source === 'upload') {
+      // For uploaded files, we can't reload them directly since they're not accessible
+      alert('Uploaded files cannot be reloaded from history. Please upload the file again.');
+      this.isLoading.set(false);
+      return;
+    }
+
+    // For URL-based files, fetch them again
+    this.http.get(file.filePath, { responseType: 'text' }).subscribe({
+      next: content => {
+        this.fileName.set(file.name);
+        this.filePath.set(file.filePath);
+        this.markdownContent.set(content);
+        this.showInstructions.set(false);
+        this.isLoading.set(false);
+        this.lastUsedLocation.set(file.filePath);
+      },
+      error: () => {
+        alert(`Failed to load file: ${file.filePath}`);
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  private extractFileName(path: string): string {
+    const parts = path.split('/');
+    return parts[parts.length - 1] || path;
+  }
+
+  addToViewedFiles(name: string, filePath: string, source: 'upload' | 'url'): void {
+    let files = this.viewedFiles().filter(f => f.filePath !== filePath);
+    files.unshift({
+      name,
+      filePath,
+      uploadedAt: getISTDate().toISOString(),
+      source,
+    });
+    if (files.length > 5) {
+      files = files.slice(0, 5);
+    }
+    this.viewedFiles.set(files);
+    localStorage.setItem('markdownViewedFiles', JSON.stringify(files));
+  }
+
+  loadViewedFiles(): ViewedFile[] {
+    const raw = localStorage.getItem('markdownViewedFiles');
     if (!raw) return [];
     try {
       return JSON.parse(raw);
@@ -254,34 +235,31 @@ Renders as:
     }
   }
 
-  loadFromHistory(entry: HistoryEntry): void {
-    this.fileName.set(entry.name);
-    this.markdownContent.set(entry.content);
-    this.showInstructions.set(false);
+  clearViewedFiles(): void {
+    this.viewedFiles.set([]);
+    localStorage.removeItem('markdownViewedFiles');
   }
 
-  clearHistory(): void {
-    this.history.set([]);
-    localStorage.removeItem('markdownHistory');
-  }
-
-  removeHistoryEntry(name: string): void {
-    const hist = this.history().filter(h => h.name !== name);
-    this.history.set(hist);
-    localStorage.setItem('markdownHistory', JSON.stringify(hist));
+  removeViewedFile(filePath: string): void {
+    const files = this.viewedFiles().filter(f => f.filePath !== filePath);
+    this.viewedFiles.set(files);
+    localStorage.setItem('markdownViewedFiles', JSON.stringify(files));
   }
 
   showInstructionsView(): void {
     this.showInstructions.set(true);
     this.fileName.set('');
     this.markdownContent.set('');
+    // renderMarkdown() will be called via markdown component's (ready) event
   }
 
   getFormattedDate(isoDate: string): string {
     const date = new Date(isoDate);
-    return date.toLocaleString('en-US', {
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
       month: 'short',
       day: 'numeric',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });

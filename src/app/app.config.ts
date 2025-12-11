@@ -19,8 +19,9 @@ export const appConfig: ApplicationConfig = {
         useValue: {
           startOnLoad: true,
           theme: 'dark',
-          look: 'handDrawn',
+          look: 'classic',
           flowchart: { curve: 'basis' },
+          gantt: { useMaxWidth: true },
         },
       },
     }),

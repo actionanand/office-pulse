@@ -41,6 +41,12 @@ export const routes: Routes = [
     canActivate: [lockGuard],
   },
   {
+    path: 'markdown',
+    loadComponent: () =>
+      import('./components/markdown-viewer/markdown-viewer.component').then(m => m.MarkdownViewerComponent),
+    canActivate: [lockGuard],
+  },
+  {
     path: '**',
     loadComponent: () => import('./components/not-found/not-found.component').then(m => m.NotFoundComponent),
   },

@@ -1,24 +1,63 @@
 <div class="markdown-viewer">
-  <h2>Markdown Viewer</h2>
-  <div class="upload-section">
-    <input type="file" accept=".md,.markdown,text/markdown" (change)="onFileSelected($event)" />
-    <span *ngIf="fileName()"
-      >Loaded: <b>{{ fileName() }}</b></span
-    >
+  <div class="header">
+    <h1>📄 Markdown Viewer</h1>
+    <p class="subtitle">Upload and preview markdown files with syntax highlighting, math equations, and diagrams</p>
   </div>
 
-  <div class="history-section" *ngIf="history().length > 0">
-    <h3>Recent Files</h3>
-    <ul>
-      <li *ngFor="let entry of history()">
-        <button (click)="loadFromHistory(entry)">{{ entry.name }}</button>
-        <button class="remove-btn" (click)="removeHistoryEntry(entry.name)">✖</button>
-      </li>
-    </ul>
-    <button class="clear-btn" (click)="clearHistory()">Clear History</button>
+  <div class="controls">
+    <div class="upload-section">
+      <label for="file-upload" class="upload-label">
+        <span class="upload-icon">📁</span>
+        <span>Choose Markdown File</span>
+      </label>
+      <input
+        id="file-upload"
+        type="file"
+        accept=".md,.markdown,text/markdown"
+        (change)="onFileSelected($event)"
+        class="file-input" />
+      @if (fileName()) {
+        <div class="current-file">
+          <span class="file-icon">📝</span>
+          <span class="file-name">{{ fileName() }}</span>
+        </div>
+      }
+    </div>
+
+    @if (!showInstructions() && markdownContent()) {
+      <button class="btn-show-instructions" (click)="showInstructionsView()">📖 Show Instructions</button>
+    }
   </div>
 
-  <div class="markdown-content" *ngIf="markdownContent()">
-    <markdown [data]="markdownContent()"></markdown>
+  @if (history().length > 0) {
+    <div class="history-section">
+      <div class="history-header">
+        <h3>📚 Recent Files</h3>
+        <button class="btn-clear-all" (click)="clearHistory()">Clear All</button>
+      </div>
+      <ul class="history-list">
+        @for (entry of history(); track entry.name) {
+          <li class="history-item">
+            <button class="btn-load" (click)="loadFromHistory(entry)">
+              <span class="entry-name">{{ entry.name }}</span>
+              <span class="entry-date">{{ getFormattedDate(entry.uploadedAt) }}</span>
+            </button>
+            <button class="btn-remove" (click)="removeHistoryEntry(entry.name)" title="Remove from history">✖</button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  <div class="markdown-content">
+    @if (showInstructions()) {
+      <div class="instructions-wrapper">
+        <markdown [data]="instructionsMarkdown"></markdown>
+      </div>
+    } @else if (markdownContent()) {
+      <div class="user-content-wrapper">
+        <markdown [data]="markdownContent()"></markdown>
+      </div>
+    }
   </div>
 </div>

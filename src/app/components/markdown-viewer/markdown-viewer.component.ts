@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit, AfterViewInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MarkdownModule, MarkdownService } from 'ngx-markdown';
@@ -33,12 +33,12 @@ declare global {
   styleUrl: './markdown-viewer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MarkdownViewerComponent implements OnInit, AfterViewInit {
+export class MarkdownViewerComponent implements AfterViewInit {
   private http = inject(HttpClient);
-  private markdownService = inject(MarkdownService);
+  markdownService = inject(MarkdownService);
 
   readonly markdownContent = signal<string>('');
-  readonly instructionsMarkdown = signal<string>('');
+  readonly markdownBlobUrl = signal<string>('');
   readonly fileName = signal<string>('');
   readonly filePath = signal<string>('');
   readonly showInstructions = signal<boolean>(true);
@@ -48,10 +48,6 @@ export class MarkdownViewerComponent implements OnInit, AfterViewInit {
   readonly urlInput = signal<string>('');
   readonly availableFiles = signal<string[]>([]);
   readonly lastUsedLocation = signal<string>('');
-
-  ngOnInit(): void {
-    this.loadInstructions();
-  }
 
   ngAfterViewInit(): void {
     this.initializeLibraries();
@@ -63,25 +59,8 @@ export class MarkdownViewerComponent implements OnInit, AfterViewInit {
     }
   }
 
-  loadInstructions(): void {
-    this.isLoading.set(true);
-    this.http.get('markdown-instructions.md', { responseType: 'text' }).subscribe({
-      next: content => {
-        this.instructionsMarkdown.set(content);
-        this.isLoading.set(false);
-        // renderMarkdown() will be called via markdown component's (ready) event
-      },
-      error: err => {
-        console.error('Failed to load instructions:', err);
-        this.instructionsMarkdown.set('# Markdown Viewer\n\nInstructions file not found.');
-        this.isLoading.set(false);
-      },
-    });
-  }
-
   renderMarkdown(): void {
-    // ngx-markdown with [katex], [lineNumbers], [mermaid], and [clipboard]
-    // attributes now handles all rendering automatically
+    // Rendering is handled by ngx-markdown component automatically
   }
 
   onFileSelected(event: Event): void {
@@ -89,12 +68,19 @@ export class MarkdownViewerComponent implements OnInit, AfterViewInit {
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       this.isLoading.set(true);
+
+      // Create blob URL for the markdown file
+      const blob = new Blob([file], { type: 'text/markdown' });
+      const blobUrl = URL.createObjectURL(blob);
+
+      // Read the file content for storage
       const reader = new FileReader();
       reader.onload = () => {
         const content = reader.result as string;
         this.fileName.set(file.name);
-        this.filePath.set(file.name); // For uploaded files, just store the name
+        this.filePath.set(file.name);
         this.markdownContent.set(content);
+        this.markdownBlobUrl.set(blobUrl);
         this.showInstructions.set(false);
         this.isLoading.set(false);
         this.addToViewedFiles(file.name, file.name, 'upload');
@@ -142,9 +128,15 @@ export class MarkdownViewerComponent implements OnInit, AfterViewInit {
       next: content => {
         // Successfully loaded as a file
         const fileName = this.extractFileName(urlPath);
+
+        // Create blob URL for markdown content
+        const blob = new Blob([content], { type: 'text/markdown' });
+        const blobUrl = URL.createObjectURL(blob);
+
         this.fileName.set(fileName);
         this.filePath.set(urlPath);
         this.markdownContent.set(content);
+        this.markdownBlobUrl.set(blobUrl);
         this.showInstructions.set(false);
         this.isLoading.set(false);
         this.lastUsedLocation.set(urlPath);
@@ -191,9 +183,14 @@ export class MarkdownViewerComponent implements OnInit, AfterViewInit {
     // For URL-based files, fetch them again
     this.http.get(file.filePath, { responseType: 'text' }).subscribe({
       next: content => {
+        // Create blob URL for markdown content
+        const blob = new Blob([content], { type: 'text/markdown' });
+        const blobUrl = URL.createObjectURL(blob);
+
         this.fileName.set(file.name);
         this.filePath.set(file.filePath);
         this.markdownContent.set(content);
+        this.markdownBlobUrl.set(blobUrl);
         this.showInstructions.set(false);
         this.isLoading.set(false);
         this.lastUsedLocation.set(file.filePath);

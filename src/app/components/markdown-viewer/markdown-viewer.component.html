@@ -95,22 +95,22 @@
     @if (showInstructions()) {
       <div class="instructions-wrapper">
         <markdown
-          [data]="instructionsMarkdown()"
+          [src]="'markdown-instructions.md'"
           (ready)="renderMarkdown()"
-          ngPreserveWhitespaces
           katex
           lineNumbers
+          lineHighlight
           mermaid
           clipboard></markdown>
       </div>
-    } @else if (markdownContent()) {
+    } @else if (markdownBlobUrl()) {
       <div class="user-content-wrapper">
         <markdown
-          [data]="markdownContent()"
+          [src]="markdownBlobUrl()"
           (ready)="renderMarkdown()"
-          ngPreserveWhitespaces
           katex
           lineNumbers
+          lineHighlight
           mermaid
           clipboard></markdown>
       </div>

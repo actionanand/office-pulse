@@ -14,7 +14,7 @@ interface QuickLink {
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink]
+  imports: [RouterLink],
 })
 export class HomeComponent {
   readonly quickLinks: QuickLink[] = [
@@ -23,43 +23,50 @@ export class HomeComponent {
       icon: '📅',
       title: 'Calendar',
       description: 'View monthly attendance and track your office days',
-      color: '#667eea'
+      color: '#667eea',
     },
     {
       path: '/logger',
       icon: '📝',
       title: 'Logger',
       description: 'Log your daily office entries and work hours',
-      color: '#f093fb'
+      color: '#f093fb',
     },
     {
       path: '/bandwidth',
       icon: '⚡',
       title: 'Bandwidth',
       description: 'Calculate sprint bandwidth and capacity planning',
-      color: '#f5576c'
+      color: '#f5576c',
     },
     {
       path: '/holidays',
       icon: '🎉',
       title: 'Holidays',
       description: 'Check office holidays and important days',
-      color: '#4facfe'
+      color: '#4facfe',
     },
     {
       path: '/achievements',
       icon: '🏆',
       title: 'Achievements',
       description: 'Track and celebrate your accomplishments',
-      color: '#43e97b'
+      color: '#43e97b',
     },
     {
       path: '/utilities',
       icon: '🛠️',
       title: 'Utilities',
       description: 'Stopwatch, checklist, and quick transfer tools',
-      color: '#fa709a'
-    }
+      color: '#fa709a',
+    },
+    {
+      path: '/markdown',
+      icon: '📄',
+      title: 'Markdown Viewer',
+      description: 'View and render markdown files with syntax highlighting',
+      color: '#8b5cf6',
+    },
   ];
 
   readonly currentHour = new Date().getHours();

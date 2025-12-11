@@ -439,8 +439,8 @@
       h4,
       h5,
       h6 {
-        margin-top: 1.5em;
-        margin-bottom: 0.5em;
+        margin-top: 2em;
+        margin-bottom: 1em;
         font-weight: 600;
         line-height: 1.25;
         color: #1f2937;
@@ -469,6 +469,16 @@
         color: #374151;
       }
 
+      // Extra space after headings when followed by content
+      h1 + p,
+      h2 + p,
+      h3 + p,
+      h4 + p,
+      h5 + p,
+      h6 + p {
+        margin-top: 1.5em;
+      }
+
       a {
         color: #667eea;
         text-decoration: none;
@@ -486,8 +496,63 @@
         line-height: 1.7;
       }
 
+      ul {
+        list-style-type: disc;
+        list-style-position: outside;
+      }
+
+      ol {
+        list-style-type: decimal;
+        list-style-position: outside;
+      }
+
       li {
         margin: 0.5em 0;
+        display: list-item;
+      }
+
+      // Nested lists
+      ul ul {
+        list-style-type: circle;
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+
+      ul ul ul {
+        list-style-type: square;
+      }
+
+      ol ol {
+        list-style-type: lower-alpha;
+      }
+
+      ol ol ol {
+        list-style-type: lower-roman;
+      }
+
+      blockquote {
+        border-left: 4px solid #667eea;
+        padding-left: 1.5em;
+        padding-right: 1em;
+        margin: 1.5em 0;
+        color: #6b7280;
+        font-style: italic;
+        background: #f9fafb;
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+        border-radius: 0 4px 4px 0;
+
+        p {
+          margin: 0.5em 0;
+        }
+
+        p:first-child {
+          margin-top: 0;
+        }
+
+        p:last-child {
+          margin-bottom: 0;
+        }
       }
 
       code {
@@ -603,44 +668,44 @@
             color: #e06c75 !important;
           }
         }
-      }
 
-      // Tables
-      table {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 1.5em 0;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        overflow: hidden;
+        // Line highlighting
+        :deep(.line-highlight) {
+          background: rgba(255, 255, 255, 0.08);
+          border-left: 3px solid #667eea;
+          margin-top: 0;
+          pointer-events: none;
 
-        thead {
-          background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-        }
-
-        th,
-        td {
-          border: 1px solid #e5e7eb;
-          padding: 1rem;
-          text-align: left;
-        }
-
-        th {
-          font-weight: 600;
-          background: #f9fafb;
-          color: #1f2937;
-        }
-
-        tr {
-          &:hover {
-            background: #f9fafb;
+          &:before,
+          &:after {
+            background: #667eea;
+            color: white;
           }
         }
 
-        tbody tr:nth-child(even) {
-          background: #fafbfc;
+        // Line numbers for line highlighting
+        :deep(.line-numbers) {
+          .line-numbers-rows {
+            border-right: 1px solid #4b5363;
+
+            > span {
+              pointer-events: none;
+              display: block;
+              counter-increment: linenumber;
+
+              &:before {
+                content: counter(linenumber);
+                color: #5c6370;
+                display: block;
+                padding-right: 0.8em;
+                text-align: right;
+              }
+            }
+          }
         }
       }
+
+      // Tables - Global styles now handle this (See src/styles.scss)
 
       // Mermaid diagrams
       :deep(.mermaid) {
@@ -678,7 +743,7 @@
         color: #abb2bf;
       }
 
-      blockquote {
+      :deep(blockquote) {
         border-left: 4px solid #667eea;
         padding-left: 1em;
         margin: 1.5em 0;
@@ -686,29 +751,7 @@
         font-style: italic;
       }
 
-      table {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 1.5em 0;
-
-        th,
-        td {
-          border: 1px solid #e5e7eb;
-          padding: 0.75em;
-          text-align: left;
-        }
-
-        th {
-          background: #f9fafb;
-          font-weight: 600;
-        }
-
-        tr:hover {
-          background: #f9fafb;
-        }
-      }
-
-      hr {
+      :deep(hr) {
         border: none;
         border-top: 2px solid #e5e7eb;
         margin: 2em 0;

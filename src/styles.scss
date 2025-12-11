@@ -21,20 +21,236 @@ body {
   body {
     padding: 0;
   }
-  
+
   /* Improve touch targets */
-  button, a, input[type="checkbox"], input[type="time"], select {
+  button,
+  a,
+  input[type='checkbox'],
+  input[type='time'],
+  select {
     min-height: 44px;
   }
-  
+
   /* Prevent iOS zoom on input focus */
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px !important;
   }
 }
 
 /* Background fix for all devices when content exceeds viewport */
-html, body {
+html,
+body {
   height: auto;
   min-height: 100vh;
+}
+
+// ============================================
+// MARKDOWN TABLES - Global Styling
+// ============================================
+markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5em 0;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  thead {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  }
+
+  th {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-bottom: 2px solid #9ca3af;
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.5;
+  }
+
+  td {
+    border: 1px solid #d1d5db;
+    padding: 0.875rem 1rem;
+    text-align: left;
+    color: #374151;
+    line-height: 1.6;
+  }
+
+  tbody tr {
+    transition: background-color 0.2s ease;
+
+    &:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    &:hover {
+      background: #f3f4f6;
+    }
+  }
+}
+
+// ============================================
+// MARKDOWN SPACING - Preserve blank lines
+// ============================================
+markdown {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    clear: both;
+    margin-top: 1.5em !important;
+    margin-bottom: 1em !important;
+  }
+
+  p {
+    margin-top: 1em !important;
+    margin-bottom: 1em !important;
+  }
+
+  .edgeLabel p {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  // List styling - ensure markers are visible
+  ul,
+  ol {
+    margin: 1em 0 !important;
+    padding-left: 2em !important;
+  }
+
+  ul {
+    list-style-type: disc !important;
+    list-style-position: outside !important;
+  }
+
+  ol {
+    list-style-type: decimal !important;
+    list-style-position: outside !important;
+  }
+
+  li {
+    display: list-item !important;
+    margin: 0.5em 0 !important;
+  }
+
+  ul ul {
+    list-style-type: circle !important;
+  }
+
+  ul ul ul {
+    list-style-type: square !important;
+  }
+
+  ol ol {
+    list-style-type: lower-alpha !important;
+  }
+
+  // Blockquote styling
+  blockquote {
+    border-left: 4px solid #667eea !important;
+    padding-left: 1.5em !important;
+    padding-right: 1em !important;
+    margin: 1.5em 0 !important;
+    color: #6b7280 !important;
+    font-style: italic !important;
+    background: #f9fafb !important;
+    padding-top: 0.5em !important;
+    padding-bottom: 0.5em !important;
+    border-radius: 0 4px 4px 0 !important;
+
+    p {
+      margin: 0.5em 0 !important;
+    }
+  }
+
+  .section-0 p {
+    color: white !important;
+  }
+}
+
+// Markdown tables continued styling
+markdown table {
+  tbody tr {
+    &:nth-child(even) {
+      background: #fafbfc;
+    }
+
+    &:hover {
+      background: #f0f1f3;
+    }
+  }
+
+  tbody tr:first-child td {
+    padding-top: 1rem;
+  }
+
+  tbody tr:last-child td {
+    padding-bottom: 1rem;
+  }
+}
+
+// ============================================
+// PRISM.JS LINE HIGHLIGHTING - Global Styling
+// ============================================
+:root {
+  --prism-highlight-color: rgba(102, 126, 234, 0.15);
+  --prism-highlight-border: #667eea;
+}
+
+.line-highlight {
+  background: var(--prism-highlight-color) !important;
+  border-left: 3px solid var(--prism-highlight-border) !important;
+  pointer-events: none !important;
+
+  &:before,
+  &:after {
+    background: var(--prism-highlight-border) !important;
+    color: white !important;
+    box-shadow: -1px 0 #1a1a1a;
+  }
+}
+
+// custom clipboard toolbar styles
+.markdown-clipboard-toolbar {
+  top: 16px;
+  right: 16px;
+  opacity: 0;
+  transition: opacity 250ms ease-out;
+}
+
+.markdown-clipboard-toolbar.hover {
+  opacity: 1;
+}
+
+.markdown-clipboard-button {
+  background-color: rgba(255, 255, 255, 0.07);
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px 0;
+  width: 50px;
+  transition: all 250ms ease-out;
+}
+
+.markdown-clipboard-button:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.markdown-clipboard-button:active {
+  transform: scale(0.95);
+}
+
+.markdown-clipboard-button.copied {
+  background-color: rgba(0, 255, 0, 0.1);
+  color: #00ff00;
 }

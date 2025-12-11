@@ -10,5 +10,6 @@ export const environment = {
   IMP_DAYS_SHEET_GID: 1294772822,
   ACHIEVEMENT_SHEET_GID: 306475354,
   COPY_SHEET_GID: 1156329984,
+  ROTA_SHEET_GID: 381539897,
   passwordHash: 'PASSWORD_HASH_PLACEHOLDER', // To be replaced during build with actual hash
 };

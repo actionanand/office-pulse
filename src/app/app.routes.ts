@@ -31,6 +31,11 @@ export const routes: Routes = [
     canActivate: [lockGuard],
   },
   {
+    path: 'rota',
+    loadComponent: () => import('./components/rota/rota.component').then(m => m.RotaComponent),
+    canActivate: [lockGuard],
+  },
+  {
     path: 'achievements',
     loadComponent: () => import('./components/achievements/achievements.component').then(m => m.AchievementsComponent),
     canActivate: [lockGuard],
@@ -44,7 +49,6 @@ export const routes: Routes = [
     path: 'markdown',
     loadComponent: () =>
       import('./components/markdown-viewer/markdown-viewer.component').then(m => m.MarkdownViewerComponent),
-    canActivate: [lockGuard],
   },
   {
     path: '**',

@@ -47,6 +47,13 @@ export class HomeComponent {
       color: '#4facfe',
     },
     {
+      path: '/rota',
+      icon: '🔄',
+      title: 'Rota',
+      description: 'View support rotation schedule and assignments',
+      color: '#764ba2',
+    },
+    {
       path: '/achievements',
       icon: '🏆',
       title: 'Achievements',

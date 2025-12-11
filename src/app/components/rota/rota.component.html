@@ -1,0 +1,65 @@
+<div class="rota-container">
+  <div class="header">
+    <h1>{{ meta().title }}</h1>
+    <button class="refresh-btn" (click)="refreshData()" [disabled]="isLoading()">
+      <span class="icon">🔄</span>
+      Refresh
+    </button>
+  </div>
+
+  @if (meta().notes.length > 0) {
+    <div class="notes-section">
+      @for (note of meta().notes; track $index) {
+        <p class="note">{{ note }}</p>
+      }
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading rota schedule...</p>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-state">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error() }}</p>
+      <button class="retry-btn" (click)="refreshData()">Try Again</button>
+    </div>
+  }
+
+  @if (!isLoading() && !error() && rotas().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">📅</span>
+      <p>No rota schedules available.</p>
+    </div>
+  }
+
+  @if (!isLoading() && !error() && rotas().length > 0) {
+    <div class="rotas-list">
+      @for (rota of rotas(); track rota.sNo) {
+        <div class="rota-card">
+          <div class="rota-main">
+            <p class="rota-description" [innerHTML]="getRotaDescription(rota)"></p>
+            @if (rota.comments) {
+              <p class="rota-comments">
+                <span class="comment-icon">💬</span>
+                {{ rota.comments }}
+              </p>
+            }
+          </div>
+
+          @if (!hasTimeInfo(rota) && !rota.category && !rota.othersInvolved) {
+            <div class="rota-minimal">
+              @if (rota.comments) {
+                <p class="rota-note">{{ rota.comments }}</p>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

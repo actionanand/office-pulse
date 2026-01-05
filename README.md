@@ -61,7 +61,7 @@ npx degit github:actionanand/office-pulse#1-skeleton angular-proj-name
    - Install prettier as below:
 
    ```bash
-     npm run add prettier -D
+     npm install prettier -D
    ```
 
    - Create a `.prettierrc.yml` file and write down the format as below: - [online ref](https://prettier.io/docs/en/options.html)

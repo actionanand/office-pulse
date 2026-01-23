@@ -46,7 +46,7 @@ export const routes: Routes = [
     canActivate: [lockGuard],
   },
   {
-    path: 'jira-tickets',
+    path: 'my-jira-tickets',
     loadComponent: () => import('./components/jira-tickets/jira-tickets.component').then(m => m.JiraTicketsComponent),
     canActivate: [lockGuard],
   },

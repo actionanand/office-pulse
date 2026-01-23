@@ -13,6 +13,12 @@
   gap: 1rem;
 }
 
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .title-section {
   h1 {
     font-size: 2rem;
@@ -60,6 +66,30 @@
 
   &:active:not(:disabled) .refresh-icon {
     transform: rotate(180deg);
+  }
+}
+
+.copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #218838;
+    transform: translateY(-1px);
+  }
+
+  .copy-icon {
+    font-size: 1.2rem;
   }
 }
 
@@ -164,6 +194,18 @@
 
       &:hover {
         background: #f8f9fa;
+
+        .checkbox-wrapper {
+          opacity: 1;
+        }
+      }
+
+      &.selected {
+        background: #e7f3ff;
+
+        .checkbox-wrapper {
+          opacity: 1;
+        }
       }
 
       &:last-child {
@@ -175,6 +217,11 @@
       padding: 1rem 0.75rem;
       vertical-align: middle;
     }
+  }
+
+  .col-checkbox {
+    width: 40px;
+    text-align: center;
   }
 
   .col-sno {
@@ -194,7 +241,7 @@
   }
 
   .col-status {
-    width: 130px;
+    width: 140px;
   }
 
   .col-comments {
@@ -205,6 +252,25 @@
   .col-url {
     width: 130px;
   }
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ticket-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #007bff;
+}
+
+.checkbox-label {
+  display: none;
 }
 
 .team-badge {
@@ -224,6 +290,34 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  &.clickable {
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    color: #007bff;
+    transition: color 0.2s;
+    font-family: inherit;
+    font-size: 0.85rem;
+
+    &:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+
+    &:focus {
+      outline: 2px solid #007bff;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.expand-icon {
+  margin-left: 0.25rem;
+  font-size: 0.8rem;
 }
 
 .jira-link {
@@ -246,12 +340,18 @@
 
 .status-select {
   width: 100%;
-  padding: 0.5rem;
+  min-width: 110px;
+  padding: 0.5rem 0.75rem;
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
+  appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 12px;
+  padding-right: 1.75rem;
 
   &:focus {
     outline: none;
@@ -260,14 +360,16 @@
   }
 
   &.status-completed {
-    background: #d4edda;
+    background-color: #d4edda;
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3e%3cpath fill="%23155724" d="M8 11L3 6l1.5-1.5L8 8l3.5-3.5L13 6z"/%3e%3c/svg%3e');
     border-color: #28a745;
     color: #155724;
     font-weight: 600;
   }
 
   &.status-open {
-    background: #fff3cd;
+    background-color: #fff3cd;
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3e%3cpath fill="%23856404" d="M8 11L3 6l1.5-1.5L8 8l3.5-3.5L13 6z"/%3e%3c/svg%3e');
     border-color: #ffc107;
     color: #856404;
     font-weight: 600;
@@ -299,6 +401,107 @@
 
 .text-muted {
   color: #999;
+}
+
+// Comment Popup
+.comment-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-in-out;
+  pointer-events: auto;
+}
+
+.comment-popup {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+  pointer-events: auto;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f8f9fa;
+    color: #333;
+  }
+}
+
+.popup-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+
+  p {
+    margin: 0;
+    color: #333;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 // Pagination
@@ -389,36 +592,157 @@
     .col-team {
       display: none;
     }
+
+    .col-comments {
+      max-width: 200px;
+    }
   }
 }
 
 @media (max-width: 768px) {
   .jira-tickets-container {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   .header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .title-section h1 {
+    font-size: 1.5rem;
+  }
+
+  .title-section .ticket-count {
+    font-size: 0.85rem;
+  }
+
+  .refresh-btn,
+  .copy-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .tickets-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .tickets-table {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    min-width: 100%;
+    width: 100%;
 
-    .col-comments {
+    .col-checkbox {
+      width: 30px;
+      padding: 0.3rem 0.15rem !important;
+    }
+
+    .col-sno {
+      width: 35px;
+      font-size: 0.7rem;
+      padding: 0.4rem 0.2rem !important;
+    }
+
+    .col-title {
+      min-width: unset;
+      max-width: 140px;
+      font-size: 0.75rem;
+    }
+
+    .col-team {
       display: none;
     }
 
-    thead th,
+    .col-status {
+      width: 85px;
+    }
+
+    .col-comments {
+      min-width: unset;
+      max-width: 120px;
+      display: table-cell;
+    }
+
+    .col-url {
+      width: 70px;
+    }
+
+    thead th {
+      padding: 0.5rem 0.3rem;
+      font-size: 0.7rem;
+    }
+
     tbody td {
-      padding: 0.75rem 0.5rem;
+      padding: 0.5rem 0.3rem;
+    }
+
+    .checkbox-wrapper {
+      opacity: 1;
+    }
+
+    .ticket-checkbox {
+      width: 14px;
+      height: 14px;
+    }
+
+    .team-badge {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.4rem;
+    }
+
+    .status-select {
+      font-size: 0.65rem;
+      padding: 0.3rem 1.2rem 0.3rem 0.35rem;
+      min-width: 75px;
+      background-size: 9px;
+      background-position: right 0.3rem center;
+    }
+
+    .comments-text {
+      font-size: 0.7rem;
+
+      &.clickable {
+        font-size: 0.7rem;
+      }
+    }
+
+    .expand-icon {
+      font-size: 0.65rem;
+    }
+
+    .jira-link {
+      padding: 0.25rem 0.35rem;
+      font-size: 0.6rem;
+      white-space: nowrap;
     }
   }
 
   .pagination {
     flex-wrap: wrap;
     gap: 0.25rem;
-    padding: 1rem;
+    padding: 0.75rem;
+  }
+
+  .pagination-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .page-number {
+    min-width: 28px;
+    height: 28px;
+    padding: 0.3rem;
+    font-size: 0.75rem;
   }
 
   .page-numbers {
@@ -426,5 +750,70 @@
     width: 100%;
     justify-content: center;
     margin-top: 0.5rem;
+  }
+
+  .pagination-info {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .comment-popup {
+    max-width: 95%;
+    margin: 0.5rem;
+  }
+
+  .popup-header {
+    padding: 1rem;
+
+    h3 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .popup-content {
+    padding: 1rem;
+
+    p {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .tickets-table {
+    .col-title {
+      max-width: 110px;
+    }
+
+    .col-status {
+      width: 75px;
+    }
+
+    .col-comments {
+      max-width: 100px;
+    }
+
+    .col-url {
+      width: 60px;
+    }
+
+    .status-select {
+      font-size: 0.6rem;
+      min-width: 70px;
+      padding: 0.25rem 1.1rem 0.25rem 0.3rem;
+    }
+
+    .jira-link {
+      font-size: 0.55rem;
+      padding: 0.2rem 0.3rem;
+    }
+
+    .comments-text {
+      font-size: 0.65rem;
+
+      &.clickable {
+        font-size: 0.65rem;
+      }
+    }
   }
 }

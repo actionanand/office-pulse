@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { JiraTicketService } from '../../services/jira-ticket.service';
 import { JiraTicket } from '../../models/jira-ticket.model';
+import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-jira-tickets',
@@ -12,6 +13,7 @@ import { JiraTicket } from '../../models/jira-ticket.model';
 })
 export class JiraTicketsComponent implements OnInit {
   private jiraTicketService = inject(JiraTicketService);
+  private snackbarService = inject(SnackbarService);
 
   // Expose Math to template
   protected readonly Math = Math;
@@ -22,6 +24,8 @@ export class JiraTicketsComponent implements OnInit {
   error = signal<string | null>(null);
   currentPage = signal<number>(1);
   itemsPerPage = 25;
+  selectedComment = signal<string | null>(null);
+  selectedTickets = signal<Set<string>>(new Set());
 
   // Computed values
   totalPages = computed(() => Math.ceil(this.allTickets().length / this.itemsPerPage));
@@ -33,6 +37,8 @@ export class JiraTicketsComponent implements OnInit {
   });
 
   totalTickets = computed(() => this.allTickets().length);
+
+  selectedCount = computed(() => this.selectedTickets().size);
 
   // Status options for dropdown (boolean: true = Completed, false = Open)
   statusOptions = [
@@ -62,15 +68,15 @@ export class JiraTicketsComponent implements OnInit {
   }
 
   onStatusChange(ticket: JiraTicket, newStatus: boolean): void {
-    this.jiraTicketService.updateTicketStatus(ticket.url, newStatus);
+    // Convert string to boolean if needed
+    const boolStatus = typeof newStatus === 'string' ? newStatus === 'true' : newStatus;
 
-    // Update the ticket in the local array
+    this.jiraTicketService.updateTicketStatus(ticket.url, boolStatus);
+
+    // Update the ticket in the local array with a new object
     const tickets = this.allTickets();
-    const index = tickets.findIndex((t: JiraTicket) => t.url === ticket.url);
-    if (index >= 0) {
-      tickets[index] = { ...ticket, status: newStatus };
-      this.allTickets.set([...tickets]);
-    }
+    const updatedTickets = tickets.map((t: JiraTicket) => (t.url === ticket.url ? { ...t, status: boolStatus } : t));
+    this.allTickets.set(updatedTickets);
   }
 
   goToPage(page: number): void {
@@ -140,5 +146,77 @@ export class JiraTicketsComponent implements OnInit {
 
   getStatusLabel(status: boolean): string {
     return status ? 'Completed' : 'Open';
+  }
+
+  showCommentPopup(comment: string): void {
+    this.selectedComment.set(comment);
+  }
+
+  closeCommentPopup(): void {
+    this.selectedComment.set(null);
+  }
+
+  onOverlayClick(event: MouseEvent): void {
+    // Only close if clicking directly on the overlay, not its children
+    if (event.target === event.currentTarget) {
+      this.closeCommentPopup();
+    }
+  }
+
+  isCommentLong(comment: string): boolean {
+    return !!comment && comment.length > 100;
+  }
+
+  getTruncatedComment(comment: string, maxLength: number = 100): string {
+    if (!comment || comment.length <= maxLength) return comment;
+    return comment.substring(0, maxLength) + '...';
+  }
+
+  isTicketSelected(url: string): boolean {
+    return this.selectedTickets().has(url);
+  }
+
+  toggleTicketSelection(url: string): void {
+    const selected = new Set(this.selectedTickets());
+    if (selected.has(url)) {
+      selected.delete(url);
+    } else {
+      selected.add(url);
+    }
+    this.selectedTickets.set(selected);
+  }
+
+  clearSelection(): void {
+    this.selectedTickets.set(new Set());
+  }
+
+  copySelectedTickets(): void {
+    const selected = this.selectedTickets();
+    const tickets = this.allTickets();
+    const selectedTicketData = tickets.filter((t: JiraTicket) => selected.has(t.url));
+
+    if (selectedTicketData.length === 0) return;
+
+    let copyText = '';
+    selectedTicketData.forEach((ticket: JiraTicket, index: number) => {
+      copyText += `${index + 1}. \n`;
+      copyText += `title: ${ticket.title}\n`;
+      copyText += `ticket: ${ticket.url}\n`;
+      copyText += `status: ${ticket.status ? 'completed' : 'open'}\n`;
+      copyText += `___________\n\n`;
+    });
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(copyText).then(
+      () => {
+        const count = selectedTicketData.length;
+        this.snackbarService.success(`Copied ${count} ticket${count > 1 ? 's' : ''} to clipboard`);
+        this.clearSelection();
+      },
+      err => {
+        console.error('Failed to copy:', err);
+        this.snackbarService.error('Failed to copy tickets to clipboard');
+      },
+    );
   }
 }

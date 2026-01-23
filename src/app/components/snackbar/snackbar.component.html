@@ -1,0 +1,19 @@
+@if (message()) {
+  <div class="snackbar-container">
+    <div class="snackbar" [class]="'snackbar-' + message()!.type" role="alert" aria-live="polite">
+      <span class="snackbar-icon">
+        @if (message()!.type === 'success') {
+          ✓
+        } @else if (message()!.type === 'error') {
+          ✕
+        } @else if (message()!.type === 'warning') {
+          ⚠
+        } @else {
+          ℹ
+        }
+      </span>
+      <span class="snackbar-message">{{ message()!.message }}</span>
+      <button class="snackbar-close" (click)="close()" aria-label="Close notification" type="button">×</button>
+    </div>
+  </div>
+}

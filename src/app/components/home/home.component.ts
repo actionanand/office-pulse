@@ -68,6 +68,13 @@ export class HomeComponent {
       color: '#fa709a',
     },
     {
+      path: '/my-jira-tickets',
+      icon: '🎫',
+      title: 'My Jira Tickets',
+      description: 'View and manage all Jira tickets created by me',
+      color: '#667eea',
+    },
+    {
       path: '/markdown',
       icon: '📄',
       title: 'Markdown Viewer',

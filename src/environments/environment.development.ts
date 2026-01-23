@@ -11,5 +11,6 @@ export const environment = {
   ACHIEVEMENT_SHEET_GID: 306475354,
   COPY_SHEET_GID: 1156329984,
   ROTA_SHEET_GID: 381539897,
+  TICKETS_BY_ME_SHEET_GID: 1116993516,
   passwordHash: 'cbfdac6008f9cab4083784cbd1874f76618d2a97', // Default hash for 'password123'
 };

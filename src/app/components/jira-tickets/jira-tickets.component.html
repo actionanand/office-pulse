@@ -1,0 +1,112 @@
+<div class="jira-tickets-container">
+  <div class="header">
+    <div class="title-section">
+      <h1>My Jira Tickets</h1>
+      @if (totalTickets() > 0) {
+        <p class="ticket-count">Total: {{ totalTickets() }} tickets</p>
+      }
+    </div>
+    <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
+      <span class="refresh-icon">↻</span>
+      Refresh
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading tickets...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-container">
+      <p class="error-message">{{ error() }}</p>
+      <button class="retry-btn" (click)="loadTickets()">Retry</button>
+    </div>
+  } @else if (allTickets().length === 0) {
+    <div class="empty-state">
+      <p>No tickets found.</p>
+    </div>
+  } @else {
+    <div class="tickets-content">
+      <div class="tickets-table-wrapper">
+        <table class="tickets-table">
+          <thead>
+            <tr>
+              <th class="col-sno">S.No</th>
+              <th class="col-title">Title</th>
+              <th class="col-team">Team</th>
+              <th class="col-status">Status</th>
+              <th class="col-comments">Comments</th>
+              <th class="col-url">Jira Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ticket of paginatedTickets(); track ticket.url) {
+              <tr>
+                <td class="col-sno">{{ ticket.sno }}</td>
+                <td class="col-title">{{ ticket.title }}</td>
+                <td class="col-team">
+                  @if (ticket.team) {
+                    <span class="team-badge">{{ ticket.team }}</span>
+                  } @else {
+                    <span class="text-muted">-</span>
+                  }
+                </td>
+                <td class="col-status">
+                  <select
+                    class="status-select"
+                    [class]="getStatusClass(ticket.status)"
+                    [value]="ticket.status"
+                    (change)="onStatusChange(ticket, $any($event.target).value === 'true')">
+                    @for (option of statusOptions; track option.value) {
+                      <option [value]="option.value">{{ option.label }}</option>
+                    }
+                  </select>
+                </td>
+                <td class="col-comments">
+                  @if (ticket.comments) {
+                    <span class="comments-text">{{ ticket.comments }}</span>
+                  } @else {
+                    <span class="text-muted">-</span>
+                  }
+                </td>
+                <td class="col-url">
+                  <a [href]="ticket.url" target="_blank" rel="noopener noreferrer" class="jira-link">
+                    View Ticket ↗
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="pagination-btn" [disabled]="currentPage() === 1" (click)="previousPage()">← Previous</button>
+
+          <div class="page-numbers">
+            @for (page of getPageNumbers(); track $index) {
+              @if (page === -1) {
+                <span class="ellipsis">...</span>
+              } @else {
+                <button class="page-number" [class.active]="page === currentPage()" (click)="goToPage(page)">
+                  {{ page }}
+                </button>
+              }
+            }
+          </div>
+
+          <button class="pagination-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+            Next →
+          </button>
+        </div>
+
+        <div class="pagination-info">
+          Showing {{ (currentPage() - 1) * itemsPerPage + 1 }} to
+          {{ Math.min(currentPage() * itemsPerPage, totalTickets()) }} of {{ totalTickets() }} tickets
+        </div>
+      }
+    </div>
+  }
+</div>

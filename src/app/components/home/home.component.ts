@@ -75,6 +75,13 @@ export class HomeComponent {
       color: '#667eea',
     },
     {
+      path: '/ticket-tracking',
+      icon: '🎯',
+      title: 'Ticket Tracking',
+      description: 'Track demo, release, spillover, and important tickets',
+      color: '#f093fb',
+    },
+    {
       path: '/markdown',
       icon: '📄',
       title: 'Markdown Viewer',

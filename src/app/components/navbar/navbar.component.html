@@ -108,6 +108,15 @@
               <span class="nav-text">My Jira Tickets</span>
             </a>
             <a
+              routerLink="/ticket-tracking"
+              routerLinkActive="active"
+              class="dropdown-item"
+              aria-label="Ticket Tracking"
+              (click)="closeAll()">
+              <span class="nav-icon">🎯</span>
+              <span class="nav-text">Ticket Tracking</span>
+            </a>
+            <a
               routerLink="/markdown"
               routerLinkActive="active"
               class="dropdown-item"
@@ -175,6 +184,15 @@
           (click)="closeAll()">
           <span class="nav-icon">🎫</span>
           <span class="nav-text">My Jira Tickets</span>
+        </a>
+        <a
+          routerLink="/ticket-tracking"
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="Ticket Tracking"
+          (click)="closeAll()">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-text">Ticket Tracking</span>
         </a>
         <a
           routerLink="/markdown"

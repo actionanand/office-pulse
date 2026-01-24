@@ -7,6 +7,7 @@
       }
     </div>
     <div class="header-actions">
+      <button class="create-btn" (click)="openCreatePopup()">+ Create Memo</button>
       <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
         <span class="refresh-icon">↻</span>
         Refresh
@@ -43,7 +44,7 @@
     <div class="empty-state">
       @if (activeFilter() === 'all') {
         <p class="empty-icon">📭</p>
-        <p>No memos found.</p>
+        <p>No memos found. Create one to get started!</p>
       } @else if (activeFilter() === 'active') {
         <p class="empty-icon">✨</p>
         <p>No active memos. You're all caught up!</p>
@@ -53,9 +54,13 @@
       }
     </div>
   } @else {
-    <div class="memos-grid">
+    <div
+      class="memos-grid"
+      (click)="closeColorPicker()"
+      (keydown)="$event.key === 'Escape' && closeColorPicker()"
+      tabindex="0">
       @for (memo of filteredMemos(); track memo.sno) {
-        <div class="memo-card" [class.completed]="memo.status" [class.expanded]="isMemoExpanded(memo.sno)">
+        <div class="memo-card" [class.completed]="memo.status" [style.background-color]="memo.color || '#ffffff'">
           <div class="memo-header">
             @if (memo.title) {
               <h3 class="memo-title">{{ memo.title }}</h3>
@@ -63,7 +68,30 @@
               <h3 class="memo-title untitled">Untitled</h3>
             }
             <div class="memo-actions">
-              <button class="action-btn copy-btn" (click)="copyMemo(memo, $event)" aria-label="Copy memo" title="Copy">
+              <button
+                class="action-btn color-btn"
+                (click)="openColorPicker(memo, $event)"
+                aria-label="Change color"
+                title="Change Color">
+                🎨
+              </button>
+              @if (memo.isLocal) {
+                <button class="action-btn edit-btn" (click)="openEditPopup(memo)" aria-label="Edit memo" title="Edit">
+                  ✏️
+                </button>
+                <button
+                  class="action-btn delete-btn"
+                  (click)="deleteMemo(memo, $event)"
+                  aria-label="Delete memo"
+                  title="Delete">
+                  🗑️
+                </button>
+              }
+              <button
+                class="action-btn copy-btn"
+                (click)="copyMemo(memo, $event)"
+                aria-label="Copy description"
+                title="Copy Description">
                 📋
               </button>
               <button
@@ -82,29 +110,219 @@
           </div>
 
           <div class="memo-content">
-            @if (isDescriptionLong(memo.description) && !isMemoExpanded(memo.sno)) {
+            @if (isDescriptionLong(memo.description)) {
               <p class="memo-description">
                 {{ getTruncatedDescription(memo.description) }}
               </p>
-              <button class="expand-btn" (click)="toggleExpandMemo(memo.sno)">Read more</button>
+              <button class="expand-btn" (click)="openViewPopup(memo)">Read more</button>
             } @else {
-              <p class="memo-description" [class.expanded]="isMemoExpanded(memo.sno)">
+              <p class="memo-description">
                 {{ memo.description }}
               </p>
-              @if (isDescriptionLong(memo.description)) {
-                <button class="expand-btn" (click)="toggleExpandMemo(memo.sno)">Show less</button>
-              }
             }
           </div>
 
           <div class="memo-footer">
             <span class="memo-number">#{{ memo.sno }}</span>
+            @if (memo.isLocal) {
+              <span class="memo-badge local-badge">Local</span>
+            }
             <span class="memo-status" [class]="getStatusClass(memo.status)">
               {{ getStatusLabel(memo.status) }}
             </span>
           </div>
+
+          <!-- Color picker dropdown -->
+          @if (colorPickerMemo() && colorPickerMemo()!.sno === memo.sno) {
+            <div
+              class="color-picker-dropdown"
+              (click)="$event.stopPropagation()"
+              (keydown)="$event.stopPropagation()"
+              role="menu"
+              tabindex="0">
+              <div class="color-palette">
+                @for (colorOption of memoColors; track colorOption.value) {
+                  <button
+                    class="color-option"
+                    [class.selected]="memo.color === colorOption.value"
+                    [style.background-color]="colorOption.value"
+                    [attr.aria-label]="colorOption.name"
+                    [title]="colorOption.name"
+                    (click)="changeColor(memo, colorOption.value, $event)">
+                    @if (memo.color === colorOption.value) {
+                      ✓
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          }
         </div>
       }
     </div>
   }
 </div>
+
+<!-- Confirmation Dialog -->
+<app-confirmation-dialog></app-confirmation-dialog>
+
+<!-- View Popup -->
+@if (viewMemoPopup()) {
+  <div
+    class="popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeViewPopup()"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1">
+    <div class="popup-content view-popup">
+      <div class="popup-header">
+        <h2>{{ viewMemoPopup()!.title || 'Untitled' }}</h2>
+        <button class="close-btn" (click)="closeViewPopup()">×</button>
+      </div>
+      <div class="popup-body">
+        <p class="full-description">{{ viewMemoPopup()!.description }}</p>
+      </div>
+      <div class="popup-footer">
+        <span class="memo-number">#{{ viewMemoPopup()!.sno }}</span>
+        <span class="memo-status" [class]="getStatusClass(viewMemoPopup()!.status)">
+          {{ getStatusLabel(viewMemoPopup()!.status) }}
+        </span>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Create Popup -->
+@if (createMemoPopup()) {
+  <div
+    class="popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeCreatePopup()"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1">
+    <div class="popup-content form-popup">
+      <div class="popup-header">
+        <h2>Create New Memo</h2>
+        <button class="close-btn" (click)="closeCreatePopup()">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="form-group">
+          <label for="create-color">Color</label>
+          <div class="color-palette-form">
+            @for (colorOption of memoColors; track colorOption.value) {
+              <button
+                type="button"
+                class="color-option"
+                [class.selected]="formColor() === colorOption.value"
+                [style.background-color]="colorOption.value"
+                [attr.aria-label]="colorOption.name"
+                [title]="colorOption.name"
+                (click)="formColor.set(colorOption.value)">
+                @if (formColor() === colorOption.value) {
+                  ✓
+                }
+              </button>
+            }
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="create-title">Title (Optional)</label>
+          <input
+            id="create-title"
+            type="text"
+            [ngModel]="formTitle()"
+            (ngModelChange)="formTitle.set($event)"
+            placeholder="Enter memo title"
+            class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="create-description">Description *</label>
+          <textarea
+            id="create-description"
+            [ngModel]="formDescription()"
+            (ngModelChange)="formDescription.set($event)"
+            placeholder="Enter memo description"
+            rows="6"
+            class="form-textarea"
+            required></textarea>
+        </div>
+      </div>
+      <div class="popup-actions">
+        <button class="cancel-btn" (click)="closeCreatePopup()">Cancel</button>
+        <button class="save-btn" (click)="createMemo()">Create</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit Popup -->
+@if (editMemoPopup()) {
+  <div
+    class="popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeEditPopup()"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1">
+    <div class="popup-content form-popup">
+      <div class="popup-header">
+        <h2>Edit Memo</h2>
+        <button class="close-btn" (click)="closeEditPopup()">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="form-group">
+          <label for="edit-color">Color</label>
+          <div class="color-palette-form">
+            @for (colorOption of memoColors; track colorOption.value) {
+              <button
+                type="button"
+                class="color-option"
+                [class.selected]="formColor() === colorOption.value"
+                [style.background-color]="colorOption.value"
+                [attr.aria-label]="colorOption.name"
+                [title]="colorOption.name"
+                (click)="formColor.set(colorOption.value)">
+                @if (formColor() === colorOption.value) {
+                  ✓
+                }
+              </button>
+            }
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-title">Title (Optional)</label>
+          <input
+            id="edit-title"
+            type="text"
+            [ngModel]="formTitle()"
+            (ngModelChange)="formTitle.set($event)"
+            placeholder="Enter memo title"
+            class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="edit-description">Description *</label>
+          <textarea
+            id="edit-description"
+            [ngModel]="formDescription()"
+            (ngModelChange)="formDescription.set($event)"
+            placeholder="Enter memo description"
+            rows="6"
+            class="form-textarea"
+            required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [ngModel]="formStatus()" (ngModelChange)="formStatus.set($event)" />
+            <span>Mark as completed</span>
+          </label>
+        </div>
+      </div>
+      <div class="popup-actions">
+        <button class="cancel-btn" (click)="closeEditPopup()">Cancel</button>
+        <button class="save-btn" (click)="saveMemo()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+}

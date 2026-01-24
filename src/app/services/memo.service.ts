@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, catchError, of, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment.development';
-import { Memo, MemoData, MemoStatusOverride } from '../models/memo.model';
+import { Memo, MemoData, MemoStatusOverride, MemoColorOverride, LocalMemo } from '../models/memo.model';
 
 interface GVizResponse {
   version: string;
@@ -24,13 +24,26 @@ export class MemoService {
   private http = inject(HttpClient);
 
   private readonly MEMO_STATUS_OVERRIDES_KEY = 'memo_status_overrides';
+  private readonly MEMO_COLOR_OVERRIDES_KEY = 'memo_color_overrides';
+  private readonly LOCAL_MEMOS_KEY = 'local_memos';
+  private readonly LOCAL_MEMO_START_SNO = 500;
+
   private memosCache$?: Observable<MemoData>;
 
   fetchMemos(): Observable<MemoData> {
     if (!this.memosCache$) {
       const url = this.buildGVizUrl(environment.MEMO_SHEET_GID);
       this.memosCache$ = this.http.get(url, { responseType: 'text' }).pipe(
-        map((response: string) => this.parseMemos(response)),
+        map((response: string) => {
+          const data = this.parseMemos(response);
+          // Apply color overrides to API memos
+          const colorOverrides = this.getColorOverrides();
+          data.memos = data.memos.map((memo: Memo) => {
+            const colorOverride = colorOverrides.find((o: MemoColorOverride) => o.sno === memo.sno);
+            return colorOverride ? { ...memo, color: colorOverride.color } : memo;
+          });
+          return data;
+        }),
         catchError((error: unknown) => {
           console.error('Error fetching memos:', error);
           return of({ memos: [] });
@@ -129,5 +142,112 @@ export class MemoService {
     }
 
     localStorage.setItem(this.MEMO_STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
+  }
+
+  // Color override methods
+  private getColorOverrides(): MemoColorOverride[] {
+    const data = localStorage.getItem(this.MEMO_COLOR_OVERRIDES_KEY);
+    if (!data) return [];
+
+    try {
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+
+  updateMemoColor(sno: number, color: string): void {
+    const overrides = this.getColorOverrides();
+    const existingIndex = overrides.findIndex((o: MemoColorOverride) => o.sno === sno);
+
+    const override: MemoColorOverride = {
+      sno,
+      color,
+      updatedAt: new Date(),
+    };
+
+    if (existingIndex >= 0) {
+      overrides[existingIndex] = override;
+    } else {
+      overrides.push(override);
+    }
+
+    localStorage.setItem(this.MEMO_COLOR_OVERRIDES_KEY, JSON.stringify(overrides));
+    this.clearCache(); // Clear cache to refresh
+  }
+
+  // Local memos management
+  getLocalMemos(): LocalMemo[] {
+    const data = localStorage.getItem(this.LOCAL_MEMOS_KEY);
+    if (!data) return [];
+
+    try {
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+
+  private saveLocalMemos(memos: LocalMemo[]): void {
+    localStorage.setItem(this.LOCAL_MEMOS_KEY, JSON.stringify(memos));
+  }
+
+  createLocalMemo(title: string, description: string, color: string = '#ffffff'): LocalMemo {
+    const localMemos = this.getLocalMemos();
+    const nextSno = localMemos.length > 0 ? Math.max(...localMemos.map(m => m.sno)) + 1 : this.LOCAL_MEMO_START_SNO;
+
+    const newMemo: LocalMemo = {
+      sno: nextSno,
+      title,
+      description,
+      status: false,
+      color,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    localMemos.push(newMemo);
+    this.saveLocalMemos(localMemos);
+    this.clearCache(); // Clear cache to refresh
+
+    return newMemo;
+  }
+
+  updateLocalMemo(sno: number, title: string, description: string, status: boolean, color: string = '#ffffff'): void {
+    const localMemos = this.getLocalMemos();
+    const index = localMemos.findIndex(m => m.sno === sno);
+
+    if (index >= 0) {
+      localMemos[index] = {
+        ...localMemos[index],
+        title,
+        description,
+        status,
+        color,
+        updatedAt: new Date(),
+      };
+      this.saveLocalMemos(localMemos);
+      this.clearCache(); // Clear cache to refresh
+    }
+  }
+
+  deleteLocalMemo(sno: number): void {
+    const localMemos = this.getLocalMemos();
+    const filtered = localMemos.filter(m => m.sno !== sno);
+    this.saveLocalMemos(filtered);
+    this.clearCache(); // Clear cache to refresh
+  }
+
+  getAllMemos(): Memo[] {
+    // Combine API memos and local memos
+    const localMemos = this.getLocalMemos();
+    return localMemos.map((lm: LocalMemo) => ({
+      sno: lm.sno,
+      title: lm.title,
+      description: lm.description,
+      status: lm.status,
+      color: lm.color,
+      isLocal: true,
+    }));
   }
 }

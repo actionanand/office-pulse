@@ -82,6 +82,13 @@ export class HomeComponent {
       color: '#f093fb',
     },
     {
+      path: '/memos',
+      icon: '📝',
+      title: 'Memos',
+      description: 'Quick notes and reminders in Google Keep style',
+      color: '#4facfe',
+    },
+    {
       path: '/markdown',
       icon: '📄',
       title: 'Markdown Viewer',

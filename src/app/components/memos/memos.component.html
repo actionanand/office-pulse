@@ -1,0 +1,110 @@
+<div class="memos-container">
+  <div class="header">
+    <div class="title-section">
+      <h1>📝 Memos</h1>
+      @if (totalCount() > 0) {
+        <p class="memo-count">{{ totalCount() }} total memos</p>
+      }
+    </div>
+    <div class="header-actions">
+      <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
+        <span class="refresh-icon">↻</span>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn" [class.active]="activeFilter() === 'all'" (click)="setFilter('all')">
+      All
+      <span class="count-badge">{{ totalCount() }}</span>
+    </button>
+    <button class="filter-btn" [class.active]="activeFilter() === 'active'" (click)="setFilter('active')">
+      Active
+      <span class="count-badge">{{ activeCount() }}</span>
+    </button>
+    <button class="filter-btn" [class.active]="activeFilter() === 'completed'" (click)="setFilter('completed')">
+      Completed
+      <span class="count-badge">{{ completedCount() }}</span>
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading memos...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-container">
+      <p class="error-message">{{ error() }}</p>
+      <button class="retry-btn" (click)="loadMemos()">Retry</button>
+    </div>
+  } @else if (filteredMemos().length === 0) {
+    <div class="empty-state">
+      @if (activeFilter() === 'all') {
+        <p class="empty-icon">📭</p>
+        <p>No memos found.</p>
+      } @else if (activeFilter() === 'active') {
+        <p class="empty-icon">✨</p>
+        <p>No active memos. You're all caught up!</p>
+      } @else {
+        <p class="empty-icon">🎉</p>
+        <p>No completed memos yet.</p>
+      }
+    </div>
+  } @else {
+    <div class="memos-grid">
+      @for (memo of filteredMemos(); track memo.sno) {
+        <div class="memo-card" [class.completed]="memo.status" [class.expanded]="isMemoExpanded(memo.sno)">
+          <div class="memo-header">
+            @if (memo.title) {
+              <h3 class="memo-title">{{ memo.title }}</h3>
+            } @else {
+              <h3 class="memo-title untitled">Untitled</h3>
+            }
+            <div class="memo-actions">
+              <button class="action-btn copy-btn" (click)="copyMemo(memo, $event)" aria-label="Copy memo" title="Copy">
+                📋
+              </button>
+              <button
+                class="action-btn status-btn"
+                [class.completed]="memo.status"
+                (click)="toggleMemoStatus(memo)"
+                aria-label="Toggle status"
+                [title]="memo.status ? 'Mark as Active' : 'Mark as Completed'">
+                @if (memo.status) {
+                  ✓
+                } @else {
+                  ○
+                }
+              </button>
+            </div>
+          </div>
+
+          <div class="memo-content">
+            @if (isDescriptionLong(memo.description) && !isMemoExpanded(memo.sno)) {
+              <p class="memo-description">
+                {{ getTruncatedDescription(memo.description) }}
+              </p>
+              <button class="expand-btn" (click)="toggleExpandMemo(memo.sno)">Read more</button>
+            } @else {
+              <p class="memo-description" [class.expanded]="isMemoExpanded(memo.sno)">
+                {{ memo.description }}
+              </p>
+              @if (isDescriptionLong(memo.description)) {
+                <button class="expand-btn" (click)="toggleExpandMemo(memo.sno)">Show less</button>
+              }
+            }
+          </div>
+
+          <div class="memo-footer">
+            <span class="memo-number">#{{ memo.sno }}</span>
+            <span class="memo-status" [class]="getStatusClass(memo.status)">
+              {{ getStatusLabel(memo.status) }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

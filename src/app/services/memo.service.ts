@@ -36,6 +36,11 @@ export class MemoService {
       this.memosCache$ = this.http.get(url, { responseType: 'text' }).pipe(
         map((response: string) => {
           const data = this.parseMemos(response);
+
+          // Cleanup orphaned overrides for API memos
+          const apiSNos = data.memos.map((m: Memo) => m.sno);
+          this.cleanupOrphanedOverrides(apiSNos);
+
           // Apply color overrides to API memos
           const colorOverrides = this.getColorOverrides();
           data.memos = data.memos.map((memo: Memo) => {
@@ -46,6 +51,7 @@ export class MemoService {
         }),
         catchError((error: unknown) => {
           console.error('Error fetching memos:', error);
+          // Don't cleanup on error - return empty array
           return of({ memos: [] });
         }),
         shareReplay(1),
@@ -174,6 +180,30 @@ export class MemoService {
 
     localStorage.setItem(this.MEMO_COLOR_OVERRIDES_KEY, JSON.stringify(overrides));
     this.clearCache(); // Clear cache to refresh
+  }
+
+  /**
+   * Remove overrides for S Nos that no longer exist in API response
+   * Only removes overrides for non-local memos (S No < 500)
+   */
+  private cleanupOrphanedOverrides(apiSNos: number[]): void {
+    // Cleanup status overrides
+    const statusOverrides = this.getStatusOverrides();
+    const validStatusOverrides = statusOverrides.filter(
+      (o: MemoStatusOverride) => o.sno >= this.LOCAL_MEMO_START_SNO || apiSNos.includes(o.sno),
+    );
+    if (validStatusOverrides.length !== statusOverrides.length) {
+      localStorage.setItem(this.MEMO_STATUS_OVERRIDES_KEY, JSON.stringify(validStatusOverrides));
+    }
+
+    // Cleanup color overrides
+    const colorOverrides = this.getColorOverrides();
+    const validColorOverrides = colorOverrides.filter(
+      (o: MemoColorOverride) => o.sno >= this.LOCAL_MEMO_START_SNO || apiSNos.includes(o.sno),
+    );
+    if (validColorOverrides.length !== colorOverrides.length) {
+      localStorage.setItem(this.MEMO_COLOR_OVERRIDES_KEY, JSON.stringify(validColorOverrides));
+    }
   }
 
   // Local memos management

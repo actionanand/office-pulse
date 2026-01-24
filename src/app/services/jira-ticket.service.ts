@@ -38,12 +38,18 @@ export class JiraTicketService {
     return this.http.get(url, { responseType: 'text' }).pipe(
       map(response => {
         const data = this.parseTicketResponse(response);
+
+        // Cleanup orphaned status overrides
+        const apiUrls = data.tickets.map(t => t.url);
+        this.cleanupOrphanedOverrides(apiUrls);
+
         this.cachedData.set(data);
         this.lastFetchTime.set(new Date());
         return data;
       }),
       catchError(error => {
         console.error('Error fetching Jira tickets:', error);
+        // Don't cleanup on error - return empty array
         return of({ tickets: [] });
       }),
     );
@@ -198,6 +204,18 @@ export class JiraTicketService {
   clearCache(): void {
     this.cachedData.set(null);
     this.lastFetchTime.set(null);
+  }
+
+  /**
+   * Remove status overrides for tickets that no longer exist in API response
+   */
+  private cleanupOrphanedOverrides(apiUrls: string[]): void {
+    const statusOverrides = this.getStatusOverrides();
+    const validOverrides = statusOverrides.filter((o: JiraTicketStatusOverride) => apiUrls.includes(o.url));
+
+    if (validOverrides.length !== statusOverrides.length) {
+      localStorage.setItem(this.STATUS_OVERRIDES_KEY, JSON.stringify(validOverrides));
+    }
   }
 
   /**

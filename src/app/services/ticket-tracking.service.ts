@@ -45,9 +45,18 @@ export class TicketTrackingService {
     if (!this.demoTicketsCache$) {
       const url = this.buildGVizUrl(environment.DEMO_TICKET_SHEET_GID);
       this.demoTicketsCache$ = this.http.get(url, { responseType: 'text' }).pipe(
-        map((response: string) => this.parseDemoTickets(response)),
+        map((response: string) => {
+          const data = this.parseDemoTickets(response);
+
+          // Cleanup orphaned status overrides for demo tickets
+          const apiSNos = data.tickets.map((t: DemoTicket) => t.sno);
+          this.cleanupDemoTicketOverrides(apiSNos);
+
+          return data;
+        }),
         catchError((error: unknown) => {
           console.error('Error fetching demo tickets:', error);
+          // Don't cleanup on error
           return of({ tickets: [] });
         }),
         shareReplay(1),
@@ -90,9 +99,18 @@ export class TicketTrackingService {
     if (!this.trackedTicketsCache$) {
       const url = this.buildGVizUrl(environment.TICKETS_TO_TRACK_SHEET_GID);
       this.trackedTicketsCache$ = this.http.get(url, { responseType: 'text' }).pipe(
-        map((response: string) => this.parseTrackedTickets(response)),
+        map((response: string) => {
+          const data = this.parseTrackedTickets(response);
+
+          // Cleanup orphaned status overrides for tracked tickets
+          const apiSNos = data.tickets.map((t: TrackedTicket) => t.sno);
+          this.cleanupTrackedTicketOverrides(apiSNos);
+
+          return data;
+        }),
         catchError((error: unknown) => {
           console.error('Error fetching tracked tickets:', error);
+          // Don't cleanup on error
           return of({ tickets: [] });
         }),
         shareReplay(1),
@@ -314,5 +332,41 @@ export class TicketTrackingService {
     }
 
     localStorage.setItem(this.TRACKED_STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
+  }
+
+  /**
+   * Remove status overrides for demo tickets that no longer exist in API response
+   */
+  private cleanupDemoTicketOverrides(apiSNos: number[]): void {
+    const statusOverrides = this.getDemoStatusOverrides();
+    const validOverrides = statusOverrides.filter((o: TicketStatusOverride) => {
+      // Extract S No from URL (format: JIRA-123)
+      const match = o.url.match(/JIRA-(\d+)/);
+      if (!match) return false;
+      const sno = parseInt(match[1]);
+      return apiSNos.includes(sno);
+    });
+
+    if (validOverrides.length !== statusOverrides.length) {
+      localStorage.setItem(this.DEMO_STATUS_OVERRIDES_KEY, JSON.stringify(validOverrides));
+    }
+  }
+
+  /**
+   * Remove status overrides for tracked tickets that no longer exist in API response
+   */
+  private cleanupTrackedTicketOverrides(apiSNos: number[]): void {
+    const statusOverrides = this.getTrackedStatusOverrides();
+    const validOverrides = statusOverrides.filter((o: TicketStatusOverride) => {
+      // Extract S No from URL (format: JIRA-123)
+      const match = o.url.match(/JIRA-(\d+)/);
+      if (!match) return false;
+      const sno = parseInt(match[1]);
+      return apiSNos.includes(sno);
+    });
+
+    if (validOverrides.length !== statusOverrides.length) {
+      localStorage.setItem(this.TRACKED_STATUS_OVERRIDES_KEY, JSON.stringify(validOverrides));
+    }
   }
 }

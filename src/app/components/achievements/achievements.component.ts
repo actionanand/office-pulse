@@ -4,29 +4,30 @@ import { FormsModule } from '@angular/forms';
 import { AchievementService } from '../../services/achievement.service';
 import { AchievementsByYear, AchievementFormData } from '../../models/achievement.model';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
+import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-achievements',
   imports: [CommonModule, FormsModule, GoogleFormDialogComponent],
   templateUrl: './achievements.component.html',
   styleUrl: './achievements.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AchievementsComponent implements OnInit {
   private achievementService = inject(AchievementService);
-
+  private snackbarService = inject(SnackbarService);
   // Data signals
   readonly achievementsByYear = signal<AchievementsByYear[]>([]);
   readonly isLoading = signal(true);
   readonly error = signal<string | null>(null);
-  
+
   // Form signals
   readonly showForm = signal(false);
   readonly formData = signal<AchievementFormData>({
     title: '',
     link: '',
     date: this.getTodayDate(),
-    comments: ''
+    comments: '',
   });
 
   // Google Form Dialog signals
@@ -45,7 +46,7 @@ export class AchievementsComponent implements OnInit {
     this.error.set(null);
 
     this.achievementService.fetchAchievements().subscribe({
-      next: (data) => {
+      next: data => {
         this.achievementsByYear.set(data);
         // Expand the current year by default
         const currentYear = new Date().getFullYear();
@@ -58,11 +59,11 @@ export class AchievementsComponent implements OnInit {
         this.expandedYears.set(years);
         this.isLoading.set(false);
       },
-      error: (err) => {
+      error: err => {
         console.error('Error loading achievements:', err);
         this.error.set('Failed to load achievements. Please try again.');
         this.isLoading.set(false);
-      }
+      },
     });
   }
 
@@ -83,21 +84,21 @@ export class AchievementsComponent implements OnInit {
       title: '',
       link: '',
       date: this.getTodayDate(),
-      comments: ''
+      comments: '',
     });
   }
 
   updateFormField(field: keyof AchievementFormData, value: string): void {
     this.formData.update(data => ({
       ...data,
-      [field]: value
+      [field]: value,
     }));
   }
 
   submitForm(): void {
     const data = this.formData();
     if (!data.title.trim()) {
-      alert('Title is required!');
+      this.snackbarService.error('Title is required!');
       return;
     }
 
@@ -123,7 +124,7 @@ export class AchievementsComponent implements OnInit {
     this.googleFormUrl.set('');
     this.showForm.set(false);
     this.resetForm();
-    
+
     // Refresh data after a short delay to allow Google Sheets to update
     setTimeout(() => {
       this.refreshData();

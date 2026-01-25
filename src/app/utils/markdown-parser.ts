@@ -65,13 +65,20 @@ export class MarkdownParser {
     // Join lines back
     html = processedLines.join('\n');
 
-    // Wrap consecutive list items in proper tags
-    html = html.replace(/(<li class="ordered-item">.*?<\/li>\n?)+/gs, match => {
-      return '<ol>' + match.replace(/\n/g, '') + '</ol>';
+    // Wrap consecutive list items in proper tags and remove newlines between them
+    html = html.replace(/(<li class="ordered-item">.*?<\/li>)\n?/gs, '$1');
+    html = html.replace(/(<li class="ordered-item">.*?<\/li>)+/gs, match => {
+      return '<ol>' + match + '</ol>';
     });
-    html = html.replace(/(<li class="unordered-item">.*?<\/li>\n?)+/gs, match => {
-      return '<ul>' + match.replace(/\n/g, '') + '</ul>';
+    html = html.replace(/(<li class="unordered-item">.*?<\/li>)\n?/gs, '$1');
+    html = html.replace(/(<li class="unordered-item">.*?<\/li>)+/gs, match => {
+      return '<ul>' + match + '</ul>';
     });
+
+    // Remove newlines immediately after closing list tags to prevent extra <br>
+    html = html.replace(/<\/ul>\n/g, '</ul>');
+    html = html.replace(/<\/ol>\n/g, '</ol>');
+    html = html.replace(/<\/div>\n/g, '</div>'); // For checkboxes too
 
     // Parse inline formatting (order matters!)
 

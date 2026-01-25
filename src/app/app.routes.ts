@@ -62,6 +62,11 @@ export const routes: Routes = [
     canActivate: [lockGuard],
   },
   {
+    path: 'bookmarks',
+    loadComponent: () => import('./components/bookmarks/bookmarks.component').then(m => m.BookmarksComponent),
+    canActivate: [lockGuard],
+  },
+  {
     path: 'markdown',
     loadComponent: () =>
       import('./components/markdown-viewer/markdown-viewer.component').then(m => m.MarkdownViewerComponent),

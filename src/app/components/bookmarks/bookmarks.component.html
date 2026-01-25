@@ -1,0 +1,130 @@
+<div class="bookmarks-container">
+  <div class="header">
+    <div class="title-section">
+      <h1>Bookmarks</h1>
+      @if (totalBookmarks() > 0) {
+        <p class="bookmark-count">Total: {{ totalBookmarks() }} bookmarks</p>
+      }
+    </div>
+    <div class="header-actions">
+      <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
+        <span class="refresh-icon">↻</span>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading bookmarks...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-container">
+      <p class="error-message">{{ error() }}</p>
+      <button class="retry-btn" (click)="loadBookmarks()">Retry</button>
+    </div>
+  } @else if (allBookmarks().length === 0) {
+    <div class="empty-state">
+      <p>No bookmarks found.</p>
+    </div>
+  } @else {
+    <div class="bookmarks-content">
+      <div class="bookmarks-table-wrapper">
+        <table class="bookmarks-table">
+          <thead>
+            <tr>
+              <th class="col-sno">S.No</th>
+              <th class="col-title">Title</th>
+              <th class="col-comment">Comment</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (bookmark of paginatedBookmarks(); track bookmark.sno) {
+              <tr>
+                <td class="col-sno">{{ bookmark.sno }}</td>
+                <td class="col-title">
+                  @if (bookmark.url) {
+                    <a [href]="bookmark.url" target="_blank" rel="noopener noreferrer" class="bookmark-link">
+                      {{ bookmark.title }}
+                      <span class="external-icon">↗</span>
+                    </a>
+                  } @else {
+                    <span>{{ bookmark.title }}</span>
+                  }
+                </td>
+                <td class="col-comment">
+                  @if (bookmark.comment) {
+                    @if (isCommentLong(bookmark.comment)) {
+                      <button
+                        type="button"
+                        class="comment-text clickable"
+                        (click)="showCommentPopup(bookmark.comment, $event)"
+                        aria-label="Show full comment">
+                        {{ getTruncatedComment(bookmark.comment) }}
+                        <span class="expand-icon">🔍</span>
+                      </button>
+                    } @else {
+                      <span class="comment-text">{{ bookmark.comment }}</span>
+                    }
+                  } @else {
+                    <span class="text-muted">-</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="pagination-btn" [disabled]="currentPage() === 1" (click)="previousPage()">← Previous</button>
+
+          <div class="page-numbers">
+            @for (page of getPageNumbers(); track $index) {
+              @if (page === -1) {
+                <span class="ellipsis">...</span>
+              } @else {
+                <button class="page-number" [class.active]="page === currentPage()" (click)="goToPage(page)">
+                  {{ page }}
+                </button>
+              }
+            }
+          </div>
+
+          <button class="pagination-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+            Next →
+          </button>
+        </div>
+
+        <div class="pagination-info">
+          Showing {{ (currentPage() - 1) * itemsPerPage + 1 }} to
+          {{ Math.min(currentPage() * itemsPerPage, totalBookmarks()) }} of {{ totalBookmarks() }} bookmarks
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Comment Popup -->
+@if (selectedComment()) {
+  <div
+    class="comment-popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeCommentPopup()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="popup-title"
+    tabindex="-1">
+    <div class="comment-popup" role="document">
+      <div class="popup-header">
+        <h3 id="popup-title">Full Comment</h3>
+        <button class="close-btn" (click)="closeCommentPopup()" aria-label="Close">&times;</button>
+      </div>
+      <div class="popup-content">
+        <p>{{ selectedComment() }}</p>
+      </div>
+    </div>
+  </div>
+}

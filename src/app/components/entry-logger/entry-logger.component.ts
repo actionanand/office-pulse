@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { StorageService } from '../../services/storage.service';
 import { AttendanceStateService } from '../../services/attendance-state.service';
+import { SnackbarService } from '../../services/snackbar.service';
 import { EntryLog } from '../../models/entry-log.model';
 import { TodoListComponent } from '../todo-list/todo-list.component';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
@@ -19,6 +20,7 @@ import { environment as env } from '../../../environments/environment';
 export class EntryLoggerComponent implements OnInit {
   private storageService = new StorageService();
   private attendanceState = inject(AttendanceStateService);
+  private snackbarService = inject(SnackbarService);
 
   entryLog = signal<EntryLog | null>(null);
   currentTime = signal<string>('');
@@ -28,7 +30,10 @@ export class EntryLoggerComponent implements OnInit {
   showSubmissionDialog = signal<boolean>(false);
   showGoogleFormDialog = signal<boolean>(false);
   googleFormUrl = signal<string>('');
-  pendingFormData = signal<{ log: EntryLog; formData: { companyName: string; comment: string; status: string } } | null>(null);
+  pendingFormData = signal<{
+    log: EntryLog;
+    formData: { companyName: string; comment: string; status: string };
+  } | null>(null);
   showLeaveToggle = signal<boolean>(false);
   showPastDateDialog = signal<boolean>(false);
   showPastActionDialog = signal<boolean>(false);
@@ -46,7 +51,7 @@ export class EntryLoggerComponent implements OnInit {
   // ============================================================================
   // 1. LOCAL STORAGE: Stores pending entry/exit that hasn't been submitted yet
   //    - Entry marked -> stored in local storage
-  //    - Exit marked -> stored in local storage  
+  //    - Exit marked -> stored in local storage
   //    - Form submitted -> data goes to API, can clear local storage
   //
   // 2. API DATA: Contains completed submissions with both entry & exit times
@@ -95,7 +100,7 @@ export class EntryLoggerComponent implements OnInit {
         return this.formatTimeString(apiEntry.entryTime);
       }
     }
-    
+
     // Fallback to local storage
     const log = this.entryLog();
     if (!log || !log.entryTime) return '';
@@ -114,7 +119,7 @@ export class EntryLoggerComponent implements OnInit {
         return this.formatTimeString(apiEntry.exitTime);
       }
     }
-    
+
     // Fallback to local storage
     const log = this.entryLog();
     if (!log || !log.exitTime) return '';
@@ -273,13 +278,15 @@ export class EntryLoggerComponent implements OnInit {
   openEntryDialog(): void {
     // Prevent entry if already submitted today
     if (this.isSubmittedToday()) {
-      alert('You have already submitted your entry/exit for today. You can make a new entry tomorrow.');
+      this.snackbarService.error(
+        'You have already submitted your entry/exit for today. You can make a new entry tomorrow.',
+      );
       return;
     }
 
     // Prevent second entry if already entered today (but not submitted)
     if (this.hasEnteredToday()) {
-      alert('You have already marked entry for today. Please mark exit first.');
+      this.snackbarService.error('You have already marked entry for today. Please mark exit first.');
       return;
     }
 
@@ -292,12 +299,12 @@ export class EntryLoggerComponent implements OnInit {
 
   applyLeave(): void {
     if (this.isSubmittedToday() || this.hasEnteredToday()) {
-      alert('You have already marked attendance for today.');
+      this.snackbarService.error('You have already marked attendance for today.');
       return;
     }
 
     const currentTime = new Date();
-    
+
     // Create a log entry with current time for both entry and exit
     const log: EntryLog = {
       entryTime: currentTime.toISOString(),
@@ -307,18 +314,18 @@ export class EntryLoggerComponent implements OnInit {
 
     this.storageService.saveEntryLog(log);
     this.entryLog.set(log);
-    
+
     // Notify attendance state service to trigger reactivity
     this.attendanceState.notifyLocalStorageChanged();
 
     // Set pending form data with Day Off status
-    this.pendingFormData.set({ 
-      log, 
-      formData: { 
-        companyName: '', 
-        comment: 'Day Off - Leave Applied', 
-        status: 'Day Off' 
-      } 
+    this.pendingFormData.set({
+      log,
+      formData: {
+        companyName: '',
+        comment: 'Day Off - Leave Applied',
+        status: 'Day Off',
+      },
     });
 
     // Show submission dialog
@@ -341,10 +348,10 @@ export class EntryLoggerComponent implements OnInit {
 
     this.storageService.saveEntryLog(log);
     this.entryLog.set(log);
-    
+
     // Notify attendance state service to trigger reactivity
     this.attendanceState.notifyLocalStorageChanged();
-    
+
     // Auto-enable todo list after entry
     if (!this.showTodoList()) {
       this.showTodoList.set(true);
@@ -352,18 +359,18 @@ export class EntryLoggerComponent implements OnInit {
       settings.showTodoList = true;
       this.storageService.saveSettings(settings);
     }
-    
+
     this.closeEntryDialog();
   }
 
   openExitDialog(): void {
     if (!this.hasEnteredToday()) {
-      alert('Please mark entry first before exit!');
+      this.snackbarService.error('Please mark entry first before exit!');
       return;
     }
 
     if (this.hasExitedToday()) {
-      alert('You have already marked exit for today.');
+      this.snackbarService.error('You have already marked exit for today.');
       return;
     }
 
@@ -384,7 +391,7 @@ export class EntryLoggerComponent implements OnInit {
     // Update storage with exit time
     this.storageService.saveEntryLog(log);
     this.entryLog.set(log);
-    
+
     // Notify attendance state service to trigger reactivity
     this.attendanceState.notifyLocalStorageChanged();
 
@@ -422,7 +429,7 @@ export class EntryLoggerComponent implements OnInit {
       log.exitTime = undefined;
       this.storageService.saveEntryLog(log);
       this.entryLog.set({ ...log });
-      
+
       // Notify attendance state service to trigger reactivity
       this.attendanceState.notifyLocalStorageChanged();
     }
@@ -440,7 +447,7 @@ export class EntryLoggerComponent implements OnInit {
       log.isSubmitted = true;
       this.storageService.saveEntryLog(log);
       this.entryLog.set({ ...log });
-      
+
       // Notify attendance state service to trigger reactivity
       this.attendanceState.notifyLocalStorageChanged();
     }
@@ -448,7 +455,7 @@ export class EntryLoggerComponent implements OnInit {
     this.showGoogleFormDialog.set(false);
     this.pendingFormData.set(null);
     this.selectedPastDate.set(''); // Clear past date selection
-    
+
     // Refresh attendance data to show the newly added entry
     this.attendanceState.fetchAttendanceData();
   }
@@ -565,7 +572,7 @@ export class EntryLoggerComponent implements OnInit {
     try {
       const date = new Date(timeStr);
       if (isNaN(date.getTime())) return '';
-      
+
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -586,7 +593,7 @@ export class EntryLoggerComponent implements OnInit {
 
   handlePastDateSelected(dateStr: string): void {
     if (!dateStr) {
-      alert('Please select a date');
+      this.snackbarService.error('Please select a date');
       return;
     }
 
@@ -596,7 +603,7 @@ export class EntryLoggerComponent implements OnInit {
     today.setHours(0, 0, 0, 0);
 
     if (selectedDate >= today) {
-      alert('Please select a past date (not today or future)');
+      this.snackbarService.error('Please select a past date (not today or future)');
       return;
     }
 
@@ -659,7 +666,7 @@ export class EntryLoggerComponent implements OnInit {
     exitTime: Date,
     companyName: string,
     comment: string,
-    status: string
+    status: string,
   ): string {
     const formId = env.YOUR_FORM_ID;
     const baseUrl = `https://docs.google.com/forms/d/e/${formId}/viewform`;

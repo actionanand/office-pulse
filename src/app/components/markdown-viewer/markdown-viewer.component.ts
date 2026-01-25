@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MarkdownModule, MarkdownService } from 'ngx-markdown';
 import { HttpClient } from '@angular/common/http';
+import { SnackbarService } from '../../services/snackbar.service';
 import { getISTDate } from '../../utils/date-utils';
 
 interface ViewedFile {
@@ -35,6 +36,7 @@ declare global {
 })
 export class MarkdownViewerComponent implements AfterViewInit {
   private http = inject(HttpClient);
+  private snackbarService = inject(SnackbarService);
   markdownService = inject(MarkdownService);
 
   readonly markdownContent = signal<string>('');
@@ -111,7 +113,7 @@ export class MarkdownViewerComponent implements AfterViewInit {
 
     // Check if it's a local file path
     if (this.isLocalFilePath(urlPath)) {
-      alert(
+      this.snackbarService.error(
         '⚠️ Local file paths cannot be loaded directly due to browser security.\n\n' +
           'Local paths like "C:\\Users\\..." or "/home/user/..." are blocked by CORS policy.\n\n' +
           '✅ Solution: Use the "Choose Markdown File" button to browse and select files from your computer.\n\n' +
@@ -145,7 +147,7 @@ export class MarkdownViewerComponent implements AfterViewInit {
       },
       error: err => {
         console.error('Failed to load URL:', err);
-        alert(
+        this.snackbarService.error(
           '❌ Failed to load the URL.\n\n' +
             'Possible reasons:\n' +
             '• Invalid URL format\n' +
@@ -175,7 +177,7 @@ export class MarkdownViewerComponent implements AfterViewInit {
 
     if (file.source === 'upload') {
       // For uploaded files, we can't reload them directly since they're not accessible
-      alert('Uploaded files cannot be reloaded from history. Please upload the file again.');
+      this.snackbarService.error('Uploaded files cannot be reloaded from history. Please upload the file again.');
       this.isLoading.set(false);
       return;
     }
@@ -196,7 +198,7 @@ export class MarkdownViewerComponent implements AfterViewInit {
         this.lastUsedLocation.set(file.filePath);
       },
       error: () => {
-        alert(`Failed to load file: ${file.filePath}`);
+        this.snackbarService.error(`Failed to load file: ${file.filePath}`);
         this.isLoading.set(false);
       },
     });

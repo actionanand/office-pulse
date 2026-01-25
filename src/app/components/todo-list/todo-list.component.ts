@@ -1,7 +1,8 @@
-import { Component, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, computed, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TodoService } from '../../services/todo.service';
+import { SnackbarService } from '../../services/snackbar.service';
 import { TodoItem, RecurrenceType, DayOfWeek } from '../../models/entry-log.model';
 import { getISTDateString, getISTDay, getISTMonth } from '../../utils/date-utils';
 
@@ -10,20 +11,21 @@ import { getISTDateString, getISTDay, getISTMonth } from '../../utils/date-utils
   imports: [CommonModule, FormsModule],
   templateUrl: './todo-list.component.html',
   styleUrls: ['./todo-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TodoListComponent implements OnInit {
   private todoService = new TodoService();
-  
+  private snackbarService = inject(SnackbarService);
+
   allTodos = signal<TodoItem[]>([]);
   showAddForm = signal<boolean>(false);
   selectedDate = signal<string>(this.getTodayDateString());
   isSyncing = signal<boolean>(false);
-  
+
   // Edit state
   editingTodoId = signal<string | null>(null);
   editDescription = signal<string>('');
-  
+
   // Form fields
   newTodoTime = signal<string>('09:00');
   newTodoDescription = signal<string>('');
@@ -55,19 +57,19 @@ export class TodoListComponent implements OnInit {
 
   syncFromGoogleSheets(): void {
     this.isSyncing.set(true);
-    
+
     this.todoService.syncTodosFromSheet().subscribe({
-      next: (todos) => {
+      next: todos => {
         this.allTodos.set(todos);
         this.isSyncing.set(false);
         console.log('✅ Todos synced from Google Sheets:', todos.length);
       },
-      error: (error) => {
+      error: error => {
         console.error('❌ Error syncing todos:', error);
         this.isSyncing.set(false);
         // Load from local storage as fallback
         this.loadTodos();
-      }
+      },
     });
   }
 
@@ -76,14 +78,13 @@ export class TodoListComponent implements OnInit {
   }
 
   private getTodosForDate(todos: TodoItem[], dateStr: string): TodoItem[] {
-    return todos.filter(todo => this.shouldShowTodoOnDate(todo, dateStr))
-      .sort((a, b) => a.time.localeCompare(b.time));
+    return todos.filter(todo => this.shouldShowTodoOnDate(todo, dateStr)).sort((a, b) => a.time.localeCompare(b.time));
   }
 
   private shouldShowTodoOnDate(todo: TodoItem, dateStr: string): boolean {
     const targetDate = new Date(dateStr);
     const startDate = new Date(todo.startDate);
-    
+
     // Check if target date is before start date
     if (targetDate < startDate) {
       return false;
@@ -101,26 +102,25 @@ export class TodoListComponent implements OnInit {
     switch (todo.recurrenceType) {
       case 'once':
         return dateStr === todo.startDate;
-      
+
       case 'daily':
         return true;
-      
+
       case 'weekly':
         return this.matchesWeeklyPattern(targetDate, todo.daysOfWeek || []);
-      
+
       case 'biweekly':
         return this.matchesBiweeklyPattern(targetDate, startDate, todo.daysOfWeek || [], todo.biweeklyOffset || 0);
-      
+
       case 'monthly':
         return targetDate.getDate() === (todo.dayOfMonth || 1);
-      
+
       case 'yearly':
-        return targetDate.getMonth() + 1 === (todo.monthOfYear || 1) && 
-               targetDate.getDate() === (todo.dayOfMonth || 1);
-      
+        return targetDate.getMonth() + 1 === (todo.monthOfYear || 1) && targetDate.getDate() === (todo.dayOfMonth || 1);
+
       case 'custom':
         return this.matchesWeeklyPattern(targetDate, todo.daysOfWeek || []);
-      
+
       default:
         return false;
     }
@@ -128,7 +128,7 @@ export class TodoListComponent implements OnInit {
 
   private matchesWeeklyPattern(date: Date, daysOfWeek: DayOfWeek[]): boolean {
     if (daysOfWeek.length === 0) return false;
-    
+
     const dayNames: DayOfWeek[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const dayName = dayNames[date.getDay()];
     return daysOfWeek.includes(dayName);
@@ -138,12 +138,12 @@ export class TodoListComponent implements OnInit {
     // Calculate week difference
     const msPerWeek = 7 * 24 * 60 * 60 * 1000;
     const weekDiff = Math.floor((targetDate.getTime() - startDate.getTime()) / msPerWeek);
-    
+
     // Check if this week matches the offset pattern
     if (weekDiff % 2 !== offset) {
       return false;
     }
-    
+
     return this.matchesWeeklyPattern(targetDate, daysOfWeek);
   }
 
@@ -158,33 +158,31 @@ export class TodoListComponent implements OnInit {
   toggleTodo(todo: TodoItem): void {
     const dateStr = this.selectedDate();
     const todos = this.allTodos();
-    
+
     const updatedTodos = todos.map(t => {
       if (t.id !== todo.id) return t;
-      
+
       if (t.recurrenceType === 'once') {
         return { ...t, completed: !t.completed };
       } else {
         const completedDates = t.completedDates || [];
         const isCompleted = completedDates.includes(dateStr);
-        
+
         return {
           ...t,
           completed: !isCompleted, // Update completed flag for UI
-          completedDates: isCompleted
-            ? completedDates.filter(d => d !== dateStr)
-            : [...completedDates, dateStr]
+          completedDates: isCompleted ? completedDates.filter(d => d !== dateStr) : [...completedDates, dateStr],
         };
       }
     });
-    
+
     this.allTodos.set(updatedTodos);
     this.todoService.saveTodoItems(updatedTodos);
   }
 
   deleteTodo(id: string): void {
     if (!confirm('Are you sure you want to delete this todo?')) return;
-    
+
     const todos = this.allTodos();
     const updatedTodos = todos.filter(todo => todo.id !== id);
     this.allTodos.set(updatedTodos);
@@ -210,10 +208,8 @@ export class TodoListComponent implements OnInit {
     }
 
     const todos = this.allTodos();
-    const updatedTodos = todos.map(todo => 
-      todo.id === todoId ? { ...todo, description: newDescription } : todo
-    );
-    
+    const updatedTodos = todos.map(todo => (todo.id === todoId ? { ...todo, description: newDescription } : todo));
+
     this.allTodos.set(updatedTodos);
     this.todoService.saveTodoItems(updatedTodos);
     this.cancelEdit();
@@ -248,15 +244,17 @@ export class TodoListComponent implements OnInit {
   addTodo(): void {
     const description = this.newTodoDescription().trim();
     if (!description) {
-      alert('Please enter a todo description');
+      this.snackbarService.error('Please enter a todo description');
       return;
     }
 
     const recurrence = this.newTodoRecurrence();
-    
+
     // Validate based on recurrence type
-    if ((recurrence === 'weekly' || recurrence === 'biweekly' || recurrence === 'custom') && 
-        this.newTodoDaysOfWeek().length === 0) {
+    if (
+      (recurrence === 'weekly' || recurrence === 'biweekly' || recurrence === 'custom') &&
+      this.newTodoDaysOfWeek().length === 0
+    ) {
       alert('Please select at least one day of the week');
       return;
     }
@@ -271,22 +269,22 @@ export class TodoListComponent implements OnInit {
       startDate: this.newTodoStartDate(),
       endDate: this.newTodoEndDate() || undefined,
       recurrenceType: recurrence,
-      completedDates: []
+      completedDates: [],
     };
 
     // Add optional fields based on recurrence type
     if (recurrence === 'weekly' || recurrence === 'biweekly' || recurrence === 'custom') {
       newTodo.daysOfWeek = this.newTodoDaysOfWeek();
     }
-    
+
     if (recurrence === 'biweekly') {
       newTodo.biweeklyOffset = this.newTodoBiweeklyOffset();
     }
-    
+
     if (recurrence === 'monthly') {
       newTodo.dayOfMonth = this.newTodoDayOfMonth();
     }
-    
+
     if (recurrence === 'yearly') {
       newTodo.dayOfMonth = this.newTodoDayOfMonth();
       newTodo.monthOfYear = this.newTodoMonthOfYear();
@@ -307,10 +305,8 @@ export class TodoListComponent implements OnInit {
 
   updateTodoTime(id: string, newTime: string): void {
     const todos = this.allTodos();
-    const updatedTodos = todos.map(todo => 
-      todo.id === id ? { ...todo, time: newTime } : todo
-    );
-    
+    const updatedTodos = todos.map(todo => (todo.id === id ? { ...todo, time: newTime } : todo));
+
     this.allTodos.set(updatedTodos);
     this.todoService.saveTodoItems(updatedTodos);
   }
@@ -335,11 +331,11 @@ export class TodoListComponent implements OnInit {
 
   getFormattedDate(): string {
     const date = new Date(this.selectedDate());
-    return date.toLocaleDateString('en-IN', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-IN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   }
 

@@ -50,7 +50,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (ticket of paginatedTickets(); track ticket.url) {
+            @for (ticket of paginatedTickets(); track ticket.sno) {
               <tr [class.selected]="isTicketSelected(ticket.url)">
                 <td class="col-checkbox">
                   <div class="checkbox-wrapper">
@@ -90,7 +90,7 @@
                       <button
                         type="button"
                         class="comments-text clickable"
-                        (click)="showCommentPopup(ticket.comments)"
+                        (click)="showCommentPopup(ticket.comments, $event)"
                         aria-label="Show full comment">
                         {{ getTruncatedComment(ticket.comments) }}
                         <span class="expand-icon">🔍</span>

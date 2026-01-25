@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit, OnDestroy }
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CopyService } from '../../services/copy.service';
+import { SnackbarService } from '../../services/snackbar.service';
 import { CopyItem, CopyFormData, StopwatchState, MemoItem } from '../../models/utilities.model';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
 
@@ -10,12 +11,13 @@ import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dia
   imports: [CommonModule, FormsModule, GoogleFormDialogComponent],
   templateUrl: './utilities.component.html',
   styleUrl: './utilities.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UtilitiesComponent implements OnInit, OnDestroy {
   private copyService = inject(CopyService);
+  private snackbarService = inject(SnackbarService);
   private stopwatchInterval: ReturnType<typeof setInterval> | null = null;
-  
+
   // Storage keys
   private readonly STOPWATCH_KEY = 'office_pulse_stopwatch';
   private readonly MEMO_KEY = 'office_pulse_memo';
@@ -33,7 +35,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
     isRunning: false,
     startTime: null,
     elapsedTime: 0,
-    laps: []
+    laps: [],
   });
   readonly displayTime = signal('00:00:00.000');
 
@@ -44,7 +46,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadStopwatchState();
     this.loadMemoItems();
-    
+
     // Resume stopwatch if it was running
     const state = this.stopwatch();
     if (state.isRunning && state.startTime) {
@@ -59,7 +61,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
   }
 
   // ============ COPY/TRANSFER Methods ============
-  
+
   updateCopyField(field: keyof CopyFormData, value: string): void {
     this.copyFormData.update(data => ({ ...data, [field]: value }));
   }
@@ -67,7 +69,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
   submitCopy(): void {
     const data = this.copyFormData();
     if (!data.link?.trim() && !data.comment?.trim()) {
-      alert('Please enter at least a link or comment!');
+      this.snackbarService.error('Please enter at least a link or comment!');
       return;
     }
 
@@ -91,7 +93,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
     this.showGoogleFormDialog.set(false);
     this.googleFormUrl.set('');
     this.copyFormData.set({ link: '', comment: '' });
-    
+
     // Refresh copied items after delay
     setTimeout(() => {
       if (this.showCopiedItems()) {
@@ -111,23 +113,26 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
     this.isCopyLoading.set(true);
     this.copyService.clearCache();
     this.copyService.fetchCopiedItems().subscribe({
-      next: (items) => {
+      next: items => {
         this.copiedItems.set(items);
         this.isCopyLoading.set(false);
       },
       error: () => {
         this.isCopyLoading.set(false);
-      }
+      },
     });
   }
 
   copyToClipboard(text: string): void {
-    navigator.clipboard.writeText(text).then(() => {
-      // Could show a toast notification here
-      alert('Copied to clipboard!');
-    }).catch(err => {
-      console.error('Failed to copy:', err);
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        // Could show a toast notification here
+        this.snackbarService.success('Copied to clipboard!');
+      })
+      .catch(err => {
+        console.error('Failed to copy:', err);
+      });
   }
 
   isValidUrl(url: string): boolean {
@@ -145,13 +150,13 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
   startStopwatch(): void {
     const state = this.stopwatch();
     const now = Date.now();
-    
+
     this.stopwatch.set({
       ...state,
       isRunning: true,
-      startTime: now - state.elapsedTime
+      startTime: now - state.elapsedTime,
     });
-    
+
     this.startStopwatchInterval();
     this.saveStopwatchState();
   }
@@ -161,14 +166,14 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
       clearInterval(this.stopwatchInterval);
       this.stopwatchInterval = null;
     }
-    
+
     const state = this.stopwatch();
     this.stopwatch.set({
       ...state,
       isRunning: false,
-      elapsedTime: state.startTime ? Date.now() - state.startTime : state.elapsedTime
+      elapsedTime: state.startTime ? Date.now() - state.startTime : state.elapsedTime,
     });
-    
+
     this.saveStopwatchState();
   }
 
@@ -177,14 +182,14 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
       clearInterval(this.stopwatchInterval);
       this.stopwatchInterval = null;
     }
-    
+
     this.stopwatch.set({
       isRunning: false,
       startTime: null,
       elapsedTime: 0,
-      laps: []
+      laps: [],
     });
-    
+
     this.displayTime.set('00:00:00.000');
     this.saveStopwatchState();
   }
@@ -192,13 +197,13 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
   addLap(): void {
     const state = this.stopwatch();
     if (!state.isRunning) return;
-    
+
     const currentTime = state.startTime ? Date.now() - state.startTime : 0;
     this.stopwatch.set({
       ...state,
-      laps: [...state.laps, currentTime]
+      laps: [...state.laps, currentTime],
     });
-    
+
     this.saveStopwatchState();
   }
 
@@ -211,7 +216,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
     if (this.stopwatchInterval) {
       clearInterval(this.stopwatchInterval);
     }
-    
+
     this.stopwatchInterval = setInterval(() => {
       const state = this.stopwatch();
       if (state.isRunning && state.startTime) {
@@ -226,7 +231,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
     const minutes = Math.floor((ms % 3600000) / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
     const milliseconds = ms % 1000;
-    
+
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
   }
 
@@ -241,7 +246,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
       try {
         const state = JSON.parse(saved) as StopwatchState;
         this.stopwatch.set(state);
-        
+
         // Update display time
         if (state.elapsedTime > 0) {
           if (state.isRunning && state.startTime) {
@@ -267,7 +272,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
       id: Date.now().toString(),
       text,
       completed: false,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     this.memoItems.update(items => [newItem, ...items]);
@@ -277,9 +282,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
 
   toggleMemoItem(id: string): void {
     this.memoItems.update(items =>
-      items.map(item =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-      )
+      items.map(item => (item.id === id ? { ...item, completed: !item.completed } : item)),
     );
     this.saveMemoItems();
   }

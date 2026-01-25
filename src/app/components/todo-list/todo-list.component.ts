@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TodoService } from '../../services/todo.service';
 import { SnackbarService } from '../../services/snackbar.service';
+import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { TodoItem, RecurrenceType, DayOfWeek } from '../../models/entry-log.model';
 import { getISTDateString, getISTDay, getISTMonth } from '../../utils/date-utils';
 
 @Component({
   selector: 'app-todo-list',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmationDialogComponent],
   templateUrl: './todo-list.component.html',
   styleUrls: ['./todo-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -16,6 +18,7 @@ import { getISTDateString, getISTDay, getISTMonth } from '../../utils/date-utils
 export class TodoListComponent implements OnInit {
   private todoService = new TodoService();
   private snackbarService = inject(SnackbarService);
+  private confirmationService = inject(ConfirmationDialogService);
 
   allTodos = signal<TodoItem[]>([]);
   showAddForm = signal<boolean>(false);
@@ -180,8 +183,16 @@ export class TodoListComponent implements OnInit {
     this.todoService.saveTodoItems(updatedTodos);
   }
 
-  deleteTodo(id: string): void {
-    if (!confirm('Are you sure you want to delete this todo?')) return;
+  async deleteTodo(id: string): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Delete Todo',
+      message: 'Are you sure you want to delete this todo?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmColor: 'danger',
+    });
+
+    if (!confirmed) return;
 
     const todos = this.allTodos();
     const updatedTodos = todos.filter(todo => todo.id !== id);
@@ -296,8 +307,16 @@ export class TodoListComponent implements OnInit {
     this.closeAddForm();
   }
 
-  clearAllTodos(): void {
-    if (confirm('Are you sure you want to clear all todos? This will reset to default todos.')) {
+  async clearAllTodos(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Clear All Todos',
+      message: 'Are you sure you want to clear all todos? This will reset to default todos.',
+      confirmText: 'Clear All',
+      cancelText: 'Cancel',
+      confirmColor: 'danger',
+    });
+
+    if (confirmed) {
       this.todoService.clearTodoItems();
       this.loadTodos();
     }

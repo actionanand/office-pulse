@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CopyService } from '../../services/copy.service';
 import { SnackbarService } from '../../services/snackbar.service';
+import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
 import { CopyItem, CopyFormData, StopwatchState, MemoItem } from '../../models/utilities.model';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-utilities',
-  imports: [CommonModule, FormsModule, GoogleFormDialogComponent],
+  imports: [CommonModule, FormsModule, GoogleFormDialogComponent, ConfirmationDialogComponent],
   templateUrl: './utilities.component.html',
   styleUrl: './utilities.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -16,6 +18,7 @@ import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dia
 export class UtilitiesComponent implements OnInit, OnDestroy {
   private copyService = inject(CopyService);
   private snackbarService = inject(SnackbarService);
+  private confirmationService = inject(ConfirmationDialogService);
   private stopwatchInterval: ReturnType<typeof setInterval> | null = null;
 
   // Storage keys
@@ -297,8 +300,16 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
     this.saveMemoItems();
   }
 
-  clearAllMemos(): void {
-    if (confirm('Are you sure you want to clear all items?')) {
+  async clearAllMemos(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Clear All Items',
+      message: 'Are you sure you want to clear all items?',
+      confirmText: 'Clear All',
+      cancelText: 'Cancel',
+      confirmColor: 'danger',
+    });
+
+    if (confirmed) {
       this.memoItems.set([]);
       this.saveMemoItems();
     }

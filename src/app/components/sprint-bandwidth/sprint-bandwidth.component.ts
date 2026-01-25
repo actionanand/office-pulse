@@ -3,11 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SprintBandwidthService } from '../../services/sprint-bandwidth.service';
 import { SnackbarService } from '../../services/snackbar.service';
+import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
 import { SprintTask, TaskStatus } from '../../models/sprint-bandwidth.model';
+
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-sprint-bandwidth',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmationDialogComponent],
   templateUrl: './sprint-bandwidth.component.html',
   styleUrl: './sprint-bandwidth.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,6 +18,7 @@ import { SprintTask, TaskStatus } from '../../models/sprint-bandwidth.model';
 export class SprintBandwidthComponent {
   private bandwidthService = inject(SprintBandwidthService);
   private snackbarService = inject(SnackbarService);
+  private confirmationService = inject(ConfirmationDialogService);
 
   readonly config = this.bandwidthService.config;
   readonly summary = this.bandwidthService.summary;
@@ -170,8 +174,16 @@ export class SprintBandwidthComponent {
     this.closeAddTaskForm();
   }
 
-  deleteTask(id: string): void {
-    if (confirm('Are you sure you want to delete this task?')) {
+  async deleteTask(id: string): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Delete Task',
+      message: 'Are you sure you want to delete this task?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmColor: 'danger',
+    });
+
+    if (confirmed) {
       this.bandwidthService.deleteTask(id);
     }
   }
@@ -228,14 +240,30 @@ export class SprintBandwidthComponent {
     });
   }
 
-  clearAll(): void {
-    if (confirm('Clear all data except team name?')) {
+  async clearAll(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Clear All Data',
+      message: 'Clear all data except team name?',
+      confirmText: 'Clear',
+      cancelText: 'Cancel',
+      confirmColor: 'danger',
+    });
+
+    if (confirmed) {
       this.bandwidthService.clearAll();
     }
   }
 
-  resetAll(): void {
-    if (confirm('Reset everything to defaults?')) {
+  async resetAll(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Reset All',
+      message: 'Reset everything to defaults?',
+      confirmText: 'Reset',
+      cancelText: 'Cancel',
+      confirmColor: 'danger',
+    });
+
+    if (confirmed) {
       this.bandwidthService.resetAll();
     }
   }
@@ -269,22 +297,44 @@ export class SprintBandwidthComponent {
     return this.formatDate(deadline);
   }
 
-  startSprint(): void {
-    if (confirm('Start sprint? This will enable task tracking and disable configuration changes.')) {
+  async startSprint(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Start Sprint',
+      message: 'Start sprint? This will enable task tracking and disable configuration changes.',
+      confirmText: 'Start Sprint',
+      cancelText: 'Cancel',
+      confirmColor: 'success',
+    });
+
+    if (confirmed) {
       this.bandwidthService.startSprint();
     }
   }
 
-  completeSprint(): void {
-    if (confirm('Complete this sprint? You can then move incomplete tasks to the next sprint.')) {
+  async completeSprint(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Complete Sprint',
+      message: 'Complete this sprint? You can then move incomplete tasks to the next sprint.',
+      confirmText: 'Complete',
+      cancelText: 'Cancel',
+      confirmColor: 'success',
+    });
+
+    if (confirmed) {
       this.bandwidthService.completeSprint();
     }
   }
 
-  startNewSprint(): void {
-    if (
-      confirm('Start new sprint? This will move all incomplete tasks to spillover and reset the sprint configuration.')
-    ) {
+  async startNewSprint(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Start New Sprint',
+      message: 'Start new sprint? This will move all incomplete tasks to spillover and reset the sprint configuration.',
+      confirmText: 'Start New Sprint',
+      cancelText: 'Cancel',
+      confirmColor: 'primary',
+    });
+
+    if (confirmed) {
       this.bandwidthService.startNewSprint();
     }
   }
@@ -344,8 +394,16 @@ export class SprintBandwidthComponent {
     return status !== 'completed' && status !== 'cancelled';
   }
 
-  cancelTask(taskId: string): void {
-    if (confirm('Cancel this task? Cancelled tasks cannot be reopened.')) {
+  async cancelTask(taskId: string): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Cancel Task',
+      message: 'Cancel this task? Cancelled tasks cannot be reopened.',
+      confirmText: 'Cancel Task',
+      cancelText: 'Keep Task',
+      confirmColor: 'danger',
+    });
+
+    if (confirmed) {
       this.bandwidthService.updateTaskStatus(taskId, 'cancelled');
     }
   }

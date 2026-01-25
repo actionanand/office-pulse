@@ -24,6 +24,12 @@ export class MarkdownParser {
 
     let html = text;
 
+    // Normalize line breaks (Google Sheets uses \r\n)
+    html = html.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // Remove excessive blank lines (more than 2 consecutive newlines)
+    html = html.replace(/\n{3,}/g, '\n\n');
+
     // Escape HTML to prevent XSS
     html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 

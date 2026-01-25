@@ -596,11 +596,18 @@ export class MemosComponent implements OnInit {
   }
 
   copyForGoogleSheets(): void {
-    const text = this.converterText();
+    let text = this.converterText();
+
+    // Normalize newlines for Google Sheets
+    // Remove excessive blank lines (keep max 1 blank line between sections)
+    text = text.replace(/\n{3,}/g, '\n\n');
+
+    // Trim leading/trailing whitespace
+    text = text.trim();
 
     navigator.clipboard.writeText(text).then(
       () => {
-        this.snackbarService.success('Markdown syntax copied for Google Sheets');
+        this.snackbarService.success('Optimized for Google Sheets - paste into Description column');
       },
       (err: unknown) => {
         console.error('Failed to copy:', err);

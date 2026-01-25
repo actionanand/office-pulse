@@ -535,51 +535,6 @@ export class MemosComponent implements OnInit {
   }
 
   // Copy functions for rich text converter
-  async copyRichText(): Promise<void> {
-    const text = this.converterText();
-    const html = MarkdownParser.parse(text);
-    const plainText = MarkdownParser.toPlainText(text);
-
-    try {
-      // Try modern Clipboard API first
-      const htmlBlob = new Blob([html], { type: 'text/html' });
-      const plainTextBlob = new Blob([plainText], { type: 'text/plain' });
-      const data = [
-        new ClipboardItem({
-          'text/html': htmlBlob,
-          'text/plain': plainTextBlob,
-        }),
-      ];
-
-      await navigator.clipboard.write(data);
-      this.snackbarService.success('Rich text copied to clipboard');
-    } catch (err) {
-      // Fallback: create a temporary element and copy using execCommand
-      try {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.left = '-9999px';
-        document.body.appendChild(tempDiv);
-
-        const range = document.createRange();
-        range.selectNodeContents(tempDiv);
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-
-        document.execCommand('copy');
-        selection?.removeAllRanges();
-        document.body.removeChild(tempDiv);
-
-        this.snackbarService.success('Rich text copied to clipboard');
-      } catch (fallbackErr) {
-        console.error('Failed to copy rich text:', err, fallbackErr);
-        this.snackbarService.error('Failed to copy rich text');
-      }
-    }
-  }
-
   copyPlainText(): void {
     const text = this.converterText();
     const plainText = MarkdownParser.toPlainText(text);

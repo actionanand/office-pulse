@@ -1058,17 +1058,6 @@
     min-width: 140px;
     justify-content: center;
 
-    &.rich-text {
-      background: #6f42c1;
-      color: white;
-
-      &:hover {
-        background: #5a32a3;
-        transform: translateY(-1px);
-        box-shadow: 0 3px 8px rgba(111, 66, 193, 0.3);
-      }
-    }
-
     &.plain-text {
       background: #6c757d;
       color: white;

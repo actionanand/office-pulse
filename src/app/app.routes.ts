@@ -46,6 +46,22 @@ export const routes: Routes = [
     canActivate: [lockGuard],
   },
   {
+    path: 'my-jira-tickets',
+    loadComponent: () => import('./components/jira-tickets/jira-tickets.component').then(m => m.JiraTicketsComponent),
+    canActivate: [lockGuard],
+  },
+  {
+    path: 'ticket-tracking',
+    loadComponent: () =>
+      import('./components/ticket-tracking/ticket-tracking.component').then(m => m.TicketTrackingComponent),
+    canActivate: [lockGuard],
+  },
+  {
+    path: 'memos',
+    loadComponent: () => import('./components/memos/memos.component').then(m => m.MemosComponent),
+    canActivate: [lockGuard],
+  },
+  {
     path: 'markdown',
     loadComponent: () =>
       import('./components/markdown-viewer/markdown-viewer.component').then(m => m.MarkdownViewerComponent),

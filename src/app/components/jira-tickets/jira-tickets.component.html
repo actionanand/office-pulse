@@ -1,0 +1,166 @@
+<div class="jira-tickets-container">
+  <div class="header">
+    <div class="title-section">
+      <h1>My Jira Tickets</h1>
+      @if (totalTickets() > 0) {
+        <p class="ticket-count">Total: {{ totalTickets() }} tickets</p>
+      }
+    </div>
+    <div class="header-actions">
+      @if (selectedCount() > 0) {
+        <button class="copy-btn" (click)="copySelectedTickets()">
+          <span class="copy-icon">📋</span>
+          Copy {{ selectedCount() }} {{ selectedCount() === 1 ? 'Ticket' : 'Tickets' }}
+        </button>
+      }
+      <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
+        <span class="refresh-icon">↻</span>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading tickets...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-container">
+      <p class="error-message">{{ error() }}</p>
+      <button class="retry-btn" (click)="loadTickets()">Retry</button>
+    </div>
+  } @else if (allTickets().length === 0) {
+    <div class="empty-state">
+      <p>No tickets found.</p>
+    </div>
+  } @else {
+    <div class="tickets-content">
+      <div class="tickets-table-wrapper">
+        <table class="tickets-table">
+          <thead>
+            <tr>
+              <th class="col-checkbox"></th>
+              <th class="col-sno">S.No</th>
+              <th class="col-title">Title</th>
+              <th class="col-team">Team</th>
+              <th class="col-status">Status</th>
+              <th class="col-comments">Comments</th>
+              <th class="col-url">Jira Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ticket of paginatedTickets(); track ticket.url) {
+              <tr [class.selected]="isTicketSelected(ticket.url)">
+                <td class="col-checkbox">
+                  <div class="checkbox-wrapper">
+                    <input
+                      type="checkbox"
+                      [checked]="isTicketSelected(ticket.url)"
+                      (change)="toggleTicketSelection(ticket.url)"
+                      [id]="'ticket-' + ticket.url"
+                      class="ticket-checkbox"
+                      aria-label="Select ticket {{ ticket.sno }}" />
+                    <label [for]="'ticket-' + ticket.url" class="checkbox-label"></label>
+                  </div>
+                </td>
+                <td class="col-sno">{{ ticket.sno }}</td>
+                <td class="col-title">{{ ticket.title }}</td>
+                <td class="col-team">
+                  @if (ticket.team) {
+                    <span class="team-badge">{{ ticket.team }}</span>
+                  } @else {
+                    <span class="text-muted">-</span>
+                  }
+                </td>
+                <td class="col-status">
+                  <select
+                    class="status-select"
+                    [ngClass]="getStatusClass(ticket.status)"
+                    [ngModel]="ticket.status"
+                    (ngModelChange)="onStatusChange(ticket, $event)">
+                    @for (option of statusOptions; track option.value) {
+                      <option [ngValue]="option.value">{{ option.label }}</option>
+                    }
+                  </select>
+                </td>
+                <td class="col-comments">
+                  @if (ticket.comments) {
+                    @if (isCommentLong(ticket.comments)) {
+                      <button
+                        type="button"
+                        class="comments-text clickable"
+                        (click)="showCommentPopup(ticket.comments)"
+                        aria-label="Show full comment">
+                        {{ getTruncatedComment(ticket.comments) }}
+                        <span class="expand-icon">🔍</span>
+                      </button>
+                    } @else {
+                      <span class="comments-text">{{ ticket.comments }}</span>
+                    }
+                  } @else {
+                    <span class="text-muted">-</span>
+                  }
+                </td>
+                <td class="col-url">
+                  <a [href]="ticket.url" target="_blank" rel="noopener noreferrer" class="jira-link">
+                    View Ticket ↗
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="pagination-btn" [disabled]="currentPage() === 1" (click)="previousPage()">← Previous</button>
+
+          <div class="page-numbers">
+            @for (page of getPageNumbers(); track $index) {
+              @if (page === -1) {
+                <span class="ellipsis">...</span>
+              } @else {
+                <button class="page-number" [class.active]="page === currentPage()" (click)="goToPage(page)">
+                  {{ page }}
+                </button>
+              }
+            }
+          </div>
+
+          <button class="pagination-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+            Next →
+          </button>
+        </div>
+
+        <div class="pagination-info">
+          Showing {{ (currentPage() - 1) * itemsPerPage + 1 }} to
+          {{ Math.min(currentPage() * itemsPerPage, totalTickets()) }} of {{ totalTickets() }} tickets
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Comment Popup -->
+@if (selectedComment()) {
+  <div
+    class="comment-popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeCommentPopup()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="popup-title"
+    tabindex="-1">
+    <div class="comment-popup" role="document">
+      <div class="popup-header">
+        <h3 id="popup-title">Full Comment</h3>
+        <button class="close-btn" (click)="closeCommentPopup()" aria-label="Close">&times;</button>
+      </div>
+      <div class="popup-content">
+        <p>{{ selectedComment() }}</p>
+      </div>
+    </div>
+  </div>
+}

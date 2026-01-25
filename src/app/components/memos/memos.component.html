@@ -1,0 +1,761 @@
+<div class="memos-container">
+  <div class="header">
+    <div class="title-section">
+      <h1>📝 Memos</h1>
+      @if (totalCount() > 0) {
+        <p class="memo-count">{{ totalCount() }} total memos</p>
+      }
+    </div>
+    <div class="header-actions">
+      <button class="create-btn" (click)="openCreatePopup()">+ Create Memo</button>
+      <button class="rich-text-btn" (click)="openRichTextConverter()">
+        <span class="rich-text-icon">✎</span>
+        Rich Text
+      </button>
+      <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
+        <span class="refresh-icon">↻</span>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn" [class.active]="activeFilter() === 'all'" (click)="setFilter('all')">
+      All
+      <span class="count-badge">{{ totalCount() }}</span>
+    </button>
+    <button class="filter-btn" [class.active]="activeFilter() === 'active'" (click)="setFilter('active')">
+      Active
+      <span class="count-badge">{{ activeCount() }}</span>
+    </button>
+    <button class="filter-btn" [class.active]="activeFilter() === 'completed'" (click)="setFilter('completed')">
+      Completed
+      <span class="count-badge">{{ completedCount() }}</span>
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading memos...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-container">
+      <p class="error-message">{{ error() }}</p>
+      <button class="retry-btn" (click)="loadMemos()">Retry</button>
+    </div>
+  } @else if (filteredMemos().length === 0) {
+    <div class="empty-state">
+      @if (activeFilter() === 'all') {
+        <p class="empty-icon">📭</p>
+        <p>No memos found. Create one to get started!</p>
+      } @else if (activeFilter() === 'active') {
+        <p class="empty-icon">✨</p>
+        <p>No active memos. You're all caught up!</p>
+      } @else {
+        <p class="empty-icon">🎉</p>
+        <p>No completed memos yet.</p>
+      }
+    </div>
+  } @else {
+    <div
+      class="memos-grid"
+      (click)="closeColorPicker()"
+      (keydown)="$event.key === 'Escape' && closeColorPicker()"
+      tabindex="0">
+      @for (memo of filteredMemos(); track memo.sno) {
+        <div class="memo-card" [class.completed]="memo.status" [style.background-color]="memo.color || '#ffffff'">
+          <div class="memo-header">
+            @if (memo.title) {
+              <h3 class="memo-title">{{ memo.title }}</h3>
+            } @else {
+              <h3 class="memo-title untitled">Untitled</h3>
+            }
+            <div class="memo-actions">
+              <button
+                class="action-btn color-btn"
+                (click)="openColorPicker(memo, $event)"
+                aria-label="Change color"
+                title="Change Color">
+                🎨
+              </button>
+              @if (memo.isLocal) {
+                <button class="action-btn edit-btn" (click)="openEditPopup(memo)" aria-label="Edit memo" title="Edit">
+                  ✏️
+                </button>
+                <button
+                  class="action-btn delete-btn"
+                  (click)="deleteMemo(memo, $event)"
+                  aria-label="Delete memo"
+                  title="Delete">
+                  🗑️
+                </button>
+              }
+              <button
+                class="action-btn copy-btn"
+                (click)="copyMemo(memo, $event)"
+                aria-label="Copy description"
+                title="Copy Description">
+                📋
+              </button>
+              <button
+                class="action-btn status-btn"
+                [class.completed]="memo.status"
+                (click)="toggleMemoStatus(memo)"
+                aria-label="Toggle status"
+                [title]="memo.status ? 'Mark as Active' : 'Mark as Completed'">
+                @if (memo.status) {
+                  ✓
+                } @else {
+                  ○
+                }
+              </button>
+            </div>
+          </div>
+
+          <div class="memo-content">
+            @if (isDescriptionLong(memo.description)) {
+              <div class="memo-description" [innerHTML]="getTruncatedDescription(memo.description) | markdown"></div>
+              <button class="expand-btn" (click)="openViewPopup(memo)">Read more</button>
+            } @else {
+              <div class="memo-description" [innerHTML]="memo.description | markdown"></div>
+            }
+          </div>
+
+          <div class="memo-footer">
+            <span class="memo-number">#{{ memo.sno }}</span>
+            @if (memo.isLocal) {
+              <span class="memo-badge local-badge">Local</span>
+            }
+            <span class="memo-status" [class]="getStatusClass(memo.status)">
+              {{ getStatusLabel(memo.status) }}
+            </span>
+          </div>
+
+          <!-- Color picker dropdown -->
+          @if (colorPickerMemo() && colorPickerMemo()!.sno === memo.sno) {
+            <div
+              class="color-picker-dropdown"
+              (click)="$event.stopPropagation()"
+              (keydown)="$event.stopPropagation()"
+              role="menu"
+              tabindex="0">
+              <div class="color-palette">
+                @for (colorOption of memoColors; track colorOption.value) {
+                  <button
+                    class="color-option"
+                    [class.selected]="memo.color === colorOption.value"
+                    [style.background-color]="colorOption.value"
+                    [attr.aria-label]="colorOption.name"
+                    [title]="colorOption.name"
+                    (click)="changeColor(memo, colorOption.value, $event)">
+                    @if (memo.color === colorOption.value) {
+                      ✓
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Confirmation Dialog -->
+<app-confirmation-dialog></app-confirmation-dialog>
+
+<!-- View Popup -->
+@if (viewMemoPopup()) {
+  <div
+    class="popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeViewPopup()"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1">
+    <div class="popup-content view-popup">
+      <div class="popup-header">
+        <h2>{{ viewMemoPopup()!.title || 'Untitled' }}</h2>
+        <button class="close-btn" (click)="closeViewPopup()">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="full-description" [innerHTML]="viewMemoPopup()!.description | markdown"></div>
+      </div>
+      <div class="popup-footer">
+        <span class="memo-number">#{{ viewMemoPopup()!.sno }}</span>
+        <span class="memo-status" [class]="getStatusClass(viewMemoPopup()!.status)">
+          {{ getStatusLabel(viewMemoPopup()!.status) }}
+        </span>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Create Popup -->
+@if (createMemoPopup()) {
+  <div
+    class="popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeCreatePopup()"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1">
+    <div class="popup-content form-popup">
+      <div class="popup-header">
+        <h2>Create New Memo</h2>
+        <button class="close-btn" (click)="closeCreatePopup()">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="form-group">
+          <label for="create-color">Color</label>
+          <div class="color-palette-form">
+            @for (colorOption of memoColors; track colorOption.value) {
+              <button
+                type="button"
+                class="color-option"
+                [class.selected]="formColor() === colorOption.value"
+                [style.background-color]="colorOption.value"
+                [attr.aria-label]="colorOption.name"
+                [title]="colorOption.name"
+                (click)="formColor.set(colorOption.value)">
+                @if (formColor() === colorOption.value) {
+                  ✓
+                }
+              </button>
+            }
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="create-title">Title (Optional)</label>
+          <input
+            id="create-title"
+            type="text"
+            [ngModel]="formTitle()"
+            (ngModelChange)="formTitle.set($event)"
+            placeholder="Enter memo title"
+            class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="create-description">Description *</label>
+          <div class="formatting-toolbar">
+            <button type="button" class="format-btn" (click)="applyFormatting('bold')" title="Bold" aria-label="Bold">
+              <strong>B</strong>
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('italic')"
+              title="Italic"
+              aria-label="Italic">
+              <em>I</em>
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('strikethrough')"
+              title="Strikethrough"
+              aria-label="Strikethrough">
+              <del>S</del>
+            </button>
+            <button type="button" class="format-btn" (click)="applyFormatting('code')" title="Code" aria-label="Code">
+              &lt;/&gt;
+            </button>
+            <span class="toolbar-separator"></span>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('unordered')"
+              title="Unordered List"
+              aria-label="Unordered List">
+              ☰
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('ordered')"
+              title="Ordered List"
+              aria-label="Ordered List">
+              1.
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('checkbox')"
+              title="Checkbox"
+              aria-label="Checkbox">
+              ☐
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('checked')"
+              title="Checked"
+              aria-label="Checked">
+              ☑
+            </button>
+            <span class="toolbar-separator"></span>
+            <div class="color-picker-container">
+              <button
+                type="button"
+                class="format-btn"
+                (click)="applyFormatting('text-color')"
+                title="Text Color"
+                aria-label="Text Color">
+                <span style="font-weight: bold; color: #ff0000">A</span>
+              </button>
+              @if (showTextColorPicker()) {
+                <div class="color-picker-popup">
+                  <input
+                    type="color"
+                    [value]="selectedTextColor()"
+                    (input)="selectedTextColor.set($any($event.target).value)"
+                    (change)="applyTextColor(selectedTextColor())"
+                    class="color-input"
+                    title="Choose custom color" />
+                  <div class="default-colors">
+                    @for (color of defaultTextColors; track color) {
+                      <button
+                        type="button"
+                        class="default-color-btn"
+                        [style.background-color]="color"
+                        (click)="applyTextColor(color)"
+                        [title]="color"
+                        [attr.aria-label]="'Apply color ' + color"></button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="color-picker-container">
+              <button
+                type="button"
+                class="format-btn"
+                (click)="applyFormatting('bg-color')"
+                title="Background Color"
+                aria-label="Background Color">
+                <span style="background: #ffeb3b; padding: 0 4px; font-weight: bold">H</span>
+              </button>
+              @if (showBgColorPicker()) {
+                <div class="color-picker-popup">
+                  <input
+                    type="color"
+                    [value]="selectedBgColor()"
+                    (input)="selectedBgColor.set($any($event.target).value)"
+                    (change)="applyBgColor(selectedBgColor())"
+                    class="color-input"
+                    title="Choose custom color" />
+                  <div class="default-colors">
+                    @for (color of defaultBgColors; track color) {
+                      <button
+                        type="button"
+                        class="default-color-btn"
+                        [style.background-color]="color"
+                        (click)="applyBgColor(color)"
+                        [title]="color"
+                        [attr.aria-label]="'Apply background ' + color"></button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          <textarea
+            #descriptionTextarea
+            id="create-description"
+            [ngModel]="formDescription()"
+            (ngModelChange)="formDescription.set($event)"
+            placeholder="Enter memo description&#10;&#10;Formatting shortcuts:&#10;**bold** or __bold__&#10;*italic* or _italic_&#10;~~strikethrough~~&#10;`code`&#10;[color:red]text[/color]&#10;[bg:yellow]text[/bg]&#10;- list item&#10;1. numbered item&#10;- [ ] checkbox&#10;- [x] checked"
+            rows="8"
+            class="form-textarea"
+            required></textarea>
+        </div>
+      </div>
+      <div class="popup-actions">
+        <button class="cancel-btn" (click)="closeCreatePopup()">Cancel</button>
+        <button class="save-btn" (click)="createMemo()">Create</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit Popup -->
+@if (editMemoPopup()) {
+  <div
+    class="popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeEditPopup()"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1">
+    <div class="popup-content form-popup">
+      <div class="popup-header">
+        <h2>Edit Memo</h2>
+        <button class="close-btn" (click)="closeEditPopup()">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="form-group">
+          <label for="edit-color">Color</label>
+          <div class="color-palette-form">
+            @for (colorOption of memoColors; track colorOption.value) {
+              <button
+                type="button"
+                class="color-option"
+                [class.selected]="formColor() === colorOption.value"
+                [style.background-color]="colorOption.value"
+                [attr.aria-label]="colorOption.name"
+                [title]="colorOption.name"
+                (click)="formColor.set(colorOption.value)">
+                @if (formColor() === colorOption.value) {
+                  ✓
+                }
+              </button>
+            }
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-title">Title (Optional)</label>
+          <input
+            id="edit-title"
+            type="text"
+            [ngModel]="formTitle()"
+            (ngModelChange)="formTitle.set($event)"
+            placeholder="Enter memo title"
+            class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="edit-description">Description *</label>
+          <div class="formatting-toolbar">
+            <button type="button" class="format-btn" (click)="applyFormatting('bold')" title="Bold" aria-label="Bold">
+              <strong>B</strong>
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('italic')"
+              title="Italic"
+              aria-label="Italic">
+              <em>I</em>
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('strikethrough')"
+              title="Strikethrough"
+              aria-label="Strikethrough">
+              <del>S</del>
+            </button>
+            <button type="button" class="format-btn" (click)="applyFormatting('code')" title="Code" aria-label="Code">
+              &lt;/&gt;
+            </button>
+            <span class="toolbar-separator"></span>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('unordered')"
+              title="Unordered List"
+              aria-label="Unordered List">
+              ☰
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('ordered')"
+              title="Ordered List"
+              aria-label="Ordered List">
+              1.
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('checkbox')"
+              title="Checkbox"
+              aria-label="Checkbox">
+              ☐
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('checked')"
+              title="Checked"
+              aria-label="Checked">
+              ☑
+            </button>
+            <span class="toolbar-separator"></span>
+            <div class="color-picker-container">
+              <button
+                type="button"
+                class="format-btn"
+                (click)="applyFormatting('text-color')"
+                title="Text Color"
+                aria-label="Text Color">
+                <span style="font-weight: bold; color: #ff0000">A</span>
+              </button>
+              @if (showTextColorPicker()) {
+                <div class="color-picker-popup">
+                  <input
+                    type="color"
+                    [value]="selectedTextColor()"
+                    (input)="selectedTextColor.set($any($event.target).value)"
+                    (change)="applyTextColor(selectedTextColor())"
+                    class="color-input"
+                    title="Choose custom color" />
+                  <div class="default-colors">
+                    @for (color of defaultTextColors; track color) {
+                      <button
+                        type="button"
+                        class="default-color-btn"
+                        [style.background-color]="color"
+                        (click)="applyTextColor(color)"
+                        [title]="color"
+                        [attr.aria-label]="'Apply color ' + color"></button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="color-picker-container">
+              <button
+                type="button"
+                class="format-btn"
+                (click)="applyFormatting('bg-color')"
+                title="Background Color"
+                aria-label="Background Color">
+                <span style="background: #ffeb3b; padding: 0 4px; font-weight: bold">H</span>
+              </button>
+              @if (showBgColorPicker()) {
+                <div class="color-picker-popup">
+                  <input
+                    type="color"
+                    [value]="selectedBgColor()"
+                    (input)="selectedBgColor.set($any($event.target).value)"
+                    (change)="applyBgColor(selectedBgColor())"
+                    class="color-input"
+                    title="Choose custom color" />
+                  <div class="default-colors">
+                    @for (color of defaultBgColors; track color) {
+                      <button
+                        type="button"
+                        class="default-color-btn"
+                        [style.background-color]="color"
+                        (click)="applyBgColor(color)"
+                        [title]="color"
+                        [attr.aria-label]="'Apply background ' + color"></button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          <textarea
+            #descriptionTextarea
+            id="edit-description"
+            [ngModel]="formDescription()"
+            (ngModelChange)="formDescription.set($event)"
+            placeholder="Enter memo description"
+            rows="8"
+            class="form-textarea"
+            required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [ngModel]="formStatus()" (ngModelChange)="formStatus.set($event)" />
+            <span>Mark as completed</span>
+          </label>
+        </div>
+      </div>
+      <div class="popup-actions">
+        <button class="cancel-btn" (click)="closeEditPopup()">Cancel</button>
+        <button class="save-btn" (click)="saveMemo()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Rich Text Converter Popup -->
+@if (richTextConverterPopup()) {
+  <div
+    class="popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeRichTextConverter()"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1">
+    <div class="popup-content converter-popup">
+      <div class="popup-header">
+        <h2>✎ Rich Text Converter</h2>
+        <button class="close-btn" (click)="closeRichTextConverter()">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="converter-layout">
+          <!-- Editor Section -->
+          <div class="editor-section">
+            <h3>Editor</h3>
+            <div class="form-group">
+              <div class="formatting-toolbar">
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('bold')"
+                  title="Bold"
+                  aria-label="Bold">
+                  <strong>B</strong>
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('italic')"
+                  title="Italic"
+                  aria-label="Italic">
+                  <em>I</em>
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('strikethrough')"
+                  title="Strikethrough"
+                  aria-label="Strikethrough">
+                  <del>S</del>
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('code')"
+                  title="Code"
+                  aria-label="Code">
+                  &lt;/&gt;
+                </button>
+                <span class="toolbar-separator"></span>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('unordered')"
+                  title="Unordered List"
+                  aria-label="Unordered List">
+                  ☰
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('ordered')"
+                  title="Ordered List"
+                  aria-label="Ordered List">
+                  1.
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('checkbox')"
+                  title="Checkbox"
+                  aria-label="Checkbox">
+                  ☐
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('checked')"
+                  title="Checked"
+                  aria-label="Checked">
+                  ☑
+                </button>
+                <span class="toolbar-separator"></span>
+                <div class="color-picker-container">
+                  <button
+                    type="button"
+                    class="format-btn"
+                    (click)="applyConverterFormatting('text-color')"
+                    title="Text Color"
+                    aria-label="Text Color">
+                    <span style="font-weight: bold; color: #ff0000">A</span>
+                  </button>
+                  @if (converterTextColorPicker()) {
+                    <div class="color-picker-popup">
+                      <input
+                        type="color"
+                        [value]="selectedTextColor()"
+                        (input)="selectedTextColor.set($any($event.target).value)"
+                        (change)="applyConverterTextColor(selectedTextColor())"
+                        class="color-input"
+                        title="Choose custom color" />
+                      <div class="default-colors">
+                        @for (color of defaultTextColors; track color) {
+                          <button
+                            type="button"
+                            class="default-color-btn"
+                            [style.background-color]="color"
+                            (click)="applyConverterTextColor(color)"
+                            [title]="color"
+                            [attr.aria-label]="'Apply color ' + color"></button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="color-picker-container">
+                  <button
+                    type="button"
+                    class="format-btn"
+                    (click)="applyConverterFormatting('bg-color')"
+                    title="Background Color"
+                    aria-label="Background Color">
+                    <span style="background: #ffeb3b; padding: 0 4px; font-weight: bold">H</span>
+                  </button>
+                  @if (converterBgColorPicker()) {
+                    <div class="color-picker-popup">
+                      <input
+                        type="color"
+                        [value]="selectedBgColor()"
+                        (input)="selectedBgColor.set($any($event.target).value)"
+                        (change)="applyConverterBgColor(selectedBgColor())"
+                        class="color-input"
+                        title="Choose custom color" />
+                      <div class="default-colors">
+                        @for (color of defaultBgColors; track color) {
+                          <button
+                            type="button"
+                            class="default-color-btn"
+                            [style.background-color]="color"
+                            (click)="applyConverterBgColor(color)"
+                            [title]="color"
+                            [attr.aria-label]="'Apply background ' + color"></button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+              <textarea
+                #converterTextarea
+                [ngModel]="converterText()"
+                (ngModelChange)="converterText.set($event)"
+                placeholder="Enter or paste your text here and use the toolbar to format it..."
+                rows="12"
+                class="form-textarea converter-textarea"></textarea>
+            </div>
+            <div class="copy-actions">
+              <button class="copy-btn plain-text" (click)="copyPlainText()" title="Copy without formatting">
+                <span>📄</span> Copy Plain Text
+              </button>
+              <button
+                class="copy-btn sheets-text"
+                (click)="copyForGoogleSheets()"
+                title="Copy markdown syntax for Google Sheets">
+                <span>📊</span> Copy for Sheets
+              </button>
+            </div>
+          </div>
+
+          <!-- Preview Section -->
+          <div class="preview-section">
+            <h3>Preview</h3>
+            <div class="preview-content" [innerHTML]="converterText() | markdown"></div>
+            @if (!converterText()) {
+              <p class="preview-placeholder">Preview will appear here...</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

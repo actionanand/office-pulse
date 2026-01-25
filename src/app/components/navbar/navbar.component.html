@@ -99,6 +99,33 @@
               <span class="nav-text">Utilities</span>
             </a>
             <a
+              routerLink="/my-jira-tickets"
+              routerLinkActive="active"
+              class="dropdown-item"
+              aria-label="My Jira Tickets"
+              (click)="closeAll()">
+              <span class="nav-icon">🎫</span>
+              <span class="nav-text">My Jira Tickets</span>
+            </a>
+            <a
+              routerLink="/ticket-tracking"
+              routerLinkActive="active"
+              class="dropdown-item"
+              aria-label="Ticket Tracking"
+              (click)="closeAll()">
+              <span class="nav-icon">🎯</span>
+              <span class="nav-text">Ticket Tracking</span>
+            </a>
+            <a
+              routerLink="/memos"
+              routerLinkActive="active"
+              class="dropdown-item"
+              aria-label="Memos"
+              (click)="closeAll()">
+              <span class="nav-icon">📝</span>
+              <span class="nav-text">Memos</span>
+            </a>
+            <a
               routerLink="/markdown"
               routerLinkActive="active"
               class="dropdown-item"
@@ -157,6 +184,28 @@
           (click)="closeAll()">
           <span class="nav-icon">🛠️</span>
           <span class="nav-text">Utilities</span>
+        </a>
+        <a
+          routerLink="/my-jira-tickets"
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="My Jira Tickets"
+          (click)="closeAll()">
+          <span class="nav-icon">🎫</span>
+          <span class="nav-text">My Jira Tickets</span>
+        </a>
+        <a
+          routerLink="/ticket-tracking"
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="Ticket Tracking"
+          (click)="closeAll()">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-text">Ticket Tracking</span>
+        </a>
+        <a routerLink="/memos" routerLinkActive="active" class="nav-link" aria-label="Memos" (click)="closeAll()">
+          <span class="nav-icon">📝</span>
+          <span class="nav-text">Memos</span>
         </a>
         <a
           routerLink="/markdown"

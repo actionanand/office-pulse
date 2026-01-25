@@ -68,6 +68,27 @@ export class HomeComponent {
       color: '#fa709a',
     },
     {
+      path: '/my-jira-tickets',
+      icon: '🎫',
+      title: 'My Jira Tickets',
+      description: 'View and manage all Jira tickets created by me',
+      color: '#667eea',
+    },
+    {
+      path: '/ticket-tracking',
+      icon: '🎯',
+      title: 'Ticket Tracking',
+      description: 'Track demo, release, spillover, and important tickets',
+      color: '#f093fb',
+    },
+    {
+      path: '/memos',
+      icon: '📝',
+      title: 'Memos',
+      description: 'Quick notes and reminders in Google Keep style',
+      color: '#4facfe',
+    },
+    {
       path: '/markdown',
       icon: '📄',
       title: 'Markdown Viewer',

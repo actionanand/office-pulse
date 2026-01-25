@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { NavbarComponent } from './components/navbar/navbar.component';
+import { SnackbarComponent } from './components/snackbar/snackbar.component';
 import { AttendanceStateService } from './services/attendance-state.service';
 import { LockScreenComponent } from './lock-screen/lock-screen.component';
 import { LockScreenService } from './lock-screen/lock-screen.service';
@@ -9,7 +10,7 @@ import { LoggerService } from './logger/logger.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NavbarComponent, LockScreenComponent],
+  imports: [RouterOutlet, NavbarComponent, LockScreenComponent, SnackbarComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

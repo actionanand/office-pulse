@@ -89,6 +89,13 @@ export class HomeComponent {
       color: '#4facfe',
     },
     {
+      path: '/bookmarks',
+      icon: '🔖',
+      title: 'Bookmarks',
+      description: 'Manage and access your favorite bookmarks',
+      color: '#43e97b',
+    },
+    {
       path: '/markdown',
       icon: '📄',
       title: 'Markdown Viewer',

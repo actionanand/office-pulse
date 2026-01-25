@@ -203,7 +203,7 @@ export class TodoListComponent implements OnInit {
   saveEdit(todoId: string): void {
     const newDescription = this.editDescription().trim();
     if (!newDescription) {
-      alert('Description cannot be empty');
+      this.snackbarService.error('Description cannot be empty');
       return;
     }
 
@@ -255,7 +255,7 @@ export class TodoListComponent implements OnInit {
       (recurrence === 'weekly' || recurrence === 'biweekly' || recurrence === 'custom') &&
       this.newTodoDaysOfWeek().length === 0
     ) {
-      alert('Please select at least one day of the week');
+      this.snackbarService.error('Please select at least one day of the week');
       return;
     }
 

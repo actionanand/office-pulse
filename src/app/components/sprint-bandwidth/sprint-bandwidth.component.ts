@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SprintBandwidthService } from '../../services/sprint-bandwidth.service';
+import { SnackbarService } from '../../services/snackbar.service';
 import { SprintTask, TaskStatus } from '../../models/sprint-bandwidth.model';
 
 @Component({
@@ -13,6 +14,7 @@ import { SprintTask, TaskStatus } from '../../models/sprint-bandwidth.model';
 })
 export class SprintBandwidthComponent {
   private bandwidthService = inject(SprintBandwidthService);
+  private snackbarService = inject(SnackbarService);
 
   readonly config = this.bandwidthService.config;
   readonly summary = this.bandwidthService.summary;
@@ -95,7 +97,7 @@ export class SprintBandwidthComponent {
 
   saveWeekoffDays(): void {
     if (this.selectedWeekoffDays().length === 0) {
-      alert('At least one weekoff day is required');
+      this.snackbarService.error('At least one weekoff day is required');
       return;
     }
     this.bandwidthService.updateWeekOffDays(this.selectedWeekoffDays());

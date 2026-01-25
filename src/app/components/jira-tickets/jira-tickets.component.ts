@@ -55,11 +55,11 @@ export class JiraTicketsComponent implements OnInit {
     this.error.set(null);
 
     this.jiraTicketService.fetchTickets().subscribe({
-      next: data => {
+      next: (data: { tickets: JiraTicket[] }) => {
         this.allTickets.set(data.tickets);
         this.loading.set(false);
       },
-      error: err => {
+      error: (err: unknown) => {
         console.error('Error loading tickets:', err);
         this.error.set('Failed to load tickets. Please try again later.');
         this.loading.set(false);
@@ -148,7 +148,10 @@ export class JiraTicketsComponent implements OnInit {
     return status ? 'Completed' : 'Open';
   }
 
-  showCommentPopup(comment: string): void {
+  showCommentPopup(comment: string, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.selectedComment.set(comment);
   }
 
@@ -164,10 +167,10 @@ export class JiraTicketsComponent implements OnInit {
   }
 
   isCommentLong(comment: string): boolean {
-    return !!comment && comment.length > 100;
+    return !!comment && comment.length > 50;
   }
 
-  getTruncatedComment(comment: string, maxLength: number = 100): string {
+  getTruncatedComment(comment: string, maxLength: number = 50): string {
     if (!comment || comment.length <= maxLength) return comment;
     return comment.substring(0, maxLength) + '...';
   }

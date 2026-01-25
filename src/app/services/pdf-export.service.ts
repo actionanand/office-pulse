@@ -1,12 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { SheetEntry } from './gviz.service';
+import { SnackbarService } from './snackbar.service';
 import { PdfExportOptions, PdfEntryRow, MonthSummary } from '../models/pdf-export.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PdfExportService {
-  
+  private snackbarService = inject(SnackbarService);
+
   /**
    * Generate and download PDF from entries
    */
@@ -19,11 +21,14 @@ export class PdfExportService {
   /**
    * Prepare data for PDF generation
    */
-  private prepareData(entries: SheetEntry[], options: PdfExportOptions): { title: string; rows: PdfEntryRow[]; monthSummaries: MonthSummary[] } {
+  private prepareData(
+    entries: SheetEntry[],
+    options: PdfExportOptions,
+  ): { title: string; rows: PdfEntryRow[]; monthSummaries: MonthSummary[] } {
     const title = this.generateTitle(options);
     const dateRange = this.getDateRange(options);
     const entriesMap = this.groupByDateLatestOnly(entries);
-    
+
     const rows: PdfEntryRow[] = [];
     const currentDate = new Date(dateRange.start);
     const endDate = new Date(dateRange.end);
@@ -33,7 +38,7 @@ export class PdfExportService {
       const dayOfWeek = currentDate.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
       const entry = entriesMap.get(dateStr);
-      
+
       const isDayOff = entry?.status === 'Day Off';
       const isWeekOff = isWeekend || isDayOff;
       const hasEntry = !!entry;
@@ -41,7 +46,7 @@ export class PdfExportService {
 
       // Determine if we should include this day based on options
       let includeDay = false;
-      
+
       switch (options.daysToInclude) {
         case 'entries-only':
           includeDay = hasEntry;
@@ -53,30 +58,30 @@ export class PdfExportService {
           includeDay = true;
           break;
       }
-      
+
       if (includeDay) {
         rows.push({
           date: this.formatDisplayDate(currentDate),
           dayName: this.getDayName(currentDate),
-          entryTime: (isWeekOff || isNoEntry) ? '-' : this.formatTime(entry?.entryTime),
-          exitTime: (isWeekOff || isNoEntry) ? '-' : this.formatTime(entry?.exitTime),
-          duration: (isWeekOff || isNoEntry) ? '-' : (entry?.duration || '-'),
+          entryTime: isWeekOff || isNoEntry ? '-' : this.formatTime(entry?.entryTime),
+          exitTime: isWeekOff || isNoEntry ? '-' : this.formatTime(entry?.exitTime),
+          duration: isWeekOff || isNoEntry ? '-' : entry?.duration || '-',
           companyName: entry?.companyName || '-',
           comments: entry?.comments || '-',
-          status: isWeekend ? 'Weekend' : (isNoEntry ? 'No Entry' : (entry?.status || '-')),
+          status: isWeekend ? 'Weekend' : isNoEntry ? 'No Entry' : entry?.status || '-',
           isWeekOff,
           isNoEntry,
           month: currentDate.getMonth() + 1,
-          year: currentDate.getFullYear()
+          year: currentDate.getFullYear(),
         });
       }
-      
+
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
     // Calculate month-wise summaries
     const monthSummaries = this.calculateMonthSummaries(rows);
-    
+
     return { title, rows, monthSummaries };
   }
 
@@ -88,25 +93,25 @@ export class PdfExportService {
 
     rows.forEach(row => {
       if (!row.month || !row.year) return;
-      
+
       const key = `${row.year}-${row.month}`;
-      
+
       if (!summaryMap.has(key)) {
         summaryMap.set(key, {
           month: row.month,
           year: row.year,
           monthName: new Date(row.year, row.month - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }),
           workingDays: 0,
-          totalMinutes: 0
+          totalMinutes: 0,
         });
       }
 
       const summary = summaryMap.get(key)!;
-      
+
       // Count working days (days with actual entries, excluding week offs)
       if (!row.isWeekOff && !row.isNoEntry) {
         summary.workingDays++;
-        
+
         // Calculate duration
         if (row.duration && row.duration !== '-') {
           const match = row.duration.match(/(\d+)h\s*(\d+)m/);
@@ -130,7 +135,7 @@ export class PdfExportService {
   private generateTitle(options: PdfExportOptions): string {
     const year = options.selectedYear;
     const today = new Date();
-    
+
     switch (options.dateRangeType) {
       case 'full-year':
         return `InOut Logs for Year ${year}`;
@@ -161,18 +166,18 @@ export class PdfExportService {
   private getDateRange(options: PdfExportOptions): { start: Date; end: Date } {
     const year = options.selectedYear;
     const today = new Date();
-    
+
     switch (options.dateRangeType) {
       case 'full-year':
         return {
           start: new Date(year, 0, 1),
-          end: new Date(year, 11, 31)
+          end: new Date(year, 11, 31),
         };
       case 'current-month': {
         const currentMonth = today.getMonth();
         return {
           start: new Date(today.getFullYear(), currentMonth, 1),
-          end: new Date(today.getFullYear(), currentMonth + 1, 0)
+          end: new Date(today.getFullYear(), currentMonth + 1, 0),
         };
       }
       case 'previous-month': {
@@ -181,20 +186,20 @@ export class PdfExportService {
         const actualPrevMonth = prevMonth < 0 ? 11 : prevMonth;
         return {
           start: new Date(prevYear, actualPrevMonth, 1),
-          end: new Date(prevYear, actualPrevMonth + 1, 0)
+          end: new Date(prevYear, actualPrevMonth + 1, 0),
         };
       }
       case 'single-month': {
         const month = (options.selectedMonth || 1) - 1;
         return {
           start: new Date(year, month, 1),
-          end: new Date(year, month + 1, 0)
+          end: new Date(year, month + 1, 0),
         };
       }
       default:
         return {
           start: new Date(year, 0, 1),
-          end: new Date(year, 11, 31)
+          end: new Date(year, 11, 31),
         };
     }
   }
@@ -202,10 +207,15 @@ export class PdfExportService {
   /**
    * Generate HTML for PDF
    */
-  private generateHtml(title: string, rows: PdfEntryRow[], options: PdfExportOptions, monthSummaries: MonthSummary[]): string {
+  private generateHtml(
+    title: string,
+    rows: PdfEntryRow[],
+    options: PdfExportOptions,
+    monthSummaries: MonthSummary[],
+  ): string {
     const headers = this.getTableHeaders(options);
     const isFullYear = options.dateRangeType === 'full-year';
-    
+
     return `
 <!DOCTYPE html>
 <html>
@@ -426,12 +436,12 @@ export class PdfExportService {
     const workingDays = rows.filter(r => !r.isWeekOff && !r.isNoEntry).length;
     const weekOffs = rows.filter(r => r.isWeekOff).length;
     const noEntryDays = rows.filter(r => r.isNoEntry).length;
-    
+
     // Calculate total hours from summaries
     const totalMinutes = monthSummaries.reduce((sum, s) => sum + s.totalMinutes, 0);
     const totalHours = Math.floor(totalMinutes / 60);
     const totalMins = totalMinutes % 60;
-    
+
     return `
     <div class="summary">
       <div class="summary-item">
@@ -442,12 +452,16 @@ export class PdfExportService {
         <div class="summary-value">${weekOffs}</div>
         <div class="summary-label">Week Offs</div>
       </div>
-      ${noEntryDays > 0 ? `
+      ${
+        noEntryDays > 0
+          ? `
       <div class="summary-item">
         <div class="summary-value">${noEntryDays}</div>
         <div class="summary-label">No Entry Days</div>
       </div>
-      ` : ''}
+      `
+          : ''
+      }
       <div class="summary-item">
         <div class="summary-value">${totalHours}h ${totalMins}m</div>
         <div class="summary-label">Total Hours</div>
@@ -475,10 +489,15 @@ export class PdfExportService {
   /**
    * Generate month-wise tables (for full year view)
    */
-  private generateMonthWiseTables(rows: PdfEntryRow[], options: PdfExportOptions, headers: string[], monthSummaries: MonthSummary[]): string {
+  private generateMonthWiseTables(
+    rows: PdfEntryRow[],
+    options: PdfExportOptions,
+    headers: string[],
+    monthSummaries: MonthSummary[],
+  ): string {
     // Group rows by month
     const monthGroups = new Map<string, PdfEntryRow[]>();
-    
+
     rows.forEach(row => {
       if (!row.month || !row.year) return;
       const key = `${row.year}-${row.month}`;
@@ -490,16 +509,16 @@ export class PdfExportService {
 
     // Generate tables for each month
     let html = '';
-    
+
     monthSummaries.forEach(summary => {
       const key = `${summary.year}-${summary.month}`;
       const monthRows = monthGroups.get(key) || [];
-      
+
       if (monthRows.length === 0) return;
-      
+
       const hours = Math.floor(summary.totalMinutes / 60);
       const mins = summary.totalMinutes % 60;
-      
+
       html += `
       <div class="month-section">
         <div class="month-header">
@@ -527,7 +546,7 @@ export class PdfExportService {
         </table>
       </div>`;
     });
-    
+
     return html;
   }
 
@@ -573,7 +592,7 @@ export class PdfExportService {
   private generateSummary(rows: PdfEntryRow[]): string {
     const workingDays = rows.filter(r => !r.isWeekOff && !r.isNoEntry).length;
     const weekOffs = rows.filter(r => r.isWeekOff).length;
-    
+
     // Calculate total hours
     let totalMinutes = 0;
     rows.forEach(row => {
@@ -586,7 +605,7 @@ export class PdfExportService {
     });
     const totalHours = Math.floor(totalMinutes / 60);
     const totalMins = totalMinutes % 60;
-    
+
     return `
     <div class="summary">
       <div class="summary-item">
@@ -609,11 +628,11 @@ export class PdfExportService {
    */
   private getTableHeaders(options: PdfExportOptions): string[] {
     const headers = ['Date', 'Day', 'Entry Time', 'Exit Time', 'Duration'];
-    
+
     if (options.includeCompanyName) headers.push('Company');
     if (options.includeStatus) headers.push('Status');
     if (options.includeComments) headers.push('Comments');
-    
+
     return headers;
   }
 
@@ -627,7 +646,7 @@ export class PdfExportService {
     } else if (row.isNoEntry) {
       rowClass = 'no-entry';
     }
-    
+
     let cells = `
       <td class="date-col">${row.date}</td>
       <td class="day-col">${row.dayName}</td>
@@ -635,7 +654,7 @@ export class PdfExportService {
       <td class="time-col">${row.exitTime}</td>
       <td class="duration-col">${row.duration}</td>
     `;
-    
+
     if (options.includeCompanyName) {
       cells += `<td>${row.companyName}</td>`;
     }
@@ -645,7 +664,7 @@ export class PdfExportService {
     if (options.includeComments) {
       cells += `<td class="comments-col">${row.comments}</td>`;
     }
-    
+
     return `<tr class="${rowClass}">${cells}</tr>`;
   }
 
@@ -654,7 +673,7 @@ export class PdfExportService {
    */
   private generateFileName(options: PdfExportOptions): string {
     const year = options.selectedYear;
-    
+
     switch (options.dateRangeType) {
       case 'full-year':
         return `inout_logs_${year}`;
@@ -677,13 +696,13 @@ export class PdfExportService {
   private downloadPdf(html: string, _fileName: string): void {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Please allow popups to download PDF');
+      this.snackbarService.error('Please allow popups to download PDF');
       return;
     }
-    
+
     printWindow.document.write(html);
     printWindow.document.close();
-    
+
     // Wait for content to load then trigger print
     printWindow.onload = () => {
       setTimeout(() => {
@@ -693,7 +712,7 @@ export class PdfExportService {
   }
 
   // ============ Helper Methods ============
-  
+
   private formatDateKey(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -702,9 +721,9 @@ export class PdfExportService {
   }
 
   private formatDisplayDate(date: Date): string {
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
     });
   }
 
@@ -714,15 +733,15 @@ export class PdfExportService {
 
   private formatTime(timeStr: string | undefined): string {
     if (!timeStr) return '-';
-    
+
     try {
       const date = new Date(timeStr);
       if (isNaN(date.getTime())) return '-';
-      
+
       return date.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
       });
     } catch {
       return '-';

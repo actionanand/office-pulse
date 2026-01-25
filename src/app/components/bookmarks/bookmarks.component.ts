@@ -140,10 +140,10 @@ export class BookmarksComponent implements OnInit {
   }
 
   isCommentLong(comment: string): boolean {
-    return !!comment && comment.length > 100;
+    return !!comment && comment.length > 50;
   }
 
-  getTruncatedComment(comment: string, maxLength: number = 100): string {
+  getTruncatedComment(comment: string, maxLength: number = 50): string {
     if (!comment || comment.length <= maxLength) return comment;
     return comment.substring(0, maxLength) + '...';
   }

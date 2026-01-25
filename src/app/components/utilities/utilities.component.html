@@ -11,24 +11,22 @@
 
       <div class="form-group">
         <label for="copyLink">Link (optional)</label>
-        <input 
-          type="url" 
+        <input
+          type="url"
           id="copyLink"
           [value]="copyFormData().link"
           (input)="updateCopyField('link', $any($event.target).value)"
-          placeholder="https://example.com"
-        />
+          placeholder="https://example.com" />
       </div>
 
       <div class="form-group">
         <label for="copyComment">Comment / Text (optional)</label>
-        <textarea 
+        <textarea
           id="copyComment"
           [value]="copyFormData().comment"
           (input)="updateCopyField('comment', $any($event.target).value)"
           placeholder="Any text or notes to transfer..."
-          rows="3"
-        ></textarea>
+          rows="3"></textarea>
       </div>
 
       <div class="card-actions">
@@ -42,18 +40,14 @@
           {{ showCopiedItems() ? '▼ Hide' : '▶ Show' }} Copied Items
         </button>
         @if (showCopiedItems()) {
-          <button class="btn btn-icon" (click)="loadCopiedItems()" [disabled]="isCopyLoading()">
-            🔄
-          </button>
+          <button class="btn btn-icon" (click)="loadCopiedItems()" [disabled]="isCopyLoading()">🔄</button>
         }
       </div>
 
       @if (showCopiedItems()) {
         <div class="copied-items-list">
           @if (isCopyLoading()) {
-            <div class="loading-inline">
-              <span class="spinner-small"></span> Loading...
-            </div>
+            <div class="loading-inline"><span class="spinner-small"></span> Loading...</div>
           } @else if (copiedItems().length === 0) {
             <p class="empty-text">No copied items found.</p>
           } @else {
@@ -131,20 +125,17 @@
       <div class="card-header">
         <h2>📝 Memo / Checklist</h2>
         @if (memoItems().length > 0) {
-          <span class="memo-stats">
-            {{ getCompletedCount() }}/{{ memoItems().length }} done
-          </span>
+          <span class="memo-stats"> {{ getCompletedCount() }}/{{ memoItems().length }} done </span>
         }
       </div>
 
       <div class="memo-input">
-        <input 
+        <input
           type="text"
           [value]="newMemoText()"
           (input)="newMemoText.set($any($event.target).value)"
           (keyup.enter)="addMemoItem()"
-          placeholder="Add item... (press Enter)"
-        />
+          placeholder="Add item... (press Enter)" />
         <button class="btn btn-add-memo" (click)="addMemoItem()">+</button>
       </div>
 
@@ -153,11 +144,7 @@
           @for (item of memoItems(); track item.id) {
             <div class="memo-item" [class.completed]="item.completed">
               <label class="checkbox-container">
-                <input 
-                  type="checkbox" 
-                  [checked]="item.completed"
-                  (change)="toggleMemoItem(item.id)"
-                />
+                <input type="checkbox" [checked]="item.completed" (change)="toggleMemoItem(item.id)" />
                 <span class="checkmark"></span>
               </label>
               <span class="memo-text" [class.strike]="item.completed">{{ item.text }}</span>
@@ -186,6 +173,7 @@
     [formUrl]="googleFormUrl()"
     [dialogTitle]="'📋 Copy / Transfer'"
     (closeDialog)="onGoogleFormClose()"
-    (formSubmitted)="onGoogleFormSubmitted()"
-  />
+    (formSubmitted)="onGoogleFormSubmitted()" />
 </div>
+
+<app-confirmation-dialog></app-confirmation-dialog>

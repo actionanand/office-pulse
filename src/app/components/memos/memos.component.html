@@ -8,6 +8,10 @@
     </div>
     <div class="header-actions">
       <button class="create-btn" (click)="openCreatePopup()">+ Create Memo</button>
+      <button class="rich-text-btn" (click)="openRichTextConverter()">
+        <span class="rich-text-icon">✎</span>
+        Rich Text
+      </button>
       <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
         <span class="refresh-icon">↻</span>
         Refresh
@@ -564,6 +568,196 @@
       <div class="popup-actions">
         <button class="cancel-btn" (click)="closeEditPopup()">Cancel</button>
         <button class="save-btn" (click)="saveMemo()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Rich Text Converter Popup -->
+@if (richTextConverterPopup()) {
+  <div
+    class="popup-overlay"
+    (click)="onOverlayClick($event)"
+    (keydown.escape)="closeRichTextConverter()"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1">
+    <div class="popup-content converter-popup">
+      <div class="popup-header">
+        <h2>✎ Rich Text Converter</h2>
+        <button class="close-btn" (click)="closeRichTextConverter()">×</button>
+      </div>
+      <div class="popup-body">
+        <div class="converter-layout">
+          <!-- Editor Section -->
+          <div class="editor-section">
+            <h3>Editor</h3>
+            <div class="form-group">
+              <div class="formatting-toolbar">
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('bold')"
+                  title="Bold"
+                  aria-label="Bold">
+                  <strong>B</strong>
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('italic')"
+                  title="Italic"
+                  aria-label="Italic">
+                  <em>I</em>
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('strikethrough')"
+                  title="Strikethrough"
+                  aria-label="Strikethrough">
+                  <del>S</del>
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('code')"
+                  title="Code"
+                  aria-label="Code">
+                  &lt;/&gt;
+                </button>
+                <span class="toolbar-separator"></span>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('unordered')"
+                  title="Unordered List"
+                  aria-label="Unordered List">
+                  ☰
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('ordered')"
+                  title="Ordered List"
+                  aria-label="Ordered List">
+                  1.
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('checkbox')"
+                  title="Checkbox"
+                  aria-label="Checkbox">
+                  ☐
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('checked')"
+                  title="Checked"
+                  aria-label="Checked">
+                  ☑
+                </button>
+                <span class="toolbar-separator"></span>
+                <div class="color-picker-container">
+                  <button
+                    type="button"
+                    class="format-btn"
+                    (click)="applyConverterFormatting('text-color')"
+                    title="Text Color"
+                    aria-label="Text Color">
+                    <span style="font-weight: bold; color: #ff0000">A</span>
+                  </button>
+                  @if (converterTextColorPicker()) {
+                    <div class="color-picker-popup">
+                      <input
+                        type="color"
+                        [value]="selectedTextColor()"
+                        (input)="selectedTextColor.set($any($event.target).value)"
+                        (change)="applyConverterTextColor(selectedTextColor())"
+                        class="color-input"
+                        title="Choose custom color" />
+                      <div class="default-colors">
+                        @for (color of defaultTextColors; track color) {
+                          <button
+                            type="button"
+                            class="default-color-btn"
+                            [style.background-color]="color"
+                            (click)="applyConverterTextColor(color)"
+                            [title]="color"
+                            [attr.aria-label]="'Apply color ' + color"></button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="color-picker-container">
+                  <button
+                    type="button"
+                    class="format-btn"
+                    (click)="applyConverterFormatting('bg-color')"
+                    title="Background Color"
+                    aria-label="Background Color">
+                    <span style="background: #ffeb3b; padding: 0 4px; font-weight: bold">H</span>
+                  </button>
+                  @if (converterBgColorPicker()) {
+                    <div class="color-picker-popup">
+                      <input
+                        type="color"
+                        [value]="selectedBgColor()"
+                        (input)="selectedBgColor.set($any($event.target).value)"
+                        (change)="applyConverterBgColor(selectedBgColor())"
+                        class="color-input"
+                        title="Choose custom color" />
+                      <div class="default-colors">
+                        @for (color of defaultBgColors; track color) {
+                          <button
+                            type="button"
+                            class="default-color-btn"
+                            [style.background-color]="color"
+                            (click)="applyConverterBgColor(color)"
+                            [title]="color"
+                            [attr.aria-label]="'Apply background ' + color"></button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+              <textarea
+                #converterTextarea
+                [ngModel]="converterText()"
+                (ngModelChange)="converterText.set($event)"
+                placeholder="Enter or paste your text here and use the toolbar to format it..."
+                rows="12"
+                class="form-textarea converter-textarea"></textarea>
+            </div>
+            <div class="copy-actions">
+              <button class="copy-btn rich-text" (click)="copyRichText()" title="Copy as formatted HTML">
+                <span>📋</span> Copy Rich Text
+              </button>
+              <button class="copy-btn plain-text" (click)="copyPlainText()" title="Copy without formatting">
+                <span>📄</span> Copy Plain Text
+              </button>
+              <button
+                class="copy-btn sheets-text"
+                (click)="copyForGoogleSheets()"
+                title="Copy markdown syntax for Google Sheets">
+                <span>📊</span> Copy for Sheets
+              </button>
+            </div>
+          </div>
+
+          <!-- Preview Section -->
+          <div class="preview-section">
+            <h3>Preview</h3>
+            <div class="preview-content" [innerHTML]="converterText() | markdown"></div>
+            @if (!converterText()) {
+              <p class="preview-placeholder">Preview will appear here...</p>
+            }
+          </div>
+        </div>
       </div>
     </div>
   </div>

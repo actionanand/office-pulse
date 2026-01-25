@@ -4,6 +4,56 @@
 
 Memos support rich text formatting using a simple markdown-like syntax. This guide explains how to format memo descriptions for both manual creation and API responses.
 
+## Rich Text Converter Tool
+
+The application includes a **Rich Text Converter** tool to help you format text before pasting it into Google Sheets.
+
+### How to Use
+
+1. Click the **"✎ Rich Text"** button in the header (between Create Memo and Refresh)
+2. Paste or type your text in the editor
+3. Use the formatting toolbar to apply styles:
+   - **B** = Bold
+   - **I** = Italic
+   - **S** = Strikethrough
+   - **</>** = Code
+   - **☰** = Unordered list
+   - **1.** = Ordered list
+   - **☐** = Checkbox (unchecked)
+   - **☑** = Checkbox (checked)
+   - **A** (colored) = Text color picker
+   - **H** (highlighted) = Background color picker
+4. Preview the formatted text in real-time on the right side
+5. Copy using one of three options:
+   - **📋 Copy Rich Text** - Copies as HTML (for pasting into rich text editors)
+   - **📄 Copy Plain Text** - Removes all formatting (for plain text editors)
+   - **📊 Copy for Sheets** - Copies the markdown syntax (for Google Sheets API)
+
+### Copy Options Explained
+
+#### Copy Rich Text
+
+Copies the formatted HTML version. Use this when pasting into:
+
+- Word processors (Word, Google Docs)
+- Email clients
+- Rich text editors
+
+#### Copy Plain Text
+
+Removes all formatting and copies only the text content. Use this when you need:
+
+- Clean text without any markup
+- Text for plain text fields
+
+#### Copy for Sheets
+
+Copies the markdown syntax as-is. Use this when:
+
+- **Pasting into Google Sheets Description column**
+- Preparing text for API integration
+- You want to preserve the formatting syntax
+
 ## Formatting Syntax
 
 ### Text Formatting

@@ -49,12 +49,18 @@ export class MemosComponent implements OnInit {
   createMemoPopup = signal<boolean>(false);
   editMemoPopup = signal<Memo | null>(null);
   colorPickerMemo = signal<Memo | null>(null);
+  richTextConverterPopup = signal<boolean>(false);
 
   // Formatting toolbar state
   showTextColorPicker = signal<boolean>(false);
   showBgColorPicker = signal<boolean>(false);
   selectedTextColor = signal<string>('#ff0000');
   selectedBgColor = signal<string>('#ffeb3b');
+
+  // Rich text converter state
+  converterText = signal<string>('');
+  converterTextColorPicker = signal<boolean>(false);
+  converterBgColorPicker = signal<boolean>(false);
 
   // Form data - using a simple object that we'll update
   formTitle = signal<string>('');
@@ -67,6 +73,7 @@ export class MemosComponent implements OnInit {
 
   // Textarea reference for formatting
   @ViewChild('descriptionTextarea') descriptionTextarea?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('converterTextarea') converterTextarea?: ElementRef<HTMLTextAreaElement>;
 
   // Computed values
   filteredMemos = computed(() => {
@@ -174,6 +181,17 @@ export class MemosComponent implements OnInit {
 
   closeEditPopup(): void {
     this.editMemoPopup.set(null);
+  }
+
+  openRichTextConverter(): void {
+    this.converterText.set('');
+    this.converterTextColorPicker.set(false);
+    this.converterBgColorPicker.set(false);
+    this.richTextConverterPopup.set(true);
+  }
+
+  closeRichTextConverter(): void {
+    this.richTextConverterPopup.set(false);
   }
 
   // CRUD operations
@@ -302,6 +320,7 @@ export class MemosComponent implements OnInit {
       this.closeViewPopup();
       this.closeCreatePopup();
       this.closeEditPopup();
+      this.closeRichTextConverter();
     }
   }
 
@@ -420,4 +439,147 @@ export class MemosComponent implements OnInit {
     '#ffccff', // Light purple
     '#ffe6cc', // Light orange
   ];
+
+  // Rich text converter formatting methods
+  applyConverterFormatting(type: string): void {
+    const textarea = this.converterTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentText = this.converterText();
+
+    let result: { text: string; cursorPos: number };
+
+    switch (type) {
+      case 'bold':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '**');
+        break;
+      case 'italic':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '*');
+        break;
+      case 'strikethrough':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '~~');
+        break;
+      case 'code':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '`');
+        break;
+      case 'unordered':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '- ', '\n');
+        break;
+      case 'ordered':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '1. ', '\n');
+        break;
+      case 'checkbox':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '- [ ] ', '\n');
+        break;
+      case 'checked':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '- [x] ', '\n');
+        break;
+      case 'text-color':
+        this.converterTextColorPicker.set(!this.converterTextColorPicker());
+        this.converterBgColorPicker.set(false);
+        return;
+      case 'bg-color':
+        this.converterBgColorPicker.set(!this.converterBgColorPicker());
+        this.converterTextColorPicker.set(false);
+        return;
+      default:
+        return;
+    }
+
+    this.converterText.set(result.text);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(result.cursorPos, result.cursorPos);
+    }, 0);
+  }
+
+  applyConverterTextColor(color: string): void {
+    const textarea = this.converterTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentText = this.converterText();
+
+    const result = MarkdownParser.insertFormatting(currentText, start, end, `[color:${color}]`, '[/color]');
+
+    this.converterText.set(result.text);
+    this.converterTextColorPicker.set(false);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(result.cursorPos, result.cursorPos);
+    }, 0);
+  }
+
+  applyConverterBgColor(color: string): void {
+    const textarea = this.converterTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentText = this.converterText();
+
+    const result = MarkdownParser.insertFormatting(currentText, start, end, `[bg:${color}]`, '[/bg]');
+
+    this.converterText.set(result.text);
+    this.converterBgColorPicker.set(false);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(result.cursorPos, result.cursorPos);
+    }, 0);
+  }
+
+  // Copy functions for rich text converter
+  copyRichText(): void {
+    const text = this.converterText();
+    const html = MarkdownParser.parse(text);
+
+    // Copy as HTML to clipboard
+    const blob = new Blob([html], { type: 'text/html' });
+    const data = [new ClipboardItem({ 'text/html': blob })];
+
+    navigator.clipboard.write(data).then(
+      () => {
+        this.snackbarService.success('Rich text copied to clipboard');
+      },
+      (err: unknown) => {
+        console.error('Failed to copy rich text:', err);
+        this.snackbarService.error('Failed to copy rich text');
+      },
+    );
+  }
+
+  copyPlainText(): void {
+    const text = this.converterText();
+    const plainText = MarkdownParser.toPlainText(text);
+
+    navigator.clipboard.writeText(plainText).then(
+      () => {
+        this.snackbarService.success('Plain text copied to clipboard');
+      },
+      (err: unknown) => {
+        console.error('Failed to copy plain text:', err);
+        this.snackbarService.error('Failed to copy plain text');
+      },
+    );
+  }
+
+  copyForGoogleSheets(): void {
+    const text = this.converterText();
+
+    navigator.clipboard.writeText(text).then(
+      () => {
+        this.snackbarService.success('Markdown syntax copied for Google Sheets');
+      },
+      (err: unknown) => {
+        console.error('Failed to copy:', err);
+        this.snackbarService.error('Failed to copy to clipboard');
+      },
+    );
+  }
 }

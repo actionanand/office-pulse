@@ -705,6 +705,193 @@
   }
 }
 
+// Formatting toolbar
+.formatting-toolbar {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border: 1px solid #d0d0d0;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  flex-wrap: wrap;
+  align-items: center;
+
+  .format-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #e9ecef;
+      border-color: #999;
+    }
+
+    &:active {
+      background: #dee2e6;
+    }
+  }
+
+  .toolbar-separator {
+    width: 1px;
+    background: #ccc;
+    margin: 0 0.25rem;
+    align-self: stretch;
+  }
+
+  .color-picker-container {
+    position: relative;
+  }
+
+  .color-picker-popup {
+    position: absolute;
+    top: 36px;
+    left: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .color-input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .default-colors {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    .default-color-btn {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        transform: scale(1.1);
+        border-color: #007bff;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+}
+
+.form-textarea {
+  border-radius: 0 0 8px 8px !important;
+  border-top: none !important;
+}
+
+// Formatted content styles
+.memo-description,
+.full-description {
+  ::ng-deep {
+    // Inline formatting
+    strong {
+      font-weight: 600;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    del {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #d63384;
+    }
+
+    // Lists - reduce spacing
+    ul,
+    ol {
+      margin: 0.25rem 0;
+      padding-left: 1.5rem;
+
+      li {
+        margin: 0;
+        line-height: 1.5;
+      }
+    }
+
+    ul {
+      list-style-type: disc;
+    }
+
+    ol {
+      list-style-type: decimal;
+    }
+
+    // Remove extra line breaks around lists
+    br + ul,
+    br + ol {
+      margin-top: -0.5rem;
+    }
+
+    ul + br,
+    ol + br {
+      display: none;
+    }
+
+    // Checkboxes
+    .checkbox-item {
+      display: block;
+      margin: 0.15rem 0;
+      line-height: 1.5;
+      font-size: 1.1em;
+
+      &.checked {
+        opacity: 0.65;
+        text-decoration: line-through;
+      }
+    }
+
+    // Remove extra breaks around checkboxes
+    br + .checkbox-item {
+      margin-top: -0.5rem;
+    }
+
+    .checkbox-item + br {
+      display: none;
+    }
+
+    // Color spans
+    span[style*='color'] {
+      font-weight: 500;
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .popup-content {
     margin: 0 1rem;
@@ -713,6 +900,14 @@
 
   .popup-header h2 {
     font-size: 1.25rem;
+  }
+
+  .formatting-toolbar {
+    .format-btn {
+      width: 28px;
+      height: 28px;
+      font-size: 0.8rem;
+    }
   }
 }
 

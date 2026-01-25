@@ -1,10 +1,12 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MemoService } from '../../services/memo.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
+import { MarkdownPipe } from '../../pipes/markdown.pipe';
+import { MarkdownParser } from '../../utils/markdown-parser';
 import { Memo, MemoData } from '../../models/memo.model';
 
 type FilterType = 'all' | 'active' | 'completed';
@@ -27,7 +29,7 @@ export const MEMO_COLORS = [
 
 @Component({
   selector: 'app-memos',
-  imports: [CommonModule, FormsModule, ConfirmationDialogComponent],
+  imports: [CommonModule, FormsModule, ConfirmationDialogComponent, MarkdownPipe],
   templateUrl: './memos.component.html',
   styleUrls: ['./memos.component.scss'],
 })
@@ -48,6 +50,12 @@ export class MemosComponent implements OnInit {
   editMemoPopup = signal<Memo | null>(null);
   colorPickerMemo = signal<Memo | null>(null);
 
+  // Formatting toolbar state
+  showTextColorPicker = signal<boolean>(false);
+  showBgColorPicker = signal<boolean>(false);
+  selectedTextColor = signal<string>('#ff0000');
+  selectedBgColor = signal<string>('#ffeb3b');
+
   // Form data - using a simple object that we'll update
   formTitle = signal<string>('');
   formDescription = signal<string>('');
@@ -56,6 +64,9 @@ export class MemosComponent implements OnInit {
 
   // Color palette
   memoColors = MEMO_COLORS;
+
+  // Textarea reference for formatting
+  @ViewChild('descriptionTextarea') descriptionTextarea?: ElementRef<HTMLTextAreaElement>;
 
   // Computed values
   filteredMemos = computed(() => {
@@ -293,4 +304,120 @@ export class MemosComponent implements OnInit {
       this.closeEditPopup();
     }
   }
+
+  // Formatting methods
+  applyFormatting(type: string): void {
+    const textarea = this.descriptionTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentText = this.formDescription();
+
+    let result: { text: string; cursorPos: number };
+
+    switch (type) {
+      case 'bold':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '**');
+        break;
+      case 'italic':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '*');
+        break;
+      case 'strikethrough':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '~~');
+        break;
+      case 'code':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '`');
+        break;
+      case 'unordered':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '- ', '\n');
+        break;
+      case 'ordered':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '1. ', '\n');
+        break;
+      case 'checkbox':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '- [ ] ', '\n');
+        break;
+      case 'checked':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '- [x] ', '\n');
+        break;
+      case 'text-color':
+        // Show color picker for text color
+        this.showTextColorPicker.set(!this.showTextColorPicker());
+        this.showBgColorPicker.set(false);
+        return;
+      case 'bg-color':
+        // Show color picker for background color
+        this.showBgColorPicker.set(!this.showBgColorPicker());
+        this.showTextColorPicker.set(false);
+        return;
+      default:
+        return;
+    }
+
+    this.formDescription.set(result.text);
+
+    // Set cursor position after Angular updates the view
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(result.cursorPos, result.cursorPos);
+    }, 0);
+  }
+
+  applyTextColor(color: string): void {
+    const textarea = this.descriptionTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentText = this.formDescription();
+
+    const result = MarkdownParser.insertFormatting(currentText, start, end, `[color:${color}]`, '[/color]');
+
+    this.formDescription.set(result.text);
+    this.showTextColorPicker.set(false);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(result.cursorPos, result.cursorPos);
+    }, 0);
+  }
+
+  applyBgColor(color: string): void {
+    const textarea = this.descriptionTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentText = this.formDescription();
+
+    const result = MarkdownParser.insertFormatting(currentText, start, end, `[bg:${color}]`, '[/bg]');
+
+    this.formDescription.set(result.text);
+    this.showBgColorPicker.set(false);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(result.cursorPos, result.cursorPos);
+    }, 0);
+  }
+
+  // Default color palettes for formatting
+  defaultTextColors = [
+    '#ff0000', // Red
+    '#0000ff', // Blue
+    '#008000', // Green
+    '#ff6600', // Orange
+    '#9900ff', // Purple
+    '#ff00ff', // Magenta
+  ];
+
+  defaultBgColors = [
+    '#ffeb3b', // Yellow
+    '#ffcccc', // Light red
+    '#ccffcc', // Light green
+    '#ccccff', // Light blue
+    '#ffccff', // Light purple
+    '#ffe6cc', // Light orange
+  ];
 }

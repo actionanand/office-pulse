@@ -97,9 +97,19 @@ export class EntryLoggerComponent implements OnInit {
     // Check localStorage for a submitted entry for today with both entry and exit time
     const storedLog = this.storageService.getEntryLog();
     if (!storedLog?.isSubmitted || !storedLog.entryTime || !storedLog.exitTime) return false;
-    const entryDate = this.getDateFromTimeString(storedLog.entryTime);
-    const today = this.getTodayDateString();
-    return entryDate === today;
+
+    // Get IST date for entryTime and exitTime
+    const getISTDate = (iso: string) => {
+      const d = new Date(iso);
+      const ist = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const y = ist.getFullYear();
+      const m = String(ist.getMonth() + 1).padStart(2, '0');
+      const day = String(ist.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    const exitIST = getISTDate(storedLog.exitTime);
+    const todayIST = getISTDate(new Date().toISOString());
+    return exitIST === todayIST;
   });
 
   entryTimeDisplay = computed(() => {
@@ -145,7 +155,23 @@ export class EntryLoggerComponent implements OnInit {
     if (apiEntry?.duration) {
       return apiEntry.duration;
     }
-    return this.totalDuration();
+    // If exitTime is present, show total duration, else show duration since entry
+    const log = this.entryLog();
+    if (log && log.entryTime && log.exitTime) {
+      return this.totalDuration();
+    } else if (log && log.entryTime) {
+      // Duration so far
+      const entryDate = new Date(log.entryTime);
+      const now = new Date();
+      const diffMs = now.getTime() - entryDate.getTime();
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      if (hours > 0) {
+        return `${hours} hr ${minutes} min`;
+      }
+      return `${minutes} min`;
+    }
+    return '';
   });
 
   calculatedExitTime = computed(() => {
@@ -212,15 +238,13 @@ export class EntryLoggerComponent implements OnInit {
 
   totalDuration = computed(() => {
     const log = this.entryLog();
-    if (!log || !log.entryTime || !log.exitTime) return '';
-
+    if (!log || !log.entryTime) return '';
+    // If exitTime is present, use it, else use now
     const entryDate = new Date(log.entryTime);
-    const exitDate = new Date(log.exitTime);
-    const diffMs = exitDate.getTime() - entryDate.getTime();
-
+    const endDate = log.exitTime ? new Date(log.exitTime) : new Date();
+    const diffMs = endDate.getTime() - entryDate.getTime();
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
     if (hours > 0) {
       return `${hours} hr ${minutes} min`;
     }
@@ -269,18 +293,9 @@ export class EntryLoggerComponent implements OnInit {
     const log = this.storageService.getEntryLog();
     const settings = this.storageService.getSettings();
 
-    // Load local storage entry only if entry time is from today
-    // NOTE: Entry date is determined by entry time, not exit time (supports night shift)
-    // Local storage holds pending entries that haven't been submitted to API yet
-    // Once submitted to API (via Google Form), the entry includes both entry & exit times
+    // Always load the entry from localStorage, regardless of date
     if (log && log.entryTime) {
-      const entryDate = this.getDateFromTimeString(log.entryTime);
-      const today = this.getTodayDateString();
-      if (entryDate === today) {
-        this.entryLog.set(log);
-      } else {
-        this.entryLog.set(null);
-      }
+      this.entryLog.set(log);
     } else {
       this.entryLog.set(null);
     }
@@ -295,9 +310,18 @@ export class EntryLoggerComponent implements OnInit {
       this.snackbarService.error('No complete offline entry found for today');
       return;
     }
-    const entryDate = this.getDateFromTimeString(storedLog.entryTime);
-    const today = this.getTodayDateString();
-    if (entryDate !== today) {
+    // Check if exitTime (IST) is today
+    const getISTDate = (iso: string) => {
+      const d = new Date(iso);
+      const ist = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const y = ist.getFullYear();
+      const m = String(ist.getMonth() + 1).padStart(2, '0');
+      const day = String(ist.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    const exitIST = getISTDate(storedLog.exitTime);
+    const todayIST = getISTDate(new Date().toISOString());
+    if (exitIST !== todayIST) {
       this.snackbarService.error('Offline entry is not for today');
       return;
     }
@@ -379,9 +403,16 @@ export class EntryLoggerComponent implements OnInit {
       entryTime = new Date();
     }
 
+    // Get date in Asia/Kolkata (IST) timezone
+    const istDate = new Date(entryTime.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const year = istDate.getFullYear();
+    const month = String(istDate.getMonth() + 1).padStart(2, '0');
+    const day = String(istDate.getDate()).padStart(2, '0');
+    const istDateString = `${year}-${month}-${day}`;
+
     const log: EntryLog = {
       entryTime: entryTime.toISOString(),
-      date: this.getTodayDateString(),
+      date: istDateString,
     };
 
     this.storageService.saveEntryLog(log);

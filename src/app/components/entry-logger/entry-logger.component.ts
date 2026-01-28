@@ -293,6 +293,9 @@ export class EntryLoggerComponent implements OnInit {
     const log = this.storageService.getEntryLog();
     const settings = this.storageService.getSettings();
 
+    // NOTE: Entry date is determined by entry time, not exit time (supports night shift)
+    // Local storage holds pending entries that haven't been submitted to API yet
+    // Once submitted to API (via Google Form), the entry includes both entry & exit times
     // Always load the entry from localStorage, regardless of date
     if (log && log.entryTime) {
       this.entryLog.set(log);

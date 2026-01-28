@@ -192,9 +192,13 @@ export class MonthlyCalendarComponent implements OnInit {
 
     const days: CalendarDay[] = [];
 
-    // Get today's date for comparison
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    // Get today's date in IST for comparison
+    const now = new Date();
+    const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const yearIST = ist.getFullYear();
+    const monthIST = String(ist.getMonth() + 1).padStart(2, '0');
+    const dayIST = String(ist.getDate()).padStart(2, '0');
+    const todayStr = `${yearIST}-${monthIST}-${dayIST}`;
 
     // Add previous month's days
     const prevMonthLastDay = new Date(year, month - 1, 0).getDate();
@@ -216,11 +220,11 @@ export class MonthlyCalendarComponent implements OnInit {
     for (let date = 1; date <= daysInMonth; date++) {
       const fullDate = `${year}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
       const entry = entriesMap.get(fullDate);
-      
+
       // Check if this date is in the future (only for current month)
       const dateObj = new Date(year, month - 1, date);
-      const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const isFutureDate = dateObj > todayDate;
+      const istDate = new Date(ist.getFullYear(), ist.getMonth(), ist.getDate());
+      const isFutureDate = dateObj > istDate;
 
       days.push({
         date,
@@ -267,25 +271,25 @@ export class MonthlyCalendarComponent implements OnInit {
 
   getExitDateDisplay(entry: SheetEntry): string {
     if (!entry.entryTime || !entry.exitTime) return '';
-    
+
     try {
       const entryDate = new Date(entry.entryTime);
       const exitDate = new Date(entry.exitTime);
-      
+
       // Check if dates are different
       const entryDateStr = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
       const exitDateStr = `${exitDate.getFullYear()}-${String(exitDate.getMonth() + 1).padStart(2, '0')}-${String(exitDate.getDate()).padStart(2, '0')}`;
-      
+
       if (entryDateStr !== exitDateStr) {
         // Return formatted exit date for display
         return exitDate.toLocaleDateString('en-IN', {
           timeZone: 'Asia/Kolkata',
           day: '2-digit',
           month: '2-digit',
-          year: 'numeric'
+          year: 'numeric',
         });
       }
-      
+
       return '';
     } catch {
       return '';
@@ -295,21 +299,21 @@ export class MonthlyCalendarComponent implements OnInit {
   getStatusClass(status: string): string {
     const statusMap: Record<string, string> = {
       'Day Off': 'status-day-off',
-      'WFH': 'status-wfh',
-      'Office': 'status-office',
+      WFH: 'status-wfh',
+      Office: 'status-office',
       'First Half Off': 'status-half-off',
-      'Second Half Off': 'status-half-off'
+      'Second Half Off': 'status-half-off',
     };
     return statusMap[status] || '';
   }
 
   getStatusLabel(status: string): string {
     const labelMap: Record<string, string> = {
-      'WFH': 'WFH',
-      'Office': 'OFF',
+      WFH: 'WFH',
+      Office: 'OFF',
       'First Half Off': '1/2',
       'Second Half Off': '1/2',
-      'Day Off': 'OFF'
+      'Day Off': 'OFF',
     };
     return labelMap[status] || '';
   }

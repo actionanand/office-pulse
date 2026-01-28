@@ -125,6 +125,15 @@
       [disabled]="!hasEnteredToday() || hasExitedToday() || isSubmittedToday()">
       📤 Exit
     </button>
+
+    @if (canLoadOfflineEntry()) {
+      <button
+        class="btn btn-load-offline"
+        (click)="loadOfflineEntry()"
+        title="Load previously submitted entry from offline storage">
+        💾 Load Offline Entry
+      </button>
+    }
   </div>
 
   <div class="past-entry-section">

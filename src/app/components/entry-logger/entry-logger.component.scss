@@ -4,216 +4,223 @@
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-// MOBILE-FIRST STYLES
-@media (max-width: 600px) {
-  .entry-logger-container {
-    max-width: 100%;
-    padding: 1rem;
-    min-height: 100vh;
-    box-sizing: border-box;
-  }
+  // MOBILE-FIRST STYLES
+  @media (max-width: 600px) {
+    .entry-logger-container {
+      max-width: 100%;
+      padding: 1rem;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
 
-  .header {
-    margin-bottom: 1rem;
-    h1 {
-      font-size: 1.3rem;
-      margin-bottom: 0.25rem;
-    }
-    .current-time {
-      font-size: 1.1rem;
-    }
-  }
-
-  .status-card {
-    padding: 1.2rem 1rem;
-    margin-bottom: 1rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    width: 100%;
-    box-sizing: border-box;
-    background: #fff;
-  }
-
-  .status-entered, .status-not-entered, .status-submitted {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-    .status-icon {
-      font-size: 2.5rem;
-    }
-    .status-text {
-      h2 {
-        font-size: 1.1rem;
-      }
-      p, .small-text {
-        font-size: 0.95rem;
-      }
-      .time-pills {
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-      }
-      .duration-text, .remaining-text {
-        width: 100%;
-        text-align: center;
-        font-size: 1rem;
-        padding: 0.5rem 0.25rem;
-        border-radius: 16px;
-      }
-    }
-  }
-
-  .exit-calculator {
-    padding: 1rem 0.5rem;
-    border-radius: 8px;
-    .calculator-header {
-      h3 {
-        font-size: 1rem;
-      }
-      p {
-        font-size: 0.95rem;
-      }
-    }
-    .work-hours-control {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.25rem;
-      label, span {
-        font-size: 0.95rem;
-      }
-      input {
-        width: 100%;
-        font-size: 1rem;
+    .header {
+      margin-bottom: 1rem;
+      h1 {
+        font-size: 1.3rem;
         margin-bottom: 0.25rem;
       }
+      .current-time {
+        font-size: 1.1rem;
+      }
     }
-  }
 
-  .leave-toggle-section {
-    padding: 1rem;
-    margin-top: 1rem;
-    
-    .toggle-container {
+    .status-card {
+      padding: 1.2rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      box-sizing: border-box;
+      background: #fff;
+    }
+
+    .status-entered,
+    .status-not-entered,
+    .status-submitted {
       flex-direction: column;
       align-items: flex-start;
       gap: 0.75rem;
-      
-      .toggle-label {
+      .status-icon {
+        font-size: 2.5rem;
+      }
+      .status-text {
+        h2 {
+          font-size: 1.1rem;
+        }
+        p,
+        .small-text {
+          font-size: 0.95rem;
+        }
+        .time-pills {
+          flex-direction: column;
+          gap: 0.5rem;
+          width: 100%;
+        }
+        .duration-text,
+        .remaining-text {
+          width: 100%;
+          text-align: center;
+          font-size: 1rem;
+          padding: 0.5rem 0.25rem;
+          border-radius: 16px;
+        }
+      }
+    }
+
+    .exit-calculator {
+      padding: 1rem 0.5rem;
+      border-radius: 8px;
+      .calculator-header {
+        h3 {
+          font-size: 1rem;
+        }
+        p {
+          font-size: 0.95rem;
+        }
+      }
+      .work-hours-control {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+        label,
+        span {
+          font-size: 0.95rem;
+        }
+        input {
+          width: 100%;
+          font-size: 1rem;
+          margin-bottom: 0.25rem;
+        }
+      }
+    }
+
+    .leave-toggle-section {
+      padding: 1rem;
+      margin-top: 1rem;
+
+      .toggle-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+
+        .toggle-label {
+          font-size: 1rem;
+        }
+      }
+
+      .toggle-hint {
+        font-size: 0.8rem;
+      }
+    }
+
+    .action-buttons {
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 1.2rem;
+      width: 100%;
+      box-sizing: border-box;
+
+      button {
+        width: 100%;
+        font-size: 1.15rem;
+        padding: 1.1rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        min-height: 52px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+
+        &:active:not(:disabled) {
+          transform: scale(0.98);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+      }
+    }
+
+    /* Widen todo-list container for mobile */
+    app-todo-list,
+    .todo-container {
+      width: 100%;
+      box-sizing: border-box;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    }
+
+    .dialog-overlay {
+      padding: 0.5rem;
+      align-items: flex-end;
+    }
+    .dialog-content {
+      padding: 1rem 0.5rem;
+      max-width: 98vw;
+      width: 100%;
+      border-radius: 12px 12px 0 0;
+      h2 {
+        font-size: 1.1rem;
+      }
+    }
+    .dialog-body {
+      margin-bottom: 1rem;
+      .separator {
+        margin: 0.5rem 0;
+      }
+      .custom-time-section label {
+        font-size: 0.95rem;
+      }
+      .custom-time-section input[type='datetime-local'] {
         font-size: 1rem;
       }
     }
-    
-    .toggle-hint {
-      font-size: 0.8rem;
-    }
-  }
-
-  .action-buttons {
-    flex-direction: column;
-    gap: 0.85rem;
-    margin-bottom: 1.2rem;
-    width: 100%;
-    box-sizing: border-box;
-    
-    button {
-      width: 100%;
-      font-size: 1.15rem;
-      padding: 1.1rem 1rem;
-      border-radius: 12px;
-      font-weight: 600;
-      min-height: 52px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: all 0.2s ease;
-      
-      &:active:not(:disabled) {
-        transform: scale(0.98);
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      }
-    }
-  }
-
-  /* Widen todo-list container for mobile */
-  app-todo-list, .todo-container {
-    width: 100%;
-    box-sizing: border-box;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  }
-
-  .dialog-overlay {
-    padding: 0.5rem;
-    align-items: flex-end;
-  }
-  .dialog-content {
-    padding: 1rem 0.5rem;
-    max-width: 98vw;
-    width: 100%;
-    border-radius: 12px 12px 0 0;
-    h2 {
-      font-size: 1.1rem;
-    }
-  }
-  .dialog-body {
-    margin-bottom: 1rem;
-    .separator {
-      margin: 0.5rem 0;
-    }
-    .custom-time-section label {
+    .form-group label {
       font-size: 0.95rem;
     }
-    .custom-time-section input[type="datetime-local"] {
+    .form-group input,
+    .form-group textarea {
       font-size: 1rem;
-    }
-  }
-  .form-group label {
-    font-size: 0.95rem;
-  }
-  .form-group input, .form-group textarea {
-    font-size: 1rem;
-    padding: 0.5rem;
-  }
-  .form-group .radio-group {
-    gap: 0.75rem;
-    
-    .radio-option {
-      span {
-        font-size: 0.9rem;
-      }
-    }
-  }
-  .dialog-actions {
-    flex-direction: column;
-    gap: 0.65rem;
-    margin-top: 1rem;
-    
-    button {
-      width: 100%;
-      font-size: 1.1rem;
-      padding: 1rem;
-      min-height: 50px;
-      border-radius: 10px;
-      font-weight: 600;
-      
-      &:active:not(:disabled) {
-        transform: scale(0.98);
-      }
-    }
-  }
-  .confirmation-dialog {
-    max-width: 98vw;
-    .confirmation-info .time-summary {
       padding: 0.5rem;
-      .time-item {
+    }
+    .form-group .radio-group {
+      gap: 0.75rem;
+
+      .radio-option {
+        span {
+          font-size: 0.9rem;
+        }
+      }
+    }
+    .dialog-actions {
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-top: 1rem;
+
+      button {
+        width: 100%;
+        font-size: 1.1rem;
+        padding: 1rem;
+        min-height: 50px;
+        border-radius: 10px;
+        font-weight: 600;
+
+        &:active:not(:disabled) {
+          transform: scale(0.98);
+        }
+      }
+    }
+    .confirmation-dialog {
+      max-width: 98vw;
+      .confirmation-info .time-summary {
+        padding: 0.5rem;
+        .time-item {
+          font-size: 0.95rem;
+        }
+      }
+      .warning-box {
+        padding: 0.5rem;
         font-size: 0.95rem;
       }
     }
-    .warning-box {
-      padding: 0.5rem;
-      font-size: 0.95rem;
-    }
   }
-}
 }
 
 .header {
@@ -240,7 +247,8 @@
   margin-bottom: 2rem;
 }
 
-.status-entered, .status-not-entered {
+.status-entered,
+.status-not-entered {
   display: flex;
   align-items: center;
   gap: 1.5rem;
@@ -274,7 +282,7 @@
 
     .exit-time {
       margin-top: 0.5rem;
-      
+
       .exit-highlight {
         color: #e74c3c;
         font-weight: 700;
@@ -372,7 +380,7 @@
       font-style: italic;
       margin-top: 0.5rem;
     }
-    
+
     .status-badge {
       display: inline-block;
       padding: 0.25rem 0.75rem;
@@ -381,7 +389,7 @@
       font-weight: 600;
       background: #e3f2fd;
       color: #1976d2;
-      
+
       &.day-off {
         background: #fff3cd;
         color: #856404;
@@ -391,7 +399,7 @@
 
     .exit-time {
       margin-top: 0.5rem;
-      
+
       .exit-highlight {
         color: #e74c3c;
         font-weight: 700;
@@ -456,20 +464,20 @@
   background: #f8f9fa;
   border-radius: 8px;
   border-left: 4px solid #ffc107;
-  
+
   .toggle-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.5rem;
-    
+
     .toggle-label {
       font-weight: 600;
       color: #2c3e50;
       font-size: 1.05rem;
     }
   }
-  
+
   .toggle-hint {
     font-size: 0.85rem;
     color: #7f8c8d;
@@ -484,12 +492,12 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  
+
   .toggle-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .toggle-label {
       font-weight: 600;
       color: white;
@@ -503,25 +511,25 @@
   display: inline-block;
   width: 54px;
   height: 28px;
-  
+
   input {
     opacity: 0;
     width: 0;
     height: 0;
-    
+
     &:checked + .toggle-slider {
       background-color: #ffc107;
-      
+
       &:before {
         transform: translateX(26px);
       }
     }
-    
+
     &:focus + .toggle-slider {
       box-shadow: 0 0 1px #ffc107;
     }
   }
-  
+
   .toggle-slider {
     position: absolute;
     cursor: pointer;
@@ -532,10 +540,10 @@
     background-color: #ccc;
     transition: 0.4s;
     border-radius: 28px;
-    
+
     &:before {
       position: absolute;
-      content: "";
+      content: '';
       height: 20px;
       width: 20px;
       left: 4px;
@@ -593,7 +601,7 @@
     color: #2c3e50;
   }
 
-  input[type="date"] {
+  input[type='date'] {
     width: 100%;
     padding: 0.75rem;
     font-size: 1rem;
@@ -723,6 +731,15 @@
   }
 }
 
+.btn-load-offline {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+
+  &:hover {
+    background: linear-gradient(135deg, #e580f0 0%, #e04255 100%);
+  }
+}
+
 .btn-primary {
   background: #3498db;
   color: white;
@@ -809,7 +826,7 @@
       color: #555;
     }
 
-    input[type="datetime-local"] {
+    input[type='datetime-local'] {
       padding: 0.5rem;
       border: 1px solid #ddd;
       border-radius: 4px;
@@ -828,7 +845,8 @@
     color: #555;
   }
 
-  input, textarea {
+  input,
+  textarea {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #ddd;
@@ -849,12 +867,12 @@
   textarea {
     resize: vertical;
   }
-  
+
   .radio-group {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    
+
     .radio-option {
       display: flex;
       align-items: center;
@@ -863,21 +881,21 @@
       margin-bottom: 0;
       font-weight: 400;
       flex: 0 0 auto;
-      
-      input[type="radio"] {
+
+      input[type='radio'] {
         width: auto;
         cursor: pointer;
         margin: 0;
         accent-color: #3498db;
       }
-      
+
       span {
         color: #2c3e50;
         font-size: 1rem;
         user-select: none;
       }
-      
-      &:has(input[type="radio"]:checked) span {
+
+      &:has(input[type='radio']:checked) span {
         font-weight: 600;
         color: #3498db;
       }
@@ -935,7 +953,7 @@
       border: 1px solid #ffc107;
       border-radius: 8px;
       padding: 1rem;
-      
+
       p {
         margin: 0 0 0.5rem 0;
         color: #856404;

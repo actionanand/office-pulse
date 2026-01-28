@@ -88,6 +88,20 @@ export class EntryLoggerComponent implements OnInit {
     return !this.hasEnteredToday() && !this.isSubmittedToday();
   });
 
+  // Show button when: no API data for today AND localStorage has isSubmitted=true AND entryTime+exitTime for today
+  canLoadOfflineEntry = computed(() => {
+    // Only show if there is no API data for today
+    const apiEntry = this.todayApiEntry();
+    if (apiEntry) return false;
+
+    // Check localStorage for a submitted entry for today with both entry and exit time
+    const storedLog = this.storageService.getEntryLog();
+    if (!storedLog?.isSubmitted || !storedLog.entryTime || !storedLog.exitTime) return false;
+    const entryDate = this.getDateFromTimeString(storedLog.entryTime);
+    const today = this.getTodayDateString();
+    return entryDate === today;
+  });
+
   entryTimeDisplay = computed(() => {
     // First check API entry
     const apiEntry = this.todayApiEntry();
@@ -275,6 +289,30 @@ export class EntryLoggerComponent implements OnInit {
     this.showTodoList.set(settings.showTodoList);
   }
 
+  loadOfflineEntry(): void {
+    const storedLog = this.storageService.getEntryLog();
+    if (!storedLog || !storedLog.isSubmitted || !storedLog.entryTime || !storedLog.exitTime) {
+      this.snackbarService.error('No complete offline entry found for today');
+      return;
+    }
+    const entryDate = this.getDateFromTimeString(storedLog.entryTime);
+    const today = this.getTodayDateString();
+    if (entryDate !== today) {
+      this.snackbarService.error('Offline entry is not for today');
+      return;
+    }
+    // Do NOT modify localStorage!
+    this.entryLog.set(storedLog);
+    this.attendanceState.notifyLocalStorageChanged();
+    const formData = {
+      companyName: '',
+      comment: '',
+      status: 'Office',
+    };
+    this.pendingFormData.set({ log: storedLog, formData });
+    this.showSubmissionDialog.set(true);
+  }
+
   openEntryDialog(): void {
     // Prevent entry if already submitted today
     if (this.isSubmittedToday()) {
@@ -422,11 +460,12 @@ export class EntryLoggerComponent implements OnInit {
   }
 
   onGoogleFormClose(): void {
-    // User closed without submitting - revert exit time only for today's entry
+    // User closed without submitting - revert exit time & isSubmitted only for today's entry
     const pending = this.pendingFormData();
     if (pending) {
       const log = pending.log;
       log.exitTime = undefined;
+      log.isSubmitted = undefined;
       this.storageService.saveEntryLog(log);
       this.entryLog.set({ ...log });
 
@@ -486,10 +525,11 @@ export class EntryLoggerComponent implements OnInit {
   }
 
   cancelSubmission(): void {
-    // Optionally clear exit time if user cancels
+    // Optionally clear exit time & IsSubmitted if user cancels
     const log = this.entryLog();
     if (log) {
       log.exitTime = undefined;
+      log.isSubmitted = undefined;
       this.storageService.saveEntryLog(log);
       this.entryLog.set(log);
     }

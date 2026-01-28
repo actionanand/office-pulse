@@ -90,6 +90,45 @@
           </div>
         </div>
       }
+    } @else if (entryLog()?.entryTime && !entryLog()?.exitTime) {
+      <div class="status-entered">
+        <div class="status-icon">✓</div>
+        <div class="status-text">
+          <h2>Welcome!</h2>
+          <p>
+            You came to office at <strong>{{ entryTimeDisplay() }}</strong>
+          </p>
+          <div class="time-pills">
+            <p class="duration-text">
+              ⏱️ Duration: <strong>{{ durationSinceEntry() }}</strong>
+            </p>
+            <p class="remaining-text">
+              ⏰ Remaining: <strong>{{ remainingTime() }}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="exit-calculator">
+        <div class="calculator-header">
+          <h3>Exit Time Calculator</h3>
+          <p>
+            You can log off after: <strong class="exit-date">{{ calculatedExitDate() }}</strong
+            >, <strong class="exit-time">{{ calculatedExitTimeOnly() }}</strong>
+          </p>
+        </div>
+        <div class="work-hours-control">
+          <label for="workHours">Work Hours:</label>
+          <input
+            type="number"
+            id="workHours"
+            [value]="workHours()"
+            (input)="updateWorkHours(+$any($event.target).value)"
+            min="1"
+            max="24"
+            step="0.5" />
+          <span>hours</span>
+        </div>
+      </div>
     } @else {
       <div class="status-not-entered">
         <div class="status-icon">⏰</div>
@@ -115,14 +154,21 @@
   </div>
 
   <div class="action-buttons">
-    <button class="btn btn-entry" (click)="openEntryDialog()" [disabled]="hasEnteredToday() || isSubmittedToday()">
+    <button
+      class="btn btn-entry"
+      (click)="openEntryDialog()"
+      [disabled]="hasEnteredToday() || isSubmittedToday() || (entryLog()?.entryTime && !entryLog()?.exitTime)">
       📥 Entry
     </button>
 
     <button
       class="btn btn-exit"
       (click)="openExitDialog()"
-      [disabled]="!hasEnteredToday() || hasExitedToday() || isSubmittedToday()">
+      [disabled]="
+        isSubmittedToday() ||
+        hasExitedToday() ||
+        !(hasEnteredToday() || (entryLog()?.entryTime && !entryLog()?.exitTime))
+      ">
       📤 Exit
     </button>
 

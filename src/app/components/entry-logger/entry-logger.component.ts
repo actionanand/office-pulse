@@ -436,7 +436,9 @@ export class EntryLoggerComponent implements OnInit {
   }
 
   openExitDialog(): void {
-    if (!this.hasEnteredToday()) {
+    const log = this.entryLog();
+    const canExit = this.hasEnteredToday() || (log && log.entryTime && !log.exitTime);
+    if (!canExit) {
       this.snackbarService.error('Please mark entry first before exit!');
       return;
     }

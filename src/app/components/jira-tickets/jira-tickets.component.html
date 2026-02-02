@@ -40,7 +40,21 @@
         <table class="tickets-table">
           <thead>
             <tr>
-              <th class="col-checkbox"></th>
+              <th class="col-checkbox">
+                @if (selectedCount() > 0) {
+                  <div class="checkbox-wrapper">
+                    <input
+                      type="checkbox"
+                      [checked]="allSelected()"
+                      [indeterminate]="selectedCount() > 0 && !allSelected()"
+                      (change)="toggleSelectAll()"
+                      id="select-all"
+                      class="ticket-checkbox"
+                      aria-label="Select all tickets" />
+                    <label for="select-all" class="checkbox-label"></label>
+                  </div>
+                }
+              </th>
               <th class="col-sno">S.No</th>
               <th class="col-title">Title</th>
               <th class="col-team">Team</th>
@@ -51,17 +65,17 @@
           </thead>
           <tbody>
             @for (ticket of paginatedTickets(); track ticket.sno) {
-              <tr [class.selected]="isTicketSelected(ticket.url)">
+              <tr [class.selected]="isTicketSelected(ticket.sno)">
                 <td class="col-checkbox">
                   <div class="checkbox-wrapper">
                     <input
                       type="checkbox"
-                      [checked]="isTicketSelected(ticket.url)"
-                      (change)="toggleTicketSelection(ticket.url)"
-                      [id]="'ticket-' + ticket.url"
+                      [checked]="isTicketSelected(ticket.sno)"
+                      (change)="toggleTicketSelection(ticket.sno)"
+                      [id]="'ticket-' + ticket.sno"
                       class="ticket-checkbox"
                       aria-label="Select ticket {{ ticket.sno }}" />
-                    <label [for]="'ticket-' + ticket.url" class="checkbox-label"></label>
+                    <label [for]="'ticket-' + ticket.sno" class="checkbox-label"></label>
                   </div>
                 </td>
                 <td class="col-sno">{{ ticket.sno }}</td>

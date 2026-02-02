@@ -33,10 +33,10 @@ export class TicketTrackingComponent implements OnInit {
   spilloverTickets = signal<SpilloverTicket[]>([]);
   trackedTickets = signal<TrackedTicket[]>([]);
 
-  selectedDemoTickets = signal<Set<string>>(new Set());
-  selectedReleaseTickets = signal<Set<string>>(new Set());
-  selectedSpilloverTickets = signal<Set<string>>(new Set());
-  selectedTrackedTickets = signal<Set<string>>(new Set());
+  selectedDemoTickets = signal<Set<number>>(new Set());
+  selectedReleaseTickets = signal<Set<number>>(new Set());
+  selectedSpilloverTickets = signal<Set<number>>(new Set());
+  selectedTrackedTickets = signal<Set<number>>(new Set());
 
   hoveredCell = signal<string | null>(null);
 
@@ -112,57 +112,57 @@ export class TicketTrackingComponent implements OnInit {
   }
 
   // Selection methods
-  isTicketSelected(url: string, tab: TabType): boolean {
+  isTicketSelected(sno: number, tab: TabType): boolean {
     switch (tab) {
       case 'demo':
-        return this.selectedDemoTickets().has(url);
+        return this.selectedDemoTickets().has(sno);
       case 'release':
-        return this.selectedReleaseTickets().has(url);
+        return this.selectedReleaseTickets().has(sno);
       case 'spillover':
-        return this.selectedSpilloverTickets().has(url);
+        return this.selectedSpilloverTickets().has(sno);
       case 'tracked':
-        return this.selectedTrackedTickets().has(url);
+        return this.selectedTrackedTickets().has(sno);
     }
   }
 
-  toggleTicketSelection(url: string, tab: TabType): void {
+  toggleTicketSelection(sno: number, tab: TabType): void {
     switch (tab) {
       case 'demo': {
         const selected = new Set(this.selectedDemoTickets());
-        if (selected.has(url)) {
-          selected.delete(url);
+        if (selected.has(sno)) {
+          selected.delete(sno);
         } else {
-          selected.add(url);
+          selected.add(sno);
         }
         this.selectedDemoTickets.set(selected);
         break;
       }
       case 'release': {
         const selected = new Set(this.selectedReleaseTickets());
-        if (selected.has(url)) {
-          selected.delete(url);
+        if (selected.has(sno)) {
+          selected.delete(sno);
         } else {
-          selected.add(url);
+          selected.add(sno);
         }
         this.selectedReleaseTickets.set(selected);
         break;
       }
       case 'spillover': {
         const selected = new Set(this.selectedSpilloverTickets());
-        if (selected.has(url)) {
-          selected.delete(url);
+        if (selected.has(sno)) {
+          selected.delete(sno);
         } else {
-          selected.add(url);
+          selected.add(sno);
         }
         this.selectedSpilloverTickets.set(selected);
         break;
       }
       case 'tracked': {
         const selected = new Set(this.selectedTrackedTickets());
-        if (selected.has(url)) {
-          selected.delete(url);
+        if (selected.has(sno)) {
+          selected.delete(sno);
         } else {
-          selected.add(url);
+          selected.add(sno);
         }
         this.selectedTrackedTickets.set(selected);
         break;
@@ -208,7 +208,7 @@ export class TicketTrackingComponent implements OnInit {
 
   private copyDemoTickets(): void {
     const selected = this.selectedDemoTickets();
-    const tickets = this.demoTickets().filter((t: DemoTicket) => selected.has(t.url));
+    const tickets = this.demoTickets().filter((t: DemoTicket) => selected.has(t.sno));
 
     if (tickets.length === 0) return;
 
@@ -228,7 +228,7 @@ export class TicketTrackingComponent implements OnInit {
 
   private copyReleaseTickets(): void {
     const selected = this.selectedReleaseTickets();
-    const tickets = this.releaseTickets().filter((t: ReleaseTicket) => selected.has(t.url));
+    const tickets = this.releaseTickets().filter((t: ReleaseTicket) => selected.has(t.sno));
 
     if (tickets.length === 0) return;
 
@@ -250,7 +250,7 @@ export class TicketTrackingComponent implements OnInit {
 
   private copySpilloverTickets(): void {
     const selected = this.selectedSpilloverTickets();
-    const tickets = this.spilloverTickets().filter((t: SpilloverTicket) => selected.has(t.url));
+    const tickets = this.spilloverTickets().filter((t: SpilloverTicket) => selected.has(t.sno));
 
     if (tickets.length === 0) return;
 
@@ -273,7 +273,7 @@ export class TicketTrackingComponent implements OnInit {
 
   private copyTrackedTickets(): void {
     const selected = this.selectedTrackedTickets();
-    const tickets = this.trackedTickets().filter((t: TrackedTicket) => selected.has(t.url));
+    const tickets = this.trackedTickets().filter((t: TrackedTicket) => selected.has(t.sno));
 
     if (tickets.length === 0) return;
 

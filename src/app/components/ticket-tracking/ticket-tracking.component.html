@@ -97,18 +97,18 @@
                 </tr>
               </thead>
               <tbody>
-                @for (ticket of demoTickets(); track ticket.url) {
-                  <tr [class.selected]="isTicketSelected(ticket.url, 'demo')">
+                @for (ticket of demoTickets(); track ticket.sno) {
+                  <tr [class.selected]="isTicketSelected(ticket.sno, 'demo')">
                     <td class="col-checkbox">
                       <div class="checkbox-wrapper">
                         <input
                           type="checkbox"
-                          [checked]="isTicketSelected(ticket.url, 'demo')"
-                          (change)="toggleTicketSelection(ticket.url, 'demo')"
-                          [id]="'demo-ticket-' + ticket.url"
+                          [checked]="isTicketSelected(ticket.sno, 'demo')"
+                          (change)="toggleTicketSelection(ticket.sno, 'demo')"
+                          [id]="'demo-ticket-' + ticket.sno"
                           class="ticket-checkbox"
                           aria-label="Select ticket {{ ticket.sno }}" />
-                        <label [for]="'demo-ticket-' + ticket.url" class="checkbox-label"></label>
+                        <label [for]="'demo-ticket-' + ticket.sno" class="checkbox-label"></label>
                       </div>
                     </td>
                     <td
@@ -191,18 +191,18 @@
                 </tr>
               </thead>
               <tbody>
-                @for (ticket of releaseTickets(); track ticket.url) {
-                  <tr [class.selected]="isTicketSelected(ticket.url, 'release')">
+                @for (ticket of releaseTickets(); track ticket.sno) {
+                  <tr [class.selected]="isTicketSelected(ticket.sno, 'release')">
                     <td class="col-checkbox">
                       <div class="checkbox-wrapper">
                         <input
                           type="checkbox"
-                          [checked]="isTicketSelected(ticket.url, 'release')"
-                          (change)="toggleTicketSelection(ticket.url, 'release')"
-                          [id]="'release-ticket-' + ticket.url"
+                          [checked]="isTicketSelected(ticket.sno, 'release')"
+                          (change)="toggleTicketSelection(ticket.sno, 'release')"
+                          [id]="'release-ticket-' + ticket.sno"
                           class="ticket-checkbox"
                           aria-label="Select ticket {{ ticket.sno }}" />
-                        <label [for]="'release-ticket-' + ticket.url" class="checkbox-label"></label>
+                        <label [for]="'release-ticket-' + ticket.sno" class="checkbox-label"></label>
                       </div>
                     </td>
                     <td
@@ -308,18 +308,18 @@
                 </tr>
               </thead>
               <tbody>
-                @for (ticket of spilloverTickets(); track ticket.url) {
-                  <tr [class.selected]="isTicketSelected(ticket.url, 'spillover')">
+                @for (ticket of spilloverTickets(); track ticket.sno) {
+                  <tr [class.selected]="isTicketSelected(ticket.sno, 'spillover')">
                     <td class="col-checkbox">
                       <div class="checkbox-wrapper">
                         <input
                           type="checkbox"
-                          [checked]="isTicketSelected(ticket.url, 'spillover')"
-                          (change)="toggleTicketSelection(ticket.url, 'spillover')"
-                          [id]="'spillover-ticket-' + ticket.url"
+                          [checked]="isTicketSelected(ticket.sno, 'spillover')"
+                          (change)="toggleTicketSelection(ticket.sno, 'spillover')"
+                          [id]="'spillover-ticket-' + ticket.sno"
                           class="ticket-checkbox"
                           aria-label="Select ticket {{ ticket.sno }}" />
-                        <label [for]="'spillover-ticket-' + ticket.url" class="checkbox-label"></label>
+                        <label [for]="'spillover-ticket-' + ticket.sno" class="checkbox-label"></label>
                       </div>
                     </td>
                     <td
@@ -433,18 +433,18 @@
                 </tr>
               </thead>
               <tbody>
-                @for (ticket of trackedTickets(); track ticket.url) {
-                  <tr [class.selected]="isTicketSelected(ticket.url, 'tracked')">
+                @for (ticket of trackedTickets(); track ticket.sno) {
+                  <tr [class.selected]="isTicketSelected(ticket.sno, 'tracked')">
                     <td class="col-checkbox">
                       <div class="checkbox-wrapper">
                         <input
                           type="checkbox"
-                          [checked]="isTicketSelected(ticket.url, 'tracked')"
-                          (change)="toggleTicketSelection(ticket.url, 'tracked')"
-                          [id]="'tracked-ticket-' + ticket.url"
+                          [checked]="isTicketSelected(ticket.sno, 'tracked')"
+                          (change)="toggleTicketSelection(ticket.sno, 'tracked')"
+                          [id]="'tracked-ticket-' + ticket.sno"
                           class="ticket-checkbox"
                           aria-label="Select ticket {{ ticket.sno }}" />
-                        <label [for]="'tracked-ticket-' + ticket.url" class="checkbox-label"></label>
+                        <label [for]="'tracked-ticket-' + ticket.sno" class="checkbox-label"></label>
                       </div>
                     </td>
                     <td

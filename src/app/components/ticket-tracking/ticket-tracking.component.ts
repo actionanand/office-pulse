@@ -215,7 +215,6 @@ export class TicketTrackingComponent implements OnInit {
     let copyText = '';
     tickets.forEach((ticket: DemoTicket, index: number) => {
       copyText += `${index + 1}. \n`;
-      copyText += `S No: ${ticket.sno}\n`;
       copyText += `Title: ${ticket.title}\n`;
       copyText += `URL: ${ticket.url}\n`;
       copyText += `Status: ${ticket.status ? 'Completed' : 'Open'}\n`;
@@ -235,7 +234,6 @@ export class TicketTrackingComponent implements OnInit {
     let copyText = '';
     tickets.forEach((ticket: ReleaseTicket, index: number) => {
       copyText += `${index + 1}. \n`;
-      copyText += `S No: ${ticket.sno}\n`;
       copyText += `Title: ${ticket.title}\n`;
       copyText += `URL: ${ticket.url}\n`;
       copyText += `Component Name: ${ticket.componentName}\n`;
@@ -257,7 +255,6 @@ export class TicketTrackingComponent implements OnInit {
     let copyText = '';
     tickets.forEach((ticket: SpilloverTicket, index: number) => {
       copyText += `${index + 1}. \n`;
-      copyText += `S No: ${ticket.sno}\n`;
       copyText += `Title: ${ticket.title}\n`;
       copyText += `URL: ${ticket.url}\n`;
       copyText += `Reason for Spilling: ${ticket.reasonForSpilling}\n`;
@@ -280,7 +277,6 @@ export class TicketTrackingComponent implements OnInit {
     let copyText = '';
     tickets.forEach((ticket: TrackedTicket, index: number) => {
       copyText += `${index + 1}. \n`;
-      copyText += `S No: ${ticket.sno}\n`;
       copyText += `Title: ${ticket.title}\n`;
       copyText += `URL: ${ticket.url}\n`;
       copyText += `Status: ${ticket.status ? 'Completed' : 'Open'}\n`;

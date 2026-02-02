@@ -299,6 +299,8 @@
                 <tr>
                   <th class="col-checkbox"></th>
                   <th class="col-sno">S.No</th>
+                  <th class="col-date">Date</th>
+                  <th class="col-sprint">Sprint Name</th>
                   <th class="col-title">Title</th>
                   <th class="col-url">URL</th>
                   <th class="col-reason">Reason for Spilling</th>
@@ -334,6 +336,28 @@
                       }
                     </td>
                     <td
+                      class="col-date copyable"
+                      [class.hovered]="hoveredCell() === 'spillover-date-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-date-' + ticket.sno)"
+                      (mouseleave)="setHoveredCell(null)"
+                      (click)="copyCellContent(ticket.date, $event)">
+                      {{ ticket.date || '-' }}
+                      @if (hoveredCell() === 'spillover-date-' + ticket.sno) {
+                        <span class="copy-hint">📋</span>
+                      }
+                    </td>
+                    <td
+                      class="col-sprint copyable"
+                      [class.hovered]="hoveredCell() === 'spillover-sprint-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-sprint-' + ticket.sno)"
+                      (mouseleave)="setHoveredCell(null)"
+                      (click)="copyCellContent(ticket.sprintName, $event)">
+                      {{ ticket.sprintName || '-' }}
+                      @if (hoveredCell() === 'spillover-sprint-' + ticket.sno) {
+                        <span class="copy-hint">📋</span>
+                      }
+                    </td>
+                    <td
                       class="col-title copyable"
                       [class.hovered]="hoveredCell() === 'spillover-title-' + ticket.sno"
                       (mouseenter)="setHoveredCell('spillover-title-' + ticket.sno)"
@@ -364,45 +388,45 @@
                     </td>
                     <td
                       class="col-reason copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-reason-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-reason-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-reason-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-reason-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.reasonForSpilling, $event)">
                       {{ ticket.reasonForSpilling || '-' }}
-                      @if (hoveredCell() === 'spillover-reason-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-reason-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-solution copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-solution-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-solution-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-solution-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-solution-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.solution, $event)">
                       {{ ticket.solution || '-' }}
-                      @if (hoveredCell() === 'spillover-solution-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-solution-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-support copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-support-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-support-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-support-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-support-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.supportTicketsCreated, $event)">
                       {{ ticket.supportTicketsCreated || '-' }}
-                      @if (hoveredCell() === 'spillover-support-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-support-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-impediment copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-impediment-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-impediment-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-impediment-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-impediment-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.impediment, $event)">
                       {{ ticket.impediment || '-' }}
-                      @if (hoveredCell() === 'spillover-impediment-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-impediment-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>

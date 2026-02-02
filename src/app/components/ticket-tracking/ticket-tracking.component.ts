@@ -33,10 +33,10 @@ export class TicketTrackingComponent implements OnInit {
   spilloverTickets = signal<SpilloverTicket[]>([]);
   trackedTickets = signal<TrackedTicket[]>([]);
 
-  selectedDemoTickets = signal<Set<string>>(new Set());
-  selectedReleaseTickets = signal<Set<string>>(new Set());
-  selectedSpilloverTickets = signal<Set<string>>(new Set());
-  selectedTrackedTickets = signal<Set<string>>(new Set());
+  selectedDemoTickets = signal<Set<number>>(new Set());
+  selectedReleaseTickets = signal<Set<number>>(new Set());
+  selectedSpilloverTickets = signal<Set<number>>(new Set());
+  selectedTrackedTickets = signal<Set<number>>(new Set());
 
   hoveredCell = signal<string | null>(null);
 
@@ -50,6 +50,20 @@ export class TicketTrackingComponent implements OnInit {
   selectedReleaseCount = computed(() => this.selectedReleaseTickets().size);
   selectedSpilloverCount = computed(() => this.selectedSpilloverTickets().size);
   selectedTrackedCount = computed(() => this.selectedTrackedTickets().size);
+
+  // Select all computeds
+  allDemoSelected = computed(
+    () => this.demoTickets().length > 0 && this.selectedDemoTickets().size === this.demoTickets().length,
+  );
+  allReleaseSelected = computed(
+    () => this.releaseTickets().length > 0 && this.selectedReleaseTickets().size === this.releaseTickets().length,
+  );
+  allSpilloverSelected = computed(
+    () => this.spilloverTickets().length > 0 && this.selectedSpilloverTickets().size === this.spilloverTickets().length,
+  );
+  allTrackedSelected = computed(
+    () => this.trackedTickets().length > 0 && this.selectedTrackedTickets().size === this.trackedTickets().length,
+  );
 
   ngOnInit(): void {
     this.loadAllTickets();
@@ -112,57 +126,57 @@ export class TicketTrackingComponent implements OnInit {
   }
 
   // Selection methods
-  isTicketSelected(url: string, tab: TabType): boolean {
+  isTicketSelected(sno: number, tab: TabType): boolean {
     switch (tab) {
       case 'demo':
-        return this.selectedDemoTickets().has(url);
+        return this.selectedDemoTickets().has(sno);
       case 'release':
-        return this.selectedReleaseTickets().has(url);
+        return this.selectedReleaseTickets().has(sno);
       case 'spillover':
-        return this.selectedSpilloverTickets().has(url);
+        return this.selectedSpilloverTickets().has(sno);
       case 'tracked':
-        return this.selectedTrackedTickets().has(url);
+        return this.selectedTrackedTickets().has(sno);
     }
   }
 
-  toggleTicketSelection(url: string, tab: TabType): void {
+  toggleTicketSelection(sno: number, tab: TabType): void {
     switch (tab) {
       case 'demo': {
         const selected = new Set(this.selectedDemoTickets());
-        if (selected.has(url)) {
-          selected.delete(url);
+        if (selected.has(sno)) {
+          selected.delete(sno);
         } else {
-          selected.add(url);
+          selected.add(sno);
         }
         this.selectedDemoTickets.set(selected);
         break;
       }
       case 'release': {
         const selected = new Set(this.selectedReleaseTickets());
-        if (selected.has(url)) {
-          selected.delete(url);
+        if (selected.has(sno)) {
+          selected.delete(sno);
         } else {
-          selected.add(url);
+          selected.add(sno);
         }
         this.selectedReleaseTickets.set(selected);
         break;
       }
       case 'spillover': {
         const selected = new Set(this.selectedSpilloverTickets());
-        if (selected.has(url)) {
-          selected.delete(url);
+        if (selected.has(sno)) {
+          selected.delete(sno);
         } else {
-          selected.add(url);
+          selected.add(sno);
         }
         this.selectedSpilloverTickets.set(selected);
         break;
       }
       case 'tracked': {
         const selected = new Set(this.selectedTrackedTickets());
-        if (selected.has(url)) {
-          selected.delete(url);
+        if (selected.has(sno)) {
+          selected.delete(sno);
         } else {
-          selected.add(url);
+          selected.add(sno);
         }
         this.selectedTrackedTickets.set(selected);
         break;
@@ -187,6 +201,47 @@ export class TicketTrackingComponent implements OnInit {
     }
   }
 
+  toggleSelectAll(tab: TabType): void {
+    switch (tab) {
+      case 'demo': {
+        if (this.allDemoSelected()) {
+          this.selectedDemoTickets.set(new Set());
+        } else {
+          const allSno = new Set(this.demoTickets().map((t: DemoTicket) => t.sno));
+          this.selectedDemoTickets.set(allSno);
+        }
+        break;
+      }
+      case 'release': {
+        if (this.allReleaseSelected()) {
+          this.selectedReleaseTickets.set(new Set());
+        } else {
+          const allSno = new Set(this.releaseTickets().map((t: ReleaseTicket) => t.sno));
+          this.selectedReleaseTickets.set(allSno);
+        }
+        break;
+      }
+      case 'spillover': {
+        if (this.allSpilloverSelected()) {
+          this.selectedSpilloverTickets.set(new Set());
+        } else {
+          const allSno = new Set(this.spilloverTickets().map((t: SpilloverTicket) => t.sno));
+          this.selectedSpilloverTickets.set(allSno);
+        }
+        break;
+      }
+      case 'tracked': {
+        if (this.allTrackedSelected()) {
+          this.selectedTrackedTickets.set(new Set());
+        } else {
+          const allSno = new Set(this.trackedTickets().map((t: TrackedTicket) => t.sno));
+          this.selectedTrackedTickets.set(allSno);
+        }
+        break;
+      }
+    }
+  }
+
   // Copy methods
   copySelectedTickets(): void {
     const tab = this.activeTab();
@@ -208,14 +263,13 @@ export class TicketTrackingComponent implements OnInit {
 
   private copyDemoTickets(): void {
     const selected = this.selectedDemoTickets();
-    const tickets = this.demoTickets().filter((t: DemoTicket) => selected.has(t.url));
+    const tickets = this.demoTickets().filter((t: DemoTicket) => selected.has(t.sno));
 
     if (tickets.length === 0) return;
 
     let copyText = '';
     tickets.forEach((ticket: DemoTicket, index: number) => {
       copyText += `${index + 1}. \n`;
-      copyText += `S No: ${ticket.sno}\n`;
       copyText += `Title: ${ticket.title}\n`;
       copyText += `URL: ${ticket.url}\n`;
       copyText += `Status: ${ticket.status ? 'Completed' : 'Open'}\n`;
@@ -228,14 +282,13 @@ export class TicketTrackingComponent implements OnInit {
 
   private copyReleaseTickets(): void {
     const selected = this.selectedReleaseTickets();
-    const tickets = this.releaseTickets().filter((t: ReleaseTicket) => selected.has(t.url));
+    const tickets = this.releaseTickets().filter((t: ReleaseTicket) => selected.has(t.sno));
 
     if (tickets.length === 0) return;
 
     let copyText = '';
     tickets.forEach((ticket: ReleaseTicket, index: number) => {
       copyText += `${index + 1}. \n`;
-      copyText += `S No: ${ticket.sno}\n`;
       copyText += `Title: ${ticket.title}\n`;
       copyText += `URL: ${ticket.url}\n`;
       copyText += `Component Name: ${ticket.componentName}\n`;
@@ -250,14 +303,13 @@ export class TicketTrackingComponent implements OnInit {
 
   private copySpilloverTickets(): void {
     const selected = this.selectedSpilloverTickets();
-    const tickets = this.spilloverTickets().filter((t: SpilloverTicket) => selected.has(t.url));
+    const tickets = this.spilloverTickets().filter((t: SpilloverTicket) => selected.has(t.sno));
 
     if (tickets.length === 0) return;
 
     let copyText = '';
     tickets.forEach((ticket: SpilloverTicket, index: number) => {
       copyText += `${index + 1}. \n`;
-      copyText += `S No: ${ticket.sno}\n`;
       copyText += `Title: ${ticket.title}\n`;
       copyText += `URL: ${ticket.url}\n`;
       copyText += `Reason for Spilling: ${ticket.reasonForSpilling}\n`;
@@ -273,14 +325,13 @@ export class TicketTrackingComponent implements OnInit {
 
   private copyTrackedTickets(): void {
     const selected = this.selectedTrackedTickets();
-    const tickets = this.trackedTickets().filter((t: TrackedTicket) => selected.has(t.url));
+    const tickets = this.trackedTickets().filter((t: TrackedTicket) => selected.has(t.sno));
 
     if (tickets.length === 0) return;
 
     let copyText = '';
     tickets.forEach((ticket: TrackedTicket, index: number) => {
       copyText += `${index + 1}. \n`;
-      copyText += `S No: ${ticket.sno}\n`;
       copyText += `Title: ${ticket.title}\n`;
       copyText += `URL: ${ticket.url}\n`;
       copyText += `Status: ${ticket.status ? 'Completed' : 'Open'}\n`;

@@ -89,7 +89,21 @@
             <table class="tickets-table">
               <thead>
                 <tr>
-                  <th class="col-checkbox"></th>
+                  <th class="col-checkbox">
+                    @if (selectedDemoCount() > 0) {
+                      <div class="checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          [checked]="allDemoSelected()"
+                          [indeterminate]="selectedDemoCount() > 0 && !allDemoSelected()"
+                          (change)="toggleSelectAll('demo')"
+                          id="demo-select-all"
+                          class="ticket-checkbox"
+                          aria-label="Select all demo tickets" />
+                        <label for="demo-select-all" class="checkbox-label"></label>
+                      </div>
+                    }
+                  </th>
                   <th class="col-sno">S.No</th>
                   <th class="col-title">Title</th>
                   <th class="col-url">URL</th>
@@ -97,46 +111,46 @@
                 </tr>
               </thead>
               <tbody>
-                @for (ticket of demoTickets(); track ticket.url) {
-                  <tr [class.selected]="isTicketSelected(ticket.url, 'demo')">
+                @for (ticket of demoTickets(); track ticket.sno) {
+                  <tr [class.selected]="isTicketSelected(ticket.sno, 'demo')">
                     <td class="col-checkbox">
                       <div class="checkbox-wrapper">
                         <input
                           type="checkbox"
-                          [checked]="isTicketSelected(ticket.url, 'demo')"
-                          (change)="toggleTicketSelection(ticket.url, 'demo')"
-                          [id]="'demo-ticket-' + ticket.url"
+                          [checked]="isTicketSelected(ticket.sno, 'demo')"
+                          (change)="toggleTicketSelection(ticket.sno, 'demo')"
+                          [id]="'demo-ticket-' + ticket.sno"
                           class="ticket-checkbox"
                           aria-label="Select ticket {{ ticket.sno }}" />
-                        <label [for]="'demo-ticket-' + ticket.url" class="checkbox-label"></label>
+                        <label [for]="'demo-ticket-' + ticket.sno" class="checkbox-label"></label>
                       </div>
                     </td>
                     <td
                       class="col-sno copyable"
-                      [class.hovered]="hoveredCell() === 'demo-sno-' + ticket.url"
-                      (mouseenter)="setHoveredCell('demo-sno-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'demo-sno-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('demo-sno-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
-                      @if (hoveredCell() === 'demo-sno-' + ticket.url) {
+                      @if (hoveredCell() === 'demo-sno-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-title copyable"
-                      [class.hovered]="hoveredCell() === 'demo-title-' + ticket.url"
-                      (mouseenter)="setHoveredCell('demo-title-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'demo-title-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('demo-title-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
-                      @if (hoveredCell() === 'demo-title-' + ticket.url) {
+                      @if (hoveredCell() === 'demo-title-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-url copyable"
-                      [class.hovered]="hoveredCell() === 'demo-url-' + ticket.url"
-                      (mouseenter)="setHoveredCell('demo-url-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'demo-url-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('demo-url-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.url, $event)">
                       <a
@@ -147,7 +161,7 @@
                         (click)="$event.stopPropagation()">
                         {{ ticket.url }}
                       </a>
-                      @if (hoveredCell() === 'demo-url-' + ticket.url) {
+                      @if (hoveredCell() === 'demo-url-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
@@ -181,7 +195,21 @@
             <table class="tickets-table">
               <thead>
                 <tr>
-                  <th class="col-checkbox"></th>
+                  <th class="col-checkbox">
+                    @if (selectedReleaseCount() > 0) {
+                      <div class="checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          [checked]="allReleaseSelected()"
+                          [indeterminate]="selectedReleaseCount() > 0 && !allReleaseSelected()"
+                          (change)="toggleSelectAll('release')"
+                          id="release-select-all"
+                          class="ticket-checkbox"
+                          aria-label="Select all release tickets" />
+                        <label for="release-select-all" class="checkbox-label"></label>
+                      </div>
+                    }
+                  </th>
                   <th class="col-sno">S.No</th>
                   <th class="col-title">Title</th>
                   <th class="col-url">URL</th>
@@ -191,46 +219,46 @@
                 </tr>
               </thead>
               <tbody>
-                @for (ticket of releaseTickets(); track ticket.url) {
-                  <tr [class.selected]="isTicketSelected(ticket.url, 'release')">
+                @for (ticket of releaseTickets(); track ticket.sno) {
+                  <tr [class.selected]="isTicketSelected(ticket.sno, 'release')">
                     <td class="col-checkbox">
                       <div class="checkbox-wrapper">
                         <input
                           type="checkbox"
-                          [checked]="isTicketSelected(ticket.url, 'release')"
-                          (change)="toggleTicketSelection(ticket.url, 'release')"
-                          [id]="'release-ticket-' + ticket.url"
+                          [checked]="isTicketSelected(ticket.sno, 'release')"
+                          (change)="toggleTicketSelection(ticket.sno, 'release')"
+                          [id]="'release-ticket-' + ticket.sno"
                           class="ticket-checkbox"
                           aria-label="Select ticket {{ ticket.sno }}" />
-                        <label [for]="'release-ticket-' + ticket.url" class="checkbox-label"></label>
+                        <label [for]="'release-ticket-' + ticket.sno" class="checkbox-label"></label>
                       </div>
                     </td>
                     <td
                       class="col-sno copyable"
-                      [class.hovered]="hoveredCell() === 'release-sno-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-sno-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-sno-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-sno-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
-                      @if (hoveredCell() === 'release-sno-' + ticket.url) {
+                      @if (hoveredCell() === 'release-sno-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-title copyable"
-                      [class.hovered]="hoveredCell() === 'release-title-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-title-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-title-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-title-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
-                      @if (hoveredCell() === 'release-title-' + ticket.url) {
+                      @if (hoveredCell() === 'release-title-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-url copyable"
-                      [class.hovered]="hoveredCell() === 'release-url-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-url-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-url-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-url-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.url, $event)">
                       <a
@@ -241,40 +269,40 @@
                         (click)="$event.stopPropagation()">
                         {{ ticket.url }}
                       </a>
-                      @if (hoveredCell() === 'release-url-' + ticket.url) {
+                      @if (hoveredCell() === 'release-url-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-component copyable"
-                      [class.hovered]="hoveredCell() === 'release-component-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-component-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-component-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-component-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.componentName, $event)">
                       {{ ticket.componentName }}
-                      @if (hoveredCell() === 'release-component-' + ticket.url) {
+                      @if (hoveredCell() === 'release-component-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-deployment copyable"
-                      [class.hovered]="hoveredCell() === 'release-deployment-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-deployment-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-deployment-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-deployment-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.deploymentType, $event)">
                       {{ ticket.deploymentType }}
-                      @if (hoveredCell() === 'release-deployment-' + ticket.url) {
+                      @if (hoveredCell() === 'release-deployment-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-version copyable"
-                      [class.hovered]="hoveredCell() === 'release-version-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-version-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-version-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-version-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.versionNumber, $event)">
                       {{ ticket.versionNumber || '-' }}
-                      @if (hoveredCell() === 'release-version-' + ticket.url) {
+                      @if (hoveredCell() === 'release-version-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
@@ -297,8 +325,24 @@
             <table class="tickets-table">
               <thead>
                 <tr>
-                  <th class="col-checkbox"></th>
+                  <th class="col-checkbox">
+                    @if (selectedSpilloverCount() > 0) {
+                      <div class="checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          [checked]="allSpilloverSelected()"
+                          [indeterminate]="selectedSpilloverCount() > 0 && !allSpilloverSelected()"
+                          (change)="toggleSelectAll('spillover')"
+                          id="spillover-select-all"
+                          class="ticket-checkbox"
+                          aria-label="Select all spillover tickets" />
+                        <label for="spillover-select-all" class="checkbox-label"></label>
+                      </div>
+                    }
+                  </th>
                   <th class="col-sno">S.No</th>
+                  <th class="col-date">Date</th>
+                  <th class="col-sprint">Sprint Name</th>
                   <th class="col-title">Title</th>
                   <th class="col-url">URL</th>
                   <th class="col-reason">Reason for Spilling</th>
@@ -308,46 +352,68 @@
                 </tr>
               </thead>
               <tbody>
-                @for (ticket of spilloverTickets(); track ticket.url) {
-                  <tr [class.selected]="isTicketSelected(ticket.url, 'spillover')">
+                @for (ticket of spilloverTickets(); track ticket.sno) {
+                  <tr [class.selected]="isTicketSelected(ticket.sno, 'spillover')">
                     <td class="col-checkbox">
                       <div class="checkbox-wrapper">
                         <input
                           type="checkbox"
-                          [checked]="isTicketSelected(ticket.url, 'spillover')"
-                          (change)="toggleTicketSelection(ticket.url, 'spillover')"
-                          [id]="'spillover-ticket-' + ticket.url"
+                          [checked]="isTicketSelected(ticket.sno, 'spillover')"
+                          (change)="toggleTicketSelection(ticket.sno, 'spillover')"
+                          [id]="'spillover-ticket-' + ticket.sno"
                           class="ticket-checkbox"
                           aria-label="Select ticket {{ ticket.sno }}" />
-                        <label [for]="'spillover-ticket-' + ticket.url" class="checkbox-label"></label>
+                        <label [for]="'spillover-ticket-' + ticket.sno" class="checkbox-label"></label>
                       </div>
                     </td>
                     <td
                       class="col-sno copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-sno-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-sno-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-sno-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-sno-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
-                      @if (hoveredCell() === 'spillover-sno-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-sno-' + ticket.sno) {
+                        <span class="copy-hint">📋</span>
+                      }
+                    </td>
+                    <td
+                      class="col-date copyable"
+                      [class.hovered]="hoveredCell() === 'spillover-date-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-date-' + ticket.sno)"
+                      (mouseleave)="setHoveredCell(null)"
+                      (click)="copyCellContent(ticket.date, $event)">
+                      {{ ticket.date || '-' }}
+                      @if (hoveredCell() === 'spillover-date-' + ticket.sno) {
+                        <span class="copy-hint">📋</span>
+                      }
+                    </td>
+                    <td
+                      class="col-sprint copyable"
+                      [class.hovered]="hoveredCell() === 'spillover-sprint-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-sprint-' + ticket.sno)"
+                      (mouseleave)="setHoveredCell(null)"
+                      (click)="copyCellContent(ticket.sprintName, $event)">
+                      {{ ticket.sprintName || '-' }}
+                      @if (hoveredCell() === 'spillover-sprint-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-title copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-title-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-title-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-title-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-title-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
-                      @if (hoveredCell() === 'spillover-title-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-title-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-url copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-url-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-url-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-url-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-url-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.url, $event)">
                       <a
@@ -358,51 +424,51 @@
                         (click)="$event.stopPropagation()">
                         {{ ticket.url }}
                       </a>
-                      @if (hoveredCell() === 'spillover-url-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-url-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-reason copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-reason-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-reason-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-reason-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-reason-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.reasonForSpilling, $event)">
                       {{ ticket.reasonForSpilling || '-' }}
-                      @if (hoveredCell() === 'spillover-reason-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-reason-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-solution copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-solution-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-solution-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-solution-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-solution-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.solution, $event)">
                       {{ ticket.solution || '-' }}
-                      @if (hoveredCell() === 'spillover-solution-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-solution-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-support copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-support-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-support-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-support-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-support-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.supportTicketsCreated, $event)">
                       {{ ticket.supportTicketsCreated || '-' }}
-                      @if (hoveredCell() === 'spillover-support-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-support-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-impediment copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-impediment-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-impediment-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-impediment-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-impediment-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.impediment, $event)">
                       {{ ticket.impediment || '-' }}
-                      @if (hoveredCell() === 'spillover-impediment-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-impediment-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
@@ -425,7 +491,21 @@
             <table class="tickets-table">
               <thead>
                 <tr>
-                  <th class="col-checkbox"></th>
+                  <th class="col-checkbox">
+                    @if (selectedTrackedCount() > 0) {
+                      <div class="checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          [checked]="allTrackedSelected()"
+                          [indeterminate]="selectedTrackedCount() > 0 && !allTrackedSelected()"
+                          (change)="toggleSelectAll('tracked')"
+                          id="tracked-select-all"
+                          class="ticket-checkbox"
+                          aria-label="Select all tracked tickets" />
+                        <label for="tracked-select-all" class="checkbox-label"></label>
+                      </div>
+                    }
+                  </th>
                   <th class="col-sno">S.No</th>
                   <th class="col-title">Title</th>
                   <th class="col-url">URL</th>
@@ -433,46 +513,46 @@
                 </tr>
               </thead>
               <tbody>
-                @for (ticket of trackedTickets(); track ticket.url) {
-                  <tr [class.selected]="isTicketSelected(ticket.url, 'tracked')">
+                @for (ticket of trackedTickets(); track ticket.sno) {
+                  <tr [class.selected]="isTicketSelected(ticket.sno, 'tracked')">
                     <td class="col-checkbox">
                       <div class="checkbox-wrapper">
                         <input
                           type="checkbox"
-                          [checked]="isTicketSelected(ticket.url, 'tracked')"
-                          (change)="toggleTicketSelection(ticket.url, 'tracked')"
-                          [id]="'tracked-ticket-' + ticket.url"
+                          [checked]="isTicketSelected(ticket.sno, 'tracked')"
+                          (change)="toggleTicketSelection(ticket.sno, 'tracked')"
+                          [id]="'tracked-ticket-' + ticket.sno"
                           class="ticket-checkbox"
                           aria-label="Select ticket {{ ticket.sno }}" />
-                        <label [for]="'tracked-ticket-' + ticket.url" class="checkbox-label"></label>
+                        <label [for]="'tracked-ticket-' + ticket.sno" class="checkbox-label"></label>
                       </div>
                     </td>
                     <td
                       class="col-sno copyable"
-                      [class.hovered]="hoveredCell() === 'tracked-sno-' + ticket.url"
-                      (mouseenter)="setHoveredCell('tracked-sno-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'tracked-sno-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('tracked-sno-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
-                      @if (hoveredCell() === 'tracked-sno-' + ticket.url) {
+                      @if (hoveredCell() === 'tracked-sno-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-title copyable"
-                      [class.hovered]="hoveredCell() === 'tracked-title-' + ticket.url"
-                      (mouseenter)="setHoveredCell('tracked-title-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'tracked-title-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('tracked-title-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
-                      @if (hoveredCell() === 'tracked-title-' + ticket.url) {
+                      @if (hoveredCell() === 'tracked-title-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-url copyable"
-                      [class.hovered]="hoveredCell() === 'tracked-url-' + ticket.url"
-                      (mouseenter)="setHoveredCell('tracked-url-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'tracked-url-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('tracked-url-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.url, $event)">
                       <a
@@ -483,7 +563,7 @@
                         (click)="$event.stopPropagation()">
                         {{ ticket.url }}
                       </a>
-                      @if (hoveredCell() === 'tracked-url-' + ticket.url) {
+                      @if (hoveredCell() === 'tracked-url-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>

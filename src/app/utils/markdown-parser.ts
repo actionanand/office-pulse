@@ -49,6 +49,10 @@ export class MarkdownParser {
         line = line.replace(/^-\s*\[x\]\s+(.+)$/i, '<div class="checkbox-item checked">☑ $1</div>');
         processedLines.push(line);
         continue;
+      } else if (/^-\s*\[o\]\s+/i.test(line)) {
+        line = line.replace(/^-\s*\[o\]\s+(.+)$/i, '<div class="checkbox-item checked-no-strike">☑ $1</div>');
+        processedLines.push(line);
+        continue;
       }
 
       // Check if line is an ordered list

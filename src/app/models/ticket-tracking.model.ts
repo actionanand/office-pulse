@@ -27,6 +27,8 @@ export interface ReleaseTicketData {
 // Spillover Tickets Model
 export interface SpilloverTicket {
   sno: number;
+  date: string;
+  sprintName: string;
   title: string;
   url: string;
   reasonForSpilling: string;

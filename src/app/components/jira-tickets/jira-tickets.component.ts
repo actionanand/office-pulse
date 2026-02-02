@@ -25,7 +25,7 @@ export class JiraTicketsComponent implements OnInit {
   currentPage = signal<number>(1);
   itemsPerPage = 25;
   selectedComment = signal<string | null>(null);
-  selectedTickets = signal<Set<string>>(new Set());
+  selectedTickets = signal<Set<number>>(new Set());
 
   // Computed values
   totalPages = computed(() => Math.ceil(this.allTickets().length / this.itemsPerPage));
@@ -39,6 +39,10 @@ export class JiraTicketsComponent implements OnInit {
   totalTickets = computed(() => this.allTickets().length);
 
   selectedCount = computed(() => this.selectedTickets().size);
+
+  allSelected = computed(
+    () => this.allTickets().length > 0 && this.selectedTickets().size === this.allTickets().length,
+  );
 
   // Status options for dropdown (boolean: true = Completed, false = Open)
   statusOptions = [
@@ -175,16 +179,16 @@ export class JiraTicketsComponent implements OnInit {
     return comment.substring(0, maxLength) + '...';
   }
 
-  isTicketSelected(url: string): boolean {
-    return this.selectedTickets().has(url);
+  isTicketSelected(sno: number): boolean {
+    return this.selectedTickets().has(sno);
   }
 
-  toggleTicketSelection(url: string): void {
+  toggleTicketSelection(sno: number): void {
     const selected = new Set(this.selectedTickets());
-    if (selected.has(url)) {
-      selected.delete(url);
+    if (selected.has(sno)) {
+      selected.delete(sno);
     } else {
-      selected.add(url);
+      selected.add(sno);
     }
     this.selectedTickets.set(selected);
   }
@@ -193,10 +197,19 @@ export class JiraTicketsComponent implements OnInit {
     this.selectedTickets.set(new Set());
   }
 
+  toggleSelectAll(): void {
+    if (this.allSelected()) {
+      this.selectedTickets.set(new Set());
+    } else {
+      const allSno = new Set(this.allTickets().map((t: JiraTicket) => t.sno));
+      this.selectedTickets.set(allSno);
+    }
+  }
+
   copySelectedTickets(): void {
     const selected = this.selectedTickets();
     const tickets = this.allTickets();
-    const selectedTicketData = tickets.filter((t: JiraTicket) => selected.has(t.url));
+    const selectedTicketData = tickets.filter((t: JiraTicket) => selected.has(t.sno));
 
     if (selectedTicketData.length === 0) return;
 

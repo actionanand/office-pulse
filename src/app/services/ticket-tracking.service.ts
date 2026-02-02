@@ -218,17 +218,19 @@ export class TicketTrackingService {
     const tickets: SpilloverTicket[] = data.table.rows
       .map(row => {
         const cells = row.c;
-        // S No, Title, Url, Reason for spilling, Solution, Support tickets created, Impediments
+        // S No, Date, Sprint Name, Title, Url, Reason for spilling, Solution, Support tickets created, Impediments
         if (!cells[0] || cells[0].v === null) return null;
 
         return {
           sno: typeof cells[0]?.v === 'number' ? cells[0].v : 0,
-          title: (cells[1]?.v as string) || '',
-          url: (cells[2]?.v as string) || '',
-          reasonForSpilling: (cells[3]?.v as string) || '',
-          solution: (cells[4]?.v as string) || '',
-          supportTicketsCreated: (cells[5]?.v as string) || '',
-          impediment: (cells[6]?.v as string) || '',
+          date: (cells[1]?.f as string) || '',
+          sprintName: (cells[2]?.v as string) || '',
+          title: (cells[3]?.v as string) || '',
+          url: (cells[4]?.v as string) || '',
+          reasonForSpilling: (cells[5]?.v as string) || '',
+          solution: (cells[6]?.v as string) || '',
+          supportTicketsCreated: (cells[7]?.v as string) || '',
+          impediment: (cells[8]?.v as string) || '',
         };
       })
       .filter((ticket): ticket is SpilloverTicket => ticket !== null && ticket.sno > 0);

@@ -476,6 +476,9 @@ export class MemosComponent implements OnInit {
       case 'checked':
         result = MarkdownParser.insertFormatting(currentText, start, end, '- [x] ', '\n');
         break;
+      case 'checked-no-strike':
+        result = MarkdownParser.insertFormatting(currentText, start, end, '- [o] ', '\n');
+        break;
       case 'text-color':
         this.converterTextColorPicker.set(!this.converterTextColorPicker());
         this.converterBgColorPicker.set(false);

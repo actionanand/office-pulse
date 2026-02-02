@@ -899,6 +899,11 @@
         opacity: 0.65;
         text-decoration: line-through;
       }
+
+      &.checked-no-strike {
+        opacity: 1;
+        text-decoration: none;
+      }
     }
 
     // Remove extra breaks around checkboxes

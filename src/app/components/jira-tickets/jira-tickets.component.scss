@@ -219,6 +219,14 @@
     }
   }
 
+  thead {
+    th {
+      .checkbox-wrapper {
+        opacity: 1; // Always show header checkbox when it exists
+      }
+    }
+  }
+
   .col-checkbox {
     width: 40px;
     text-align: center;

@@ -89,7 +89,21 @@
             <table class="tickets-table">
               <thead>
                 <tr>
-                  <th class="col-checkbox"></th>
+                  <th class="col-checkbox">
+                    @if (selectedDemoCount() > 0) {
+                      <div class="checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          [checked]="allDemoSelected()"
+                          [indeterminate]="selectedDemoCount() > 0 && !allDemoSelected()"
+                          (change)="toggleSelectAll('demo')"
+                          id="demo-select-all"
+                          class="ticket-checkbox"
+                          aria-label="Select all demo tickets" />
+                        <label for="demo-select-all" class="checkbox-label"></label>
+                      </div>
+                    }
+                  </th>
                   <th class="col-sno">S.No</th>
                   <th class="col-title">Title</th>
                   <th class="col-url">URL</th>
@@ -181,7 +195,21 @@
             <table class="tickets-table">
               <thead>
                 <tr>
-                  <th class="col-checkbox"></th>
+                  <th class="col-checkbox">
+                    @if (selectedReleaseCount() > 0) {
+                      <div class="checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          [checked]="allReleaseSelected()"
+                          [indeterminate]="selectedReleaseCount() > 0 && !allReleaseSelected()"
+                          (change)="toggleSelectAll('release')"
+                          id="release-select-all"
+                          class="ticket-checkbox"
+                          aria-label="Select all release tickets" />
+                        <label for="release-select-all" class="checkbox-label"></label>
+                      </div>
+                    }
+                  </th>
                   <th class="col-sno">S.No</th>
                   <th class="col-title">Title</th>
                   <th class="col-url">URL</th>
@@ -297,7 +325,21 @@
             <table class="tickets-table">
               <thead>
                 <tr>
-                  <th class="col-checkbox"></th>
+                  <th class="col-checkbox">
+                    @if (selectedSpilloverCount() > 0) {
+                      <div class="checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          [checked]="allSpilloverSelected()"
+                          [indeterminate]="selectedSpilloverCount() > 0 && !allSpilloverSelected()"
+                          (change)="toggleSelectAll('spillover')"
+                          id="spillover-select-all"
+                          class="ticket-checkbox"
+                          aria-label="Select all spillover tickets" />
+                        <label for="spillover-select-all" class="checkbox-label"></label>
+                      </div>
+                    }
+                  </th>
                   <th class="col-sno">S.No</th>
                   <th class="col-date">Date</th>
                   <th class="col-sprint">Sprint Name</th>
@@ -449,7 +491,21 @@
             <table class="tickets-table">
               <thead>
                 <tr>
-                  <th class="col-checkbox"></th>
+                  <th class="col-checkbox">
+                    @if (selectedTrackedCount() > 0) {
+                      <div class="checkbox-wrapper">
+                        <input
+                          type="checkbox"
+                          [checked]="allTrackedSelected()"
+                          [indeterminate]="selectedTrackedCount() > 0 && !allTrackedSelected()"
+                          (change)="toggleSelectAll('tracked')"
+                          id="tracked-select-all"
+                          class="ticket-checkbox"
+                          aria-label="Select all tracked tickets" />
+                        <label for="tracked-select-all" class="checkbox-label"></label>
+                      </div>
+                    }
+                  </th>
                   <th class="col-sno">S.No</th>
                   <th class="col-title">Title</th>
                   <th class="col-url">URL</th>

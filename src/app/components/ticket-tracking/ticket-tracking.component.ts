@@ -51,6 +51,20 @@ export class TicketTrackingComponent implements OnInit {
   selectedSpilloverCount = computed(() => this.selectedSpilloverTickets().size);
   selectedTrackedCount = computed(() => this.selectedTrackedTickets().size);
 
+  // Select all computeds
+  allDemoSelected = computed(
+    () => this.demoTickets().length > 0 && this.selectedDemoTickets().size === this.demoTickets().length,
+  );
+  allReleaseSelected = computed(
+    () => this.releaseTickets().length > 0 && this.selectedReleaseTickets().size === this.releaseTickets().length,
+  );
+  allSpilloverSelected = computed(
+    () => this.spilloverTickets().length > 0 && this.selectedSpilloverTickets().size === this.spilloverTickets().length,
+  );
+  allTrackedSelected = computed(
+    () => this.trackedTickets().length > 0 && this.selectedTrackedTickets().size === this.trackedTickets().length,
+  );
+
   ngOnInit(): void {
     this.loadAllTickets();
   }
@@ -184,6 +198,47 @@ export class TicketTrackingComponent implements OnInit {
       case 'tracked':
         this.selectedTrackedTickets.set(new Set());
         break;
+    }
+  }
+
+  toggleSelectAll(tab: TabType): void {
+    switch (tab) {
+      case 'demo': {
+        if (this.allDemoSelected()) {
+          this.selectedDemoTickets.set(new Set());
+        } else {
+          const allSno = new Set(this.demoTickets().map((t: DemoTicket) => t.sno));
+          this.selectedDemoTickets.set(allSno);
+        }
+        break;
+      }
+      case 'release': {
+        if (this.allReleaseSelected()) {
+          this.selectedReleaseTickets.set(new Set());
+        } else {
+          const allSno = new Set(this.releaseTickets().map((t: ReleaseTicket) => t.sno));
+          this.selectedReleaseTickets.set(allSno);
+        }
+        break;
+      }
+      case 'spillover': {
+        if (this.allSpilloverSelected()) {
+          this.selectedSpilloverTickets.set(new Set());
+        } else {
+          const allSno = new Set(this.spilloverTickets().map((t: SpilloverTicket) => t.sno));
+          this.selectedSpilloverTickets.set(allSno);
+        }
+        break;
+      }
+      case 'tracked': {
+        if (this.allTrackedSelected()) {
+          this.selectedTrackedTickets.set(new Set());
+        } else {
+          const allSno = new Set(this.trackedTickets().map((t: TrackedTicket) => t.sno));
+          this.selectedTrackedTickets.set(allSno);
+        }
+        break;
+      }
     }
   }
 

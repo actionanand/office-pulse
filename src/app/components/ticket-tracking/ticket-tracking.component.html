@@ -113,30 +113,30 @@
                     </td>
                     <td
                       class="col-sno copyable"
-                      [class.hovered]="hoveredCell() === 'demo-sno-' + ticket.url"
-                      (mouseenter)="setHoveredCell('demo-sno-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'demo-sno-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('demo-sno-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
-                      @if (hoveredCell() === 'demo-sno-' + ticket.url) {
+                      @if (hoveredCell() === 'demo-sno-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-title copyable"
-                      [class.hovered]="hoveredCell() === 'demo-title-' + ticket.url"
-                      (mouseenter)="setHoveredCell('demo-title-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'demo-title-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('demo-title-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
-                      @if (hoveredCell() === 'demo-title-' + ticket.url) {
+                      @if (hoveredCell() === 'demo-title-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-url copyable"
-                      [class.hovered]="hoveredCell() === 'demo-url-' + ticket.url"
-                      (mouseenter)="setHoveredCell('demo-url-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'demo-url-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('demo-url-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.url, $event)">
                       <a
@@ -147,7 +147,7 @@
                         (click)="$event.stopPropagation()">
                         {{ ticket.url }}
                       </a>
-                      @if (hoveredCell() === 'demo-url-' + ticket.url) {
+                      @if (hoveredCell() === 'demo-url-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
@@ -207,30 +207,30 @@
                     </td>
                     <td
                       class="col-sno copyable"
-                      [class.hovered]="hoveredCell() === 'release-sno-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-sno-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-sno-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-sno-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
-                      @if (hoveredCell() === 'release-sno-' + ticket.url) {
+                      @if (hoveredCell() === 'release-sno-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-title copyable"
-                      [class.hovered]="hoveredCell() === 'release-title-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-title-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-title-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-title-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
-                      @if (hoveredCell() === 'release-title-' + ticket.url) {
+                      @if (hoveredCell() === 'release-title-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-url copyable"
-                      [class.hovered]="hoveredCell() === 'release-url-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-url-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-url-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-url-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.url, $event)">
                       <a
@@ -241,40 +241,40 @@
                         (click)="$event.stopPropagation()">
                         {{ ticket.url }}
                       </a>
-                      @if (hoveredCell() === 'release-url-' + ticket.url) {
+                      @if (hoveredCell() === 'release-url-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-component copyable"
-                      [class.hovered]="hoveredCell() === 'release-component-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-component-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-component-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-component-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.componentName, $event)">
                       {{ ticket.componentName }}
-                      @if (hoveredCell() === 'release-component-' + ticket.url) {
+                      @if (hoveredCell() === 'release-component-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-deployment copyable"
-                      [class.hovered]="hoveredCell() === 'release-deployment-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-deployment-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-deployment-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-deployment-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.deploymentType, $event)">
                       {{ ticket.deploymentType }}
-                      @if (hoveredCell() === 'release-deployment-' + ticket.url) {
+                      @if (hoveredCell() === 'release-deployment-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-version copyable"
-                      [class.hovered]="hoveredCell() === 'release-version-' + ticket.url"
-                      (mouseenter)="setHoveredCell('release-version-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'release-version-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('release-version-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.versionNumber, $event)">
                       {{ ticket.versionNumber || '-' }}
-                      @if (hoveredCell() === 'release-version-' + ticket.url) {
+                      @if (hoveredCell() === 'release-version-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
@@ -324,30 +324,30 @@
                     </td>
                     <td
                       class="col-sno copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-sno-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-sno-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-sno-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-sno-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
-                      @if (hoveredCell() === 'spillover-sno-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-sno-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-title copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-title-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-title-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-title-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-title-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
-                      @if (hoveredCell() === 'spillover-title-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-title-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-url copyable"
-                      [class.hovered]="hoveredCell() === 'spillover-url-' + ticket.url"
-                      (mouseenter)="setHoveredCell('spillover-url-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'spillover-url-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('spillover-url-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.url, $event)">
                       <a
@@ -358,7 +358,7 @@
                         (click)="$event.stopPropagation()">
                         {{ ticket.url }}
                       </a>
-                      @if (hoveredCell() === 'spillover-url-' + ticket.url) {
+                      @if (hoveredCell() === 'spillover-url-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
@@ -449,30 +449,30 @@
                     </td>
                     <td
                       class="col-sno copyable"
-                      [class.hovered]="hoveredCell() === 'tracked-sno-' + ticket.url"
-                      (mouseenter)="setHoveredCell('tracked-sno-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'tracked-sno-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('tracked-sno-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
-                      @if (hoveredCell() === 'tracked-sno-' + ticket.url) {
+                      @if (hoveredCell() === 'tracked-sno-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-title copyable"
-                      [class.hovered]="hoveredCell() === 'tracked-title-' + ticket.url"
-                      (mouseenter)="setHoveredCell('tracked-title-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'tracked-title-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('tracked-title-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
-                      @if (hoveredCell() === 'tracked-title-' + ticket.url) {
+                      @if (hoveredCell() === 'tracked-title-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>
                     <td
                       class="col-url copyable"
-                      [class.hovered]="hoveredCell() === 'tracked-url-' + ticket.url"
-                      (mouseenter)="setHoveredCell('tracked-url-' + ticket.url)"
+                      [class.hovered]="hoveredCell() === 'tracked-url-' + ticket.sno"
+                      (mouseenter)="setHoveredCell('tracked-url-' + ticket.sno)"
                       (mouseleave)="setHoveredCell(null)"
                       (click)="copyCellContent(ticket.url, $event)">
                       <a
@@ -483,7 +483,7 @@
                         (click)="$event.stopPropagation()">
                         {{ ticket.url }}
                       </a>
-                      @if (hoveredCell() === 'tracked-url-' + ticket.url) {
+                      @if (hoveredCell() === 'tracked-url-' + ticket.sno) {
                         <span class="copy-hint">📋</span>
                       }
                     </td>

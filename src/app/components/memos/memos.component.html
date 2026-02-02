@@ -291,9 +291,17 @@
               type="button"
               class="format-btn"
               (click)="applyFormatting('checked')"
-              title="Checked"
+              title="Checked (with strikethrough)"
               aria-label="Checked">
               ☑
+            </button>
+            <button
+              type="button"
+              class="format-btn"
+              (click)="applyFormatting('checked-no-strike')"
+              title="Checked (no strikethrough)"
+              aria-label="Checked No Strike">
+              ✓
             </button>
             <span class="toolbar-separator"></span>
             <div class="color-picker-container">
@@ -655,9 +663,17 @@
                   type="button"
                   class="format-btn"
                   (click)="applyConverterFormatting('checked')"
-                  title="Checked"
+                  title="Checked (with strikethrough)"
                   aria-label="Checked">
                   ☑
+                </button>
+                <button
+                  type="button"
+                  class="format-btn"
+                  (click)="applyConverterFormatting('checked-no-strike')"
+                  title="Checked (no strikethrough)"
+                  aria-label="Checked No Strike">
+                  ✓
                 </button>
                 <span class="toolbar-separator"></span>
                 <div class="color-picker-container">

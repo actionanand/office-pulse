@@ -25,13 +25,13 @@ import{a as V}from"./chunk-2XXVUE6X.js";import{c as X,f as Z,h as ee,i as te,j a
 
 Jira: `,d+=o.join(`,
 `)),this.copyToClipboard(d,e.length),this.clearSelection("release")}copySpilloverTickets(){let i=this.selectedSpilloverTickets(),e=this.spilloverTickets().filter(n=>i.has(n.sno));if(e.length===0)return;let t="";e.forEach((n,o)=>{t+=`${o+1}. 
-`,t+=`Title: ${n.title}
-`,t+=`URL: ${n.url}
-`,t+=`Reason for Spilling: ${n.reasonForSpilling}
-`,t+=`Solution: ${n.solution}
-`,t+=`Support Tickets Created: ${n.supportTicketsCreated||"N/A"}
-`,t+=`Impediment: ${n.impediment||"N/A"}
-`,t+=`___________
+`,n.title?.trim()&&(t+=`Title: ${n.title}
+`),n.url?.trim()&&(t+=`URL: ${n.url}
+`),n.reasonForSpilling?.trim()&&(t+=`Reason for Spilling: ${n.reasonForSpilling}
+`),n.solution?.trim()&&(t+=`Solution: ${n.solution}
+`),n.supportTicketsCreated?.trim()&&(t+=`Support Tickets Created: ${n.supportTicketsCreated}
+`),n.impediment?.trim()&&(t+=`Impediment: ${n.impediment}
+`),t+=`___________
 
 `}),this.copyToClipboard(t,e.length),this.clearSelection("spillover")}copyTrackedTickets(){let i=this.selectedTrackedTickets(),e=this.trackedTickets().filter(n=>i.has(n.sno));if(e.length===0)return;let t="";e.forEach((n,o)=>{t+=`${o+1}. 
 `,t+=`Title: ${n.title}

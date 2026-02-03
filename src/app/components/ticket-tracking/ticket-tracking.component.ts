@@ -394,12 +394,31 @@ export class TicketTrackingComponent implements OnInit {
     let copyText = '';
     tickets.forEach((ticket: SpilloverTicket, index: number) => {
       copyText += `${index + 1}. \n`;
-      copyText += `Title: ${ticket.title}\n`;
-      copyText += `URL: ${ticket.url}\n`;
-      copyText += `Reason for Spilling: ${ticket.reasonForSpilling}\n`;
-      copyText += `Solution: ${ticket.solution}\n`;
-      copyText += `Support Tickets Created: ${ticket.supportTicketsCreated || 'N/A'}\n`;
-      copyText += `Impediment: ${ticket.impediment || 'N/A'}\n`;
+
+      if (ticket.title?.trim()) {
+        copyText += `Title: ${ticket.title}\n`;
+      }
+
+      if (ticket.url?.trim()) {
+        copyText += `URL: ${ticket.url}\n`;
+      }
+
+      if (ticket.reasonForSpilling?.trim()) {
+        copyText += `Reason for Spilling: ${ticket.reasonForSpilling}\n`;
+      }
+
+      if (ticket.solution?.trim()) {
+        copyText += `Solution: ${ticket.solution}\n`;
+      }
+
+      if (ticket.supportTicketsCreated?.trim()) {
+        copyText += `Support Tickets Created: ${ticket.supportTicketsCreated}\n`;
+      }
+
+      if (ticket.impediment?.trim()) {
+        copyText += `Impediment: ${ticket.impediment}\n`;
+      }
+
       copyText += `___________\n\n`;
     });
 

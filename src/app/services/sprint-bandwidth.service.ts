@@ -238,10 +238,22 @@ export class SprintBandwidthService {
       createdAt: new Date().toISOString(),
     }));
 
-    // Calculate next sprint number
-    const match = sprintName.match(/\d+/);
-    const nextSprintNumber = match ? parseInt(match[0]) + 1 : 1;
-    const nextSprintName = `Sprint ${nextSprintNumber}`;
+    // Calculate next sprint number by finding the last number after a space
+    const match = sprintName.match(/\s(\d+)$/);
+    let nextSprintName: string;
+
+    if (match) {
+      // Found a number at the end after a space
+      const currentNumber = parseInt(match[1]);
+      const nextNumber = currentNumber + 1;
+      nextSprintName = sprintName.replace(/\s\d+$/, ` ${nextNumber}`);
+    } else if (sprintName.trim()) {
+      // Has name but no trailing number, append " 2"
+      nextSprintName = `${sprintName.trim()} 2`;
+    } else {
+      // No name given, use default
+      nextSprintName = 'Sprint 1';
+    }
 
     this.config.set({
       ...this.defaultConfig,

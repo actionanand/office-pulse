@@ -309,6 +309,7 @@ export class TicketTrackingComponent implements OnInit {
 
     // Group tickets by deployment type
     const groupedTickets: Record<string, ReleaseTicket[]> = {};
+    const noDeploymentTypeTickets: ReleaseTicket[] = [];
     const jiraUrls: string[] = [];
 
     tickets.forEach((ticket: ReleaseTicket) => {
@@ -317,8 +318,9 @@ export class TicketTrackingComponent implements OnInit {
         jiraUrls.push(ticket.url.trim());
       }
 
-      // Skip tickets without deployment type
+      // Group tickets without deployment type separately
       if (!ticket.deploymentType || !ticket.deploymentType.trim()) {
+        noDeploymentTypeTickets.push(ticket);
         return;
       }
 
@@ -340,8 +342,13 @@ export class TicketTrackingComponent implements OnInit {
 
       groupedTickets[deploymentType].forEach((ticket: ReleaseTicket) => {
         const componentName = ticket.componentName || '';
-        const versionNumber = ticket.versionNumber || '';
-        copyText += `${componentName}\t\t#${versionNumber}\n`;
+        const versionNumber = ticket.versionNumber?.trim();
+
+        if (versionNumber) {
+          copyText += `${componentName}\t\t#${versionNumber}\n`;
+        } else {
+          copyText += `${componentName}\n`;
+        }
       });
 
       // Add spacing between groups
@@ -349,6 +356,24 @@ export class TicketTrackingComponent implements OnInit {
         copyText += '\n\n';
       }
     });
+
+    // Add tickets without deployment type as a separate group (no header)
+    if (noDeploymentTypeTickets.length > 0) {
+      if (sortedDeploymentTypes.length > 0) {
+        copyText += '\n\n';
+      }
+
+      noDeploymentTypeTickets.forEach((ticket: ReleaseTicket) => {
+        const componentName = ticket.componentName || '';
+        const versionNumber = ticket.versionNumber?.trim();
+
+        if (versionNumber) {
+          copyText += `${componentName}\t\t#${versionNumber}\n`;
+        } else {
+          copyText += `${componentName}\n`;
+        }
+      });
+    }
 
     // Add Jira URLs at the end if any exist
     if (jiraUrls.length > 0) {

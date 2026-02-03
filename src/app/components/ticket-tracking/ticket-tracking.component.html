@@ -31,6 +31,12 @@
               : 'Tickets'
           }}
         </button>
+        @if (activeTab() === 'release' && selectedReleaseCount() > 0) {
+          <button class="copy-btn specialized" (click)="copyReleaseTicketsSpecialized()">
+            <span class="copy-icon">📝</span>
+            Specialized Copy
+          </button>
+        }
       }
       <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
         <span class="refresh-icon">↻</span>

@@ -301,6 +301,90 @@ export class TicketTrackingComponent implements OnInit {
     this.clearSelection('release');
   }
 
+  copyReleaseTicketsSpecialized(): void {
+    const selected = this.selectedReleaseTickets();
+    const tickets = this.releaseTickets().filter((t: ReleaseTicket) => selected.has(t.sno));
+
+    if (tickets.length === 0) return;
+
+    // Group tickets by deployment type
+    const groupedTickets: Record<string, ReleaseTicket[]> = {};
+    const noDeploymentTypeTickets: ReleaseTicket[] = [];
+    const jiraUrls: string[] = [];
+
+    tickets.forEach((ticket: ReleaseTicket) => {
+      // Collect non-null URLs
+      if (ticket.url && ticket.url.trim()) {
+        jiraUrls.push(ticket.url.trim());
+      }
+
+      // Group tickets without deployment type separately
+      if (!ticket.deploymentType || !ticket.deploymentType.trim()) {
+        noDeploymentTypeTickets.push(ticket);
+        return;
+      }
+
+      const deploymentType = ticket.deploymentType.trim();
+      if (!groupedTickets[deploymentType]) {
+        groupedTickets[deploymentType] = [];
+      }
+      groupedTickets[deploymentType].push(ticket);
+    });
+
+    // Build the formatted text
+    let copyText = '';
+
+    // Sort deployment types alphabetically
+    const sortedDeploymentTypes = Object.keys(groupedTickets).sort();
+
+    sortedDeploymentTypes.forEach((deploymentType, index) => {
+      copyText += `${deploymentType}:\n`;
+
+      groupedTickets[deploymentType].forEach((ticket: ReleaseTicket) => {
+        const componentName = ticket.componentName || '';
+        const versionNumber = ticket.versionNumber?.trim();
+
+        if (versionNumber) {
+          copyText += `${componentName}\t\t#${versionNumber}\n`;
+        } else {
+          copyText += `${componentName}\n`;
+        }
+      });
+
+      // Add spacing between groups
+      if (index < sortedDeploymentTypes.length - 1) {
+        copyText += '\n\n';
+      }
+    });
+
+    // Add tickets without deployment type as a separate group (no header)
+    if (noDeploymentTypeTickets.length > 0) {
+      if (sortedDeploymentTypes.length > 0) {
+        copyText += '\n\n';
+      }
+
+      noDeploymentTypeTickets.forEach((ticket: ReleaseTicket) => {
+        const componentName = ticket.componentName || '';
+        const versionNumber = ticket.versionNumber?.trim();
+
+        if (versionNumber) {
+          copyText += `${componentName}\t\t#${versionNumber}\n`;
+        } else {
+          copyText += `${componentName}\n`;
+        }
+      });
+    }
+
+    // Add Jira URLs at the end if any exist
+    if (jiraUrls.length > 0) {
+      copyText += '\n\nJira: ';
+      copyText += jiraUrls.join(',\n');
+    }
+
+    this.copyToClipboard(copyText, tickets.length);
+    this.clearSelection('release');
+  }
+
   private copySpilloverTickets(): void {
     const selected = this.selectedSpilloverTickets();
     const tickets = this.spilloverTickets().filter((t: SpilloverTicket) => selected.has(t.sno));

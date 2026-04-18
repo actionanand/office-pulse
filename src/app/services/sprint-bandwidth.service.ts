@@ -214,27 +214,24 @@ export class SprintBandwidthService {
     this.saveConfig();
   }
 
+  /**
+   * Only move tasks marked for move (moveToNextSprint) to next sprint as spillover.
+   * All other tasks are cleared.
+   */
   startNewSprint(): void {
     const teamName = this.config().teamName;
     const sprintName = this.config().sprintName;
     const currentTasks = this.config().tasks;
 
-    // Get tasks marked to move to next sprint
+    // Only move marked tasks
     const markedTasks = currentTasks.filter((t: SprintTask) => t.moveToNextSprint === true);
-
-    // Get remaining incomplete tasks (non-completed, non-cancelled, not marked)
-    const autoMoveTasks = currentTasks.filter(
-      (t: SprintTask) => t.status !== 'completed' && t.status !== 'cancelled' && !t.moveToNextSprint,
-    );
-
-    // Combine marked and auto-move tasks, clear deadlines when moving to spillover
-    const tasksToMove = [...markedTasks, ...autoMoveTasks].map(t => ({
+    const tasksToMove = markedTasks.map((t: SprintTask) => ({
       ...t,
       isSpillover: true,
       status: 'open' as TaskStatus,
       addedAfterSprintStart: false,
       moveToNextSprint: false,
-      deadline: undefined, // Clear deadline when moving to next sprint
+      deadline: undefined,
       createdAt: new Date().toISOString(),
     }));
 
@@ -243,15 +240,12 @@ export class SprintBandwidthService {
     let nextSprintName: string;
 
     if (match) {
-      // Found a number at the end after a space
       const currentNumber = parseInt(match[1]);
       const nextNumber = currentNumber + 1;
       nextSprintName = sprintName.replace(/\s\d+$/, ` ${nextNumber}`);
     } else if (sprintName.trim()) {
-      // Has name but no trailing number, append " 2"
       nextSprintName = `${sprintName.trim()} 2`;
     } else {
-      // No name given, use default
       nextSprintName = 'Sprint 1';
     }
 
@@ -267,20 +261,28 @@ export class SprintBandwidthService {
     this.saveConfig();
   }
 
-  // Remove all tasks (regular or spillover)
-  clearAllTasks(isSpillover: boolean): void {
-    this.config.update((cfg: SprintConfig) => ({
-      ...cfg,
-      tasks: cfg.tasks.filter((t: SprintTask) => (isSpillover ? !t.isSpillover : t.isSpillover)),
-    }));
-    this.saveConfig();
-  }
-
   clearAll(): void {
     const teamName = this.config().teamName;
     this.config.set({
       ...this.defaultConfig,
       teamName,
+    });
+    this.saveConfig();
+  }
+
+  clearAllTasks(isSpillover: boolean): void {
+    this.config.update((cfg: SprintConfig) => {
+      const tasks = cfg.tasks.filter((t: SprintTask) => t.isSpillover === isSpillover);
+      const marked = tasks.filter((t: SprintTask) => t.moveToNextSprint);
+      let newTasks: SprintTask[];
+      if (marked.length > 0) {
+        // Keep marked tasks, remove unmarked
+        newTasks = cfg.tasks.filter((t: SprintTask) => t.isSpillover !== isSpillover || t.moveToNextSprint);
+      } else {
+        // Remove all in section
+        newTasks = cfg.tasks.filter((t: SprintTask) => t.isSpillover !== isSpillover);
+      }
+      return { ...cfg, tasks: newTasks };
     });
     this.saveConfig();
   }

@@ -50,7 +50,6 @@ export class SprintBandwidthComponent {
   readonly selectedWeekoffDays = signal<number[]>([]);
 
   // Computed for bandwidth status
-
   readonly bandwidthStatus = computed(() => {
     const s = this.summary();
     if (s.remainingDays < 0) return 'over-allocated';
@@ -239,11 +238,6 @@ export class SprintBandwidthComponent {
       month: 'short',
       day: 'numeric',
     });
-  }
-
-  // Clear all tasks (regular or spillover)
-  clearAllTasks(isSpillover: boolean): void {
-    this.bandwidthService.clearAllTasks(isSpillover);
   }
 
   async clearAll(): Promise<void> {
@@ -444,5 +438,22 @@ export class SprintBandwidthComponent {
 
   isTaskAddedAfterSprintStart(task: SprintTask): boolean {
     return task.addedAfterSprintStart === true;
+  }
+
+  // Clear all tasks in Sprint Tasks or Spillover Stories section
+  async clearAllTasks(isSpillover: boolean): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Clear All Tasks',
+      message: isSpillover
+        ? 'Clear all spillover stories? Marked-for-move tasks will be preserved.'
+        : 'Clear all sprint tasks? Marked-for-move tasks will be preserved.',
+      confirmText: 'Clear',
+      cancelText: 'Cancel',
+      confirmColor: 'danger',
+    });
+    if (confirmed) {
+      this.bandwidthService.clearAllTasks(isSpillover);
+      this.snackbarService.success('Tasks cleared.');
+    }
   }
 }

@@ -58,9 +58,9 @@ export class SprintBandwidthComponent {
     return 'available';
   });
 
-  readonly regularTasks = computed(() => this.config().tasks.filter(t => !t.isSpillover));
+  readonly regularTasks = computed(() => this.config().tasks.filter((t: SprintTask) => !t.isSpillover));
 
-  readonly spilloverTasks = computed(() => this.config().tasks.filter(t => t.isSpillover));
+  readonly spilloverTasks = computed(() => this.config().tasks.filter((t: SprintTask) => t.isSpillover));
 
   updateSprintName(value: string): void {
     this.bandwidthService.updateConfig({ sprintName: value });
@@ -89,10 +89,10 @@ export class SprintBandwidthComponent {
   }
 
   toggleWeekoffDay(day: number): void {
-    this.selectedWeekoffDays.update(days => {
+    this.selectedWeekoffDays.update((days: number[]) => {
       const index = days.indexOf(day);
       if (index > -1) {
-        return days.filter((_, i) => i !== index);
+        return days.filter((_: number, i: number) => i !== index);
       } else {
         return [...days, day];
       }
@@ -438,5 +438,22 @@ export class SprintBandwidthComponent {
 
   isTaskAddedAfterSprintStart(task: SprintTask): boolean {
     return task.addedAfterSprintStart === true;
+  }
+
+  // Clear all tasks in Sprint Tasks or Spillover Stories section
+  async clearAllTasks(isSpillover: boolean): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Clear All Tasks',
+      message: isSpillover
+        ? 'Clear all spillover stories? Marked-for-move tasks will be preserved.'
+        : 'Clear all sprint tasks? Marked-for-move tasks will be preserved.',
+      confirmText: 'Clear',
+      cancelText: 'Cancel',
+      confirmColor: 'danger',
+    });
+    if (confirmed) {
+      this.bandwidthService.clearAllTasks(isSpillover);
+      this.snackbarService.success('Tasks cleared.');
+    }
   }
 }

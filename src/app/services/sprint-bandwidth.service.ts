@@ -62,7 +62,7 @@ export class SprintBandwidthService {
   }
 
   updateConfig(partial: Partial<SprintConfig>): void {
-    this.config.update(cfg => ({ ...cfg, ...partial }));
+    this.config.update((cfg: SprintConfig) => ({ ...cfg, ...partial }));
     this.saveConfig();
   }
 
@@ -74,7 +74,7 @@ export class SprintBandwidthService {
       createdAt: new Date().toISOString(),
       addedAfterSprintStart: this.config().sprintStarted,
     };
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       tasks: [...cfg.tasks, newTask],
     }));
@@ -82,17 +82,17 @@ export class SprintBandwidthService {
   }
 
   updateTask(id: string, updates: Partial<SprintTask>): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      tasks: cfg.tasks.map(t => (t.id === id ? { ...t, ...updates } : t)),
+      tasks: cfg.tasks.map((t: SprintTask) => (t.id === id ? { ...t, ...updates } : t)),
     }));
     this.saveConfig();
   }
 
   deleteTask(id: string): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      tasks: cfg.tasks.filter(t => t.id !== id),
+      tasks: cfg.tasks.filter((t: SprintTask) => t.id !== id),
     }));
     this.saveConfig();
   }
@@ -110,7 +110,7 @@ export class SprintBandwidthService {
     }
 
     if (!this.config().holidays.includes(date)) {
-      this.config.update(cfg => ({
+      this.config.update((cfg: SprintConfig) => ({
         ...cfg,
         holidays: [...cfg.holidays, date].sort(),
       }));
@@ -119,9 +119,9 @@ export class SprintBandwidthService {
   }
 
   removeHoliday(date: string): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      holidays: cfg.holidays.filter(h => h !== date),
+      holidays: cfg.holidays.filter((h: string) => h !== date),
     }));
     this.saveConfig();
   }
@@ -153,7 +153,7 @@ export class SprintBandwidthService {
       dates.push(dateStr);
     }
 
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       holidays: [...new Set([...cfg.holidays, ...dates])].sort(),
     }));
@@ -161,7 +161,7 @@ export class SprintBandwidthService {
   }
 
   updateWeekOffDays(days: number[]): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       weekOffDays: days.sort(),
     }));
@@ -169,7 +169,7 @@ export class SprintBandwidthService {
   }
 
   updateSprintEndDate(date: string | undefined): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       sprintEndDate: date,
     }));
@@ -177,7 +177,7 @@ export class SprintBandwidthService {
   }
 
   startSprint(): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       sprintStarted: true,
       sprintStartDate: new Date().toISOString(),
@@ -186,7 +186,7 @@ export class SprintBandwidthService {
   }
 
   completeSprint(): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       sprintStarted: false,
       sprintCompleted: true,
@@ -195,17 +195,17 @@ export class SprintBandwidthService {
   }
 
   updateTaskStatus(id: string, status: TaskStatus): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      tasks: cfg.tasks.map(t => (t.id === id ? { ...t, status } : t)),
+      tasks: cfg.tasks.map((t: SprintTask) => (t.id === id ? { ...t, status } : t)),
     }));
     this.saveConfig();
   }
 
   moveTaskToNextSprint(id: string): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      tasks: cfg.tasks.map(t =>
+      tasks: cfg.tasks.map((t: SprintTask) =>
         t.id === id
           ? { ...t, moveToNextSprint: !t.moveToNextSprint, deadline: !t.moveToNextSprint ? undefined : t.deadline }
           : t,
@@ -214,44 +214,91 @@ export class SprintBandwidthService {
     this.saveConfig();
   }
 
+  /**
+   * Only move tasks marked for move (moveToNextSprint) to next sprint as spillover.
+   * All other tasks are cleared.
+   */
   startNewSprint(): void {
     const teamName = this.config().teamName;
     const sprintName = this.config().sprintName;
     const currentTasks = this.config().tasks;
 
-    // Get tasks marked to move to next sprint
-    const markedTasks = currentTasks.filter(t => t.moveToNextSprint === true);
+    // Separate Sprint Tasks and Spillover Stories
+    const sprintTasks = currentTasks.filter((t: SprintTask) => !t.isSpillover);
+    const spilloverTasks = currentTasks.filter((t: SprintTask) => t.isSpillover);
 
-    // Get remaining incomplete tasks (non-completed, non-cancelled, not marked)
-    const autoMoveTasks = currentTasks.filter(
-      t => t.status !== 'completed' && t.status !== 'cancelled' && !t.moveToNextSprint,
-    );
+    const markedSprintTasks = sprintTasks.filter((t: SprintTask) => t.moveToNextSprint === true);
+    const markedSpilloverTasks = spilloverTasks.filter((t: SprintTask) => t.moveToNextSprint === true);
 
-    // Combine marked and auto-move tasks, clear deadlines when moving to spillover
-    const tasksToMove = [...markedTasks, ...autoMoveTasks].map(t => ({
-      ...t,
-      isSpillover: true,
-      status: 'open' as TaskStatus,
-      addedAfterSprintStart: false,
-      moveToNextSprint: false,
-      deadline: undefined, // Clear deadline when moving to next sprint
-      createdAt: new Date().toISOString(),
-    }));
+    let tasksToMove: SprintTask[] = [];
+
+    if (markedSprintTasks.length === 0 && markedSpilloverTasks.length > 0) {
+      // No Sprint Tasks marked, but some Spillover marked:
+      // Move all Sprint Tasks as spillover, and only marked Spillover Stories
+      const movedSprintTasks = sprintTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+      const movedMarkedSpillover = markedSpilloverTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+      tasksToMove = [...movedSprintTasks, ...movedMarkedSpillover];
+    } else if (markedSprintTasks.length > 0) {
+      // If any Sprint Tasks are marked, only move those marked Sprint Tasks and marked Spillover Stories
+      const movedMarkedSprint = markedSprintTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+      const movedMarkedSpillover = markedSpilloverTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+      tasksToMove = [...movedMarkedSprint, ...movedMarkedSpillover];
+    } else {
+      // If nothing is marked, move all tasks
+      tasksToMove = currentTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+    }
 
     // Calculate next sprint number by finding the last number after a space
     const match = sprintName.match(/\s(\d+)$/);
     let nextSprintName: string;
 
     if (match) {
-      // Found a number at the end after a space
       const currentNumber = parseInt(match[1]);
       const nextNumber = currentNumber + 1;
       nextSprintName = sprintName.replace(/\s\d+$/, ` ${nextNumber}`);
     } else if (sprintName.trim()) {
-      // Has name but no trailing number, append " 2"
       nextSprintName = `${sprintName.trim()} 2`;
     } else {
-      // No name given, use default
       nextSprintName = 'Sprint 1';
     }
 
@@ -272,6 +319,23 @@ export class SprintBandwidthService {
     this.config.set({
       ...this.defaultConfig,
       teamName,
+    });
+    this.saveConfig();
+  }
+
+  clearAllTasks(isSpillover: boolean): void {
+    this.config.update((cfg: SprintConfig) => {
+      const tasks = cfg.tasks.filter((t: SprintTask) => t.isSpillover === isSpillover);
+      const marked = tasks.filter((t: SprintTask) => t.moveToNextSprint);
+      let newTasks: SprintTask[];
+      if (marked.length > 0) {
+        // Keep marked tasks, remove unmarked
+        newTasks = cfg.tasks.filter((t: SprintTask) => t.isSpillover !== isSpillover || t.moveToNextSprint);
+      } else {
+        // Remove all in section
+        newTasks = cfg.tasks.filter((t: SprintTask) => t.isSpillover !== isSpillover);
+      }
+      return { ...cfg, tasks: newTasks };
     });
     this.saveConfig();
   }

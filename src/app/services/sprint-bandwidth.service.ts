@@ -223,17 +223,70 @@ export class SprintBandwidthService {
     const sprintName = this.config().sprintName;
     const currentTasks = this.config().tasks;
 
-    // Only move marked tasks
-    const markedTasks = currentTasks.filter((t: SprintTask) => t.moveToNextSprint === true);
-    const tasksToMove = markedTasks.map((t: SprintTask) => ({
-      ...t,
-      isSpillover: true,
-      status: 'open' as TaskStatus,
-      addedAfterSprintStart: false,
-      moveToNextSprint: false,
-      deadline: undefined,
-      createdAt: new Date().toISOString(),
-    }));
+    // Separate Sprint Tasks and Spillover Stories
+    const sprintTasks = currentTasks.filter((t: SprintTask) => !t.isSpillover);
+    const spilloverTasks = currentTasks.filter((t: SprintTask) => t.isSpillover);
+
+    const markedSprintTasks = sprintTasks.filter((t: SprintTask) => t.moveToNextSprint === true);
+    const markedSpilloverTasks = spilloverTasks.filter((t: SprintTask) => t.moveToNextSprint === true);
+
+    let tasksToMove: SprintTask[] = [];
+
+    if (markedSprintTasks.length === 0 && markedSpilloverTasks.length > 0) {
+      // No Sprint Tasks marked, but some Spillover marked:
+      // Move all Sprint Tasks as spillover, and only marked Spillover Stories
+      const movedSprintTasks = sprintTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+      const movedMarkedSpillover = markedSpilloverTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+      tasksToMove = [...movedSprintTasks, ...movedMarkedSpillover];
+    } else if (markedSprintTasks.length > 0) {
+      // If any Sprint Tasks are marked, only move those marked Sprint Tasks and marked Spillover Stories
+      const movedMarkedSprint = markedSprintTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+      const movedMarkedSpillover = markedSpilloverTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+      tasksToMove = [...movedMarkedSprint, ...movedMarkedSpillover];
+    } else {
+      // If nothing is marked, move all tasks
+      tasksToMove = currentTasks.map((t: SprintTask) => ({
+        ...t,
+        isSpillover: true,
+        status: 'open' as TaskStatus,
+        addedAfterSprintStart: false,
+        moveToNextSprint: false,
+        deadline: undefined,
+        createdAt: new Date().toISOString(),
+      }));
+    }
 
     // Calculate next sprint number by finding the last number after a space
     const match = sprintName.match(/\s(\d+)$/);

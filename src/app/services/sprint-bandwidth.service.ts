@@ -62,7 +62,7 @@ export class SprintBandwidthService {
   }
 
   updateConfig(partial: Partial<SprintConfig>): void {
-    this.config.update(cfg => ({ ...cfg, ...partial }));
+    this.config.update((cfg: SprintConfig) => ({ ...cfg, ...partial }));
     this.saveConfig();
   }
 
@@ -74,7 +74,7 @@ export class SprintBandwidthService {
       createdAt: new Date().toISOString(),
       addedAfterSprintStart: this.config().sprintStarted,
     };
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       tasks: [...cfg.tasks, newTask],
     }));
@@ -82,17 +82,17 @@ export class SprintBandwidthService {
   }
 
   updateTask(id: string, updates: Partial<SprintTask>): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      tasks: cfg.tasks.map(t => (t.id === id ? { ...t, ...updates } : t)),
+      tasks: cfg.tasks.map((t: SprintTask) => (t.id === id ? { ...t, ...updates } : t)),
     }));
     this.saveConfig();
   }
 
   deleteTask(id: string): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      tasks: cfg.tasks.filter(t => t.id !== id),
+      tasks: cfg.tasks.filter((t: SprintTask) => t.id !== id),
     }));
     this.saveConfig();
   }
@@ -110,7 +110,7 @@ export class SprintBandwidthService {
     }
 
     if (!this.config().holidays.includes(date)) {
-      this.config.update(cfg => ({
+      this.config.update((cfg: SprintConfig) => ({
         ...cfg,
         holidays: [...cfg.holidays, date].sort(),
       }));
@@ -119,9 +119,9 @@ export class SprintBandwidthService {
   }
 
   removeHoliday(date: string): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      holidays: cfg.holidays.filter(h => h !== date),
+      holidays: cfg.holidays.filter((h: string) => h !== date),
     }));
     this.saveConfig();
   }
@@ -153,7 +153,7 @@ export class SprintBandwidthService {
       dates.push(dateStr);
     }
 
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       holidays: [...new Set([...cfg.holidays, ...dates])].sort(),
     }));
@@ -161,7 +161,7 @@ export class SprintBandwidthService {
   }
 
   updateWeekOffDays(days: number[]): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       weekOffDays: days.sort(),
     }));
@@ -169,7 +169,7 @@ export class SprintBandwidthService {
   }
 
   updateSprintEndDate(date: string | undefined): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       sprintEndDate: date,
     }));
@@ -177,7 +177,7 @@ export class SprintBandwidthService {
   }
 
   startSprint(): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       sprintStarted: true,
       sprintStartDate: new Date().toISOString(),
@@ -186,7 +186,7 @@ export class SprintBandwidthService {
   }
 
   completeSprint(): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
       sprintStarted: false,
       sprintCompleted: true,
@@ -195,17 +195,17 @@ export class SprintBandwidthService {
   }
 
   updateTaskStatus(id: string, status: TaskStatus): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      tasks: cfg.tasks.map(t => (t.id === id ? { ...t, status } : t)),
+      tasks: cfg.tasks.map((t: SprintTask) => (t.id === id ? { ...t, status } : t)),
     }));
     this.saveConfig();
   }
 
   moveTaskToNextSprint(id: string): void {
-    this.config.update(cfg => ({
+    this.config.update((cfg: SprintConfig) => ({
       ...cfg,
-      tasks: cfg.tasks.map(t =>
+      tasks: cfg.tasks.map((t: SprintTask) =>
         t.id === id
           ? { ...t, moveToNextSprint: !t.moveToNextSprint, deadline: !t.moveToNextSprint ? undefined : t.deadline }
           : t,
@@ -220,11 +220,11 @@ export class SprintBandwidthService {
     const currentTasks = this.config().tasks;
 
     // Get tasks marked to move to next sprint
-    const markedTasks = currentTasks.filter(t => t.moveToNextSprint === true);
+    const markedTasks = currentTasks.filter((t: SprintTask) => t.moveToNextSprint === true);
 
     // Get remaining incomplete tasks (non-completed, non-cancelled, not marked)
     const autoMoveTasks = currentTasks.filter(
-      t => t.status !== 'completed' && t.status !== 'cancelled' && !t.moveToNextSprint,
+      (t: SprintTask) => t.status !== 'completed' && t.status !== 'cancelled' && !t.moveToNextSprint,
     );
 
     // Combine marked and auto-move tasks, clear deadlines when moving to spillover
@@ -264,6 +264,15 @@ export class SprintBandwidthService {
       tasks: tasksToMove,
       sprintCompleted: false,
     });
+    this.saveConfig();
+  }
+
+  // Remove all tasks (regular or spillover)
+  clearAllTasks(isSpillover: boolean): void {
+    this.config.update((cfg: SprintConfig) => ({
+      ...cfg,
+      tasks: cfg.tasks.filter((t: SprintTask) => (isSpillover ? !t.isSpillover : t.isSpillover)),
+    }));
     this.saveConfig();
   }
 

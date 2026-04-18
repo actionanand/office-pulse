@@ -50,6 +50,7 @@ export class SprintBandwidthComponent {
   readonly selectedWeekoffDays = signal<number[]>([]);
 
   // Computed for bandwidth status
+
   readonly bandwidthStatus = computed(() => {
     const s = this.summary();
     if (s.remainingDays < 0) return 'over-allocated';
@@ -58,9 +59,9 @@ export class SprintBandwidthComponent {
     return 'available';
   });
 
-  readonly regularTasks = computed(() => this.config().tasks.filter(t => !t.isSpillover));
+  readonly regularTasks = computed(() => this.config().tasks.filter((t: SprintTask) => !t.isSpillover));
 
-  readonly spilloverTasks = computed(() => this.config().tasks.filter(t => t.isSpillover));
+  readonly spilloverTasks = computed(() => this.config().tasks.filter((t: SprintTask) => t.isSpillover));
 
   updateSprintName(value: string): void {
     this.bandwidthService.updateConfig({ sprintName: value });
@@ -89,10 +90,10 @@ export class SprintBandwidthComponent {
   }
 
   toggleWeekoffDay(day: number): void {
-    this.selectedWeekoffDays.update(days => {
+    this.selectedWeekoffDays.update((days: number[]) => {
       const index = days.indexOf(day);
       if (index > -1) {
-        return days.filter((_, i) => i !== index);
+        return days.filter((_: number, i: number) => i !== index);
       } else {
         return [...days, day];
       }
@@ -238,6 +239,11 @@ export class SprintBandwidthComponent {
       month: 'short',
       day: 'numeric',
     });
+  }
+
+  // Clear all tasks (regular or spillover)
+  clearAllTasks(isSpillover: boolean): void {
+    this.bandwidthService.clearAllTasks(isSpillover);
   }
 
   async clearAll(): Promise<void> {

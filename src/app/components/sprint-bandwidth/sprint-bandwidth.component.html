@@ -200,6 +200,9 @@
     <div class="tasks-header">
       <h3>📋 Sprint Tasks</h3>
       <button class="btn btn-add" (click)="openAddTaskForm(false)">➕ Add Task</button>
+      @if (!config().sprintStarted && !config().sprintCompleted && regularTasks().length > 0) {
+        <button class="btn btn-clear-tasks" (click)="clearAllTasks(false)">🧹 Clear All Tasks</button>
+      }
     </div>
 
     @if (regularTasks().length === 0) {
@@ -306,6 +309,9 @@
       <button class="btn btn-add spillover-btn" (click)="openAddTaskForm(true)" [disabled]="config().sprintStarted">
         ➕ Add Spillover
       </button>
+      @if (!config().sprintStarted && !config().sprintCompleted && spilloverTasks().length > 0) {
+        <button class="btn btn-clear-tasks" (click)="clearAllTasks(true)">🧹 Clear All Spillover</button>
+      }
     </div>
 
     @if (spilloverTasks().length === 0) {

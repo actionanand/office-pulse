@@ -176,7 +176,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 30px;
+  aspect-ratio: 1 / 1;
+  height: auto;
   font-size: 0.78rem;
   border-radius: 6px;
   color: #444;
@@ -186,6 +187,7 @@
     font-size: 0.7rem;
     font-weight: 600;
     color: #888;
+    aspect-ratio: unset;
     height: 24px;
   }
 
@@ -492,14 +494,17 @@
     grid-template-columns: 1fr;
   }
 
-  .months-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 400px) {
+  // Single column so each calendar gets full width
   .months-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mini-calendar {
+    padding: 0.5rem;
+  }
+
+  .week-row {
+    gap: 3px;
   }
 }
 

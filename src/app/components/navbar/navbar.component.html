@@ -152,6 +152,15 @@
               <span class="nav-icon">🪑</span>
               <span class="nav-text">Seating Chart</span>
             </a>
+            <a
+              routerLink="/irctc-vacant-seats"
+              routerLinkActive="active"
+              class="dropdown-item"
+              aria-label="IRCTC Vacant Seats"
+              (click)="closeAll()">
+              <span class="nav-icon">🚆</span>
+              <span class="nav-text">IRCTC Seats</span>
+            </a>
           </div>
         }
       </div>
@@ -251,6 +260,15 @@
           (click)="closeAll()">
           <span class="nav-icon">🪑</span>
           <span class="nav-text">Seating Chart</span>
+        </a>
+        <a
+          routerLink="/irctc-vacant-seats"
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="IRCTC Vacant Seats"
+          (click)="closeAll()">
+          <span class="nav-icon">🚆</span>
+          <span class="nav-text">IRCTC Seats</span>
         </a>
       </div>
     </div>

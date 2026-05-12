@@ -19,5 +19,6 @@ export const environment = {
   TICKETS_TO_TRACK_SHEET_GID: 1055347474,
   BOOKMARK_SHEET_GID: 1443046285,
   WFO_SHEET_GID: 2112832792,
+  IRCTC_VACANT_SEAT_GID: 1698819958,
   passwordHash: 'cbfdac6008f9cab4083784cbd1874f76618d2a97', // Default hash for 'password123'
 };

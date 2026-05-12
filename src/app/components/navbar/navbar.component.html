@@ -143,6 +143,15 @@
               <span class="nav-icon">📄</span>
               <span class="nav-text">Markdown</span>
             </a>
+            <a
+              routerLink="/seating-chart"
+              routerLinkActive="active"
+              class="dropdown-item"
+              aria-label="Seating Chart"
+              (click)="closeAll()">
+              <span class="nav-icon">🪑</span>
+              <span class="nav-text">Seating Chart</span>
+            </a>
           </div>
         }
       </div>
@@ -233,6 +242,15 @@
           (click)="closeAll()">
           <span class="nav-icon">📄</span>
           <span class="nav-text">Markdown</span>
+        </a>
+        <a
+          routerLink="/seating-chart"
+          routerLinkActive="active"
+          class="nav-link"
+          aria-label="Seating Chart"
+          (click)="closeAll()">
+          <span class="nav-icon">🪑</span>
+          <span class="nav-text">Seating Chart</span>
         </a>
       </div>
     </div>

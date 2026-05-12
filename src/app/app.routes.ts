@@ -67,6 +67,12 @@ export const routes: Routes = [
     canActivate: [lockGuard],
   },
   {
+    path: 'seating-chart',
+    loadComponent: () =>
+      import('./components/seating-chart/seating-chart.component').then(m => m.SeatingChartComponent),
+    canActivate: [lockGuard],
+  },
+  {
     path: 'markdown',
     loadComponent: () =>
       import('./components/markdown-viewer/markdown-viewer.component').then(m => m.MarkdownViewerComponent),

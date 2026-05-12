@@ -18,5 +18,6 @@ export const environment = {
   SPILLOVER_TICKETS_SHEET_GID: 1002010555,
   TICKETS_TO_TRACK_SHEET_GID: 1055347474,
   BOOKMARK_SHEET_GID: 1443046285,
+  WFO_SHEET_GID: 2112832792,
   passwordHash: 'PASSWORD_HASH_PLACEHOLDER', // To be replaced during build with actual hash
 };

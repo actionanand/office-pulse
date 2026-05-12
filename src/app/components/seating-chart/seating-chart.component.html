@@ -1,0 +1,111 @@
+<div class="seating-chart-container">
+  <div class="header">
+    <div class="title-section">
+      <h1>🪑 Seating Chart</h1>
+      <p class="subtitle">WFO seat allocations</p>
+    </div>
+    <div class="header-actions">
+      <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
+        <span class="refresh-icon">↻</span>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Date Picker -->
+  <div class="date-picker-section">
+    <div class="date-controls">
+      <label for="dateInput" class="date-label">Select Date</label>
+      <input
+        id="dateInput"
+        type="date"
+        class="date-input"
+        [ngModel]="selectedDateStr()"
+        (ngModelChange)="selectedDateStr.set($event)" />
+      @if (!isToday()) {
+        <button class="today-btn" (click)="goToToday()">Today</button>
+      }
+    </div>
+    <div class="date-display">
+      <span class="date-full">{{ selectedDateLabel() }}</span>
+      @if (isToday()) {
+        <span class="today-badge">Today</span>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading seating data...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-container">
+      <p class="error-message">⚠️ {{ error() }}</p>
+      <button class="refresh-btn" (click)="refresh()">Try Again</button>
+    </div>
+  } @else if (entriesForDate().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">🏢</span>
+      <p>No seat allocations found for this date.</p>
+    </div>
+  } @else {
+    <div class="entries-count">
+      <span>{{ entriesForDate().length }} allocation{{ entriesForDate().length !== 1 ? 's' : '' }} found</span>
+    </div>
+    <div class="cards-grid">
+      @for (entry of entriesForDate(); track entry.sno) {
+        <div class="seat-card">
+          <div class="seat-header">
+            <div class="seat-number">
+              <span class="seat-icon">🪑</span>
+              <span class="seat-label">Seat {{ entry.seatNumber }}</span>
+            </div>
+            <div class="floor-badge">Floor {{ entry.floor }}</div>
+          </div>
+          <div class="seat-body">
+            <div class="seat-info-row">
+              <span class="info-icon">🏢</span>
+              <div class="info-content">
+                <span class="info-label">Organization</span>
+                <span class="info-value">{{ entry.organization }}</span>
+              </div>
+            </div>
+            <div class="seat-info-row">
+              <span class="info-icon">📍</span>
+              <div class="info-content">
+                <span class="info-label">Venue</span>
+                <span class="info-value">{{ entry.venue }}</span>
+              </div>
+            </div>
+            @if (entry.time) {
+              <div class="seat-info-row">
+                <span class="info-icon">⏰</span>
+                <div class="info-content">
+                  <span class="info-label">Time</span>
+                  <span class="info-value">{{ entry.time }}</span>
+                </div>
+              </div>
+            }
+            <div class="seat-info-row">
+              <span class="info-icon">📅</span>
+              <div class="info-content">
+                <span class="info-label">{{ entry.dateRangeDisplay ? 'Date Range' : 'Date' }}</span>
+                <span class="info-value">{{ getDateLabel(entry) }}</span>
+              </div>
+            </div>
+            @if (entry.notes) {
+              <div class="seat-info-row notes-row">
+                <span class="info-icon">📝</span>
+                <div class="info-content">
+                  <span class="info-label">Notes</span>
+                  <span class="info-value">{{ entry.notes }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

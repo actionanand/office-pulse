@@ -494,3 +494,278 @@
     min-width: 70px;
   }
 }
+
+// ── VIEW TOGGLE ───────────────────────────────────────────────────────────
+
+.view-toggle {
+  display: flex;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #555;
+  transition: all 0.15s;
+
+  &:hover {
+    background: #f0f4ff;
+    color: #1565c0;
+  }
+
+  &.active {
+    background: #1565c0;
+    color: white;
+  }
+}
+
+// ── PRINT BUTTON ──────────────────────────────────────────────────────────
+
+.print-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  background: white;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #f5f5f5;
+    border-color: #999;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ── TABLE VIEW ────────────────────────────────────────────────────────────
+
+.table-section {
+  margin-bottom: 2rem;
+}
+
+.table-hidden {
+  display: none;
+}
+
+.table-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.seats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  background: white;
+
+  thead tr {
+    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+    color: white;
+  }
+
+  th {
+    padding: 0.7rem 0.85rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+
+    &.sortable {
+      cursor: pointer;
+      user-select: none;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.1s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: #f0f6ff;
+    }
+
+    &:nth-child(even) {
+      background: #fafafa;
+
+      &:hover {
+        background: #f0f6ff;
+      }
+    }
+  }
+
+  td {
+    padding: 0.65rem 0.85rem;
+    color: #1a1a1a;
+    vertical-align: middle;
+  }
+}
+
+.th-sno,
+.td-sno {
+  width: 36px;
+  text-align: center;
+  color: #888;
+  font-size: 0.75rem;
+}
+
+.td-coach {
+  font-weight: 700;
+  color: #1565c0;
+}
+
+.td-seats {
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.td-count {
+  text-align: center;
+  font-weight: 600;
+}
+
+.td-berth {
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.td-station {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.td-time {
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.time-val {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.82rem;
+}
+
+.day-val {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+// ── PRINT / PDF ───────────────────────────────────────────────────────────
+
+@media print {
+  // Hide everything except the IRCTC component
+  body > * {
+    display: none !important;
+  }
+
+  app-root {
+    display: block !important;
+  }
+
+  app-root > * {
+    display: none !important;
+  }
+
+  app-root app-irctc-vacant-seats {
+    display: block !important;
+  }
+
+  // Hide all no-print elements
+  .no-print {
+    display: none !important;
+  }
+
+  // Reset container
+  .irctc-container {
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  // Always show the table in print (regardless of current view)
+  .table-section {
+    display: block !important;
+  }
+
+  .table-hidden {
+    display: block !important;
+  }
+
+  .table-wrapper {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  .seats-table {
+    font-size: 0.8rem;
+
+    thead tr {
+      background: #1565c0 !important;
+      color: white !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    tbody tr {
+      break-inside: avoid;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f5f5f5 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+
+  // Route timeline and summary still print
+  .route-section,
+  .summary-bar {
+    break-inside: avoid;
+  }
+
+  // Seat cards are hidden in print (table is better)
+  .seat-cards {
+    display: none !important;
+  }
+
+  .empty-state {
+    display: none !important;
+  }
+}

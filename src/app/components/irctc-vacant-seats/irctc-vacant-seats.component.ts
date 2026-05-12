@@ -23,6 +23,9 @@ export class IrctcVacantSeatsComponent implements OnInit {
   allEntries = signal<VacantSeatEntry[]>([]);
   stations = signal<StationSchedule[]>([]);
 
+  /** 'cards' = default card view; 'table' = sortable table view */
+  view = signal<'cards' | 'table'>('cards');
+
   sortKey = signal<VacantSeatSortKey>('from');
   sortDir = signal<VacantSeatSortDir>('asc');
 
@@ -65,7 +68,7 @@ export class IrctcVacantSeatsComponent implements OnInit {
     this.error.set(null);
 
     this.service.fetchData().subscribe({
-      next: data => {
+      next: (data: { entries: VacantSeatEntry[]; stations: StationSchedule[] }) => {
         this.allEntries.set(data.entries);
         this.stations.set(data.stations);
         this.loading.set(false);
@@ -94,5 +97,9 @@ export class IrctcVacantSeatsComponent implements OnInit {
   getSortIcon(key: VacantSeatSortKey): string {
     if (this.sortKey() !== key) return '↕';
     return this.sortDir() === 'asc' ? '↑' : '↓';
+  }
+
+  printPage(): void {
+    window.print();
   }
 }

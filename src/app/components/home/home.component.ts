@@ -102,6 +102,20 @@ export class HomeComponent {
       description: 'View and render markdown files with syntax highlighting',
       color: '#8b5cf6',
     },
+    {
+      path: '/seating-chart',
+      icon: '🪑',
+      title: 'Seating Chart',
+      description: 'View WFO seat allocations by date or browse booked months',
+      color: '#0891b2',
+    },
+    {
+      path: '/irctc-vacant-seats',
+      icon: '🚆',
+      title: 'IRCTC Vacant Seats',
+      description: 'Find vacant berths during your train journey for RAC passengers',
+      color: '#1565c0',
+    },
   ];
 
   readonly currentHour = new Date().getHours();

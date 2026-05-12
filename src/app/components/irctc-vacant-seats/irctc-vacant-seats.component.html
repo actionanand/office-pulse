@@ -9,9 +9,14 @@
       <a href="https://www.irctc.co.in/online-charts/" target="_blank" rel="noopener noreferrer" class="irctc-link-btn">
         🌐 IRCTC Charts
       </a>
-      <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
+      <div class="view-toggle no-print">
+        <button class="toggle-btn" [class.active]="view() === 'cards'" (click)="view.set('cards')">🃏 Cards</button>
+        <button class="toggle-btn" [class.active]="view() === 'table'" (click)="view.set('table')">📋 Table</button>
+      </div>
+      <button class="refresh-btn no-print" (click)="refresh()" [disabled]="loading()">
         <span class="refresh-icon">↻</span> Refresh
       </button>
+      <button class="print-btn no-print" (click)="printPage()" [disabled]="loading()">🖨️ Print / PDF</button>
     </div>
   </div>
 
@@ -65,7 +70,7 @@
     }
 
     <!-- Sort Controls -->
-    <div class="sort-controls">
+    <div class="sort-controls no-print">
       <span class="sort-label">Sort by:</span>
       <button class="sort-btn" [class.active]="sortKey() === 'from'" (click)="setSort('from')">
         From Station {{ getSortIcon('from') }}
@@ -79,61 +84,127 @@
     </div>
 
     <!-- Seat Cards -->
-    @if (sortedEntries().length === 0) {
-      <div class="empty-state">
-        <span class="empty-icon">🎫</span>
-        <p>No vacant seat entries found.</p>
-      </div>
-    } @else {
-      <div class="seat-cards">
-        @for (entry of sortedEntries(); track entry.sno) {
-          <div class="seat-card">
-            <div class="card-header">
-              <div class="coach-badge">{{ entry.coach }}</div>
-              <div class="seat-count">{{ entry.seatCount }} seat{{ entry.seatCount !== 1 ? 's' : '' }}</div>
-            </div>
-            <div class="card-body">
-              <div class="seats-row">
-                <span class="field-label">Seats</span>
-                <span class="seats-value">{{ entry.seats }}</span>
+    @if (view() === 'cards') {
+      @if (sortedEntries().length === 0) {
+        <div class="empty-state">
+          <span class="empty-icon">🎫</span>
+          <p>No vacant seat entries found.</p>
+        </div>
+      } @else {
+        <div class="seat-cards no-print">
+          @for (entry of sortedEntries(); track entry.sno) {
+            <div class="seat-card">
+              <div class="card-header">
+                <div class="coach-badge">{{ entry.coach }}</div>
+                <div class="seat-count">{{ entry.seatCount }} seat{{ entry.seatCount !== 1 ? 's' : '' }}</div>
               </div>
-              @if (entry.berth) {
-                <div class="info-row">
-                  <span class="field-label">Berth</span>
-                  <span class="field-value">{{ entry.berth }}</span>
+              <div class="card-body">
+                <div class="seats-row">
+                  <span class="field-label">Seats</span>
+                  <span class="seats-value">{{ entry.seats }}</span>
                 </div>
-              }
-              <div class="route-row">
-                <div class="from-to">
-                  <div class="station from">
-                    <span class="station-label">From</span>
-                    <span class="station-value">{{ entry.fromStation }}</span>
+                @if (entry.berth) {
+                  <div class="info-row">
+                    <span class="field-label">Berth</span>
+                    <span class="field-value">{{ entry.berth }}</span>
+                  </div>
+                }
+                <div class="route-row">
+                  <div class="from-to">
+                    <div class="station from">
+                      <span class="station-label">From</span>
+                      <span class="station-value">{{ entry.fromStation }}</span>
+                      @if (entry.fromSchedule) {
+                        <span class="station-meta"
+                          >{{ entry.fromSchedule.display12h }} · {{ entry.fromSchedule.dayLabel }}</span
+                        >
+                      }
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="station to">
+                      <span class="station-label">To</span>
+                      <span class="station-value">{{ entry.toStation }}</span>
+                      @if (entry.toSchedule) {
+                        <span class="station-meta"
+                          >{{ entry.toSchedule.display12h }} · {{ entry.toSchedule.dayLabel }}</span
+                        >
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- Table View (always rendered for print; visible when view=table) -->
+    @if (sortedEntries().length > 0) {
+      <div class="table-section" [class.table-hidden]="view() !== 'table'">
+        <div class="table-sort-controls no-print">
+          <span class="sort-label">Sort by:</span>
+          <button class="sort-btn" [class.active]="sortKey() === 'from'" (click)="setSort('from')">
+            From {{ getSortIcon('from') }}
+          </button>
+          <button class="sort-btn" [class.active]="sortKey() === 'to'" (click)="setSort('to')">
+            To {{ getSortIcon('to') }}
+          </button>
+          <button class="sort-btn" [class.active]="sortKey() === 'coach'" (click)="setSort('coach')">
+            Coach {{ getSortIcon('coach') }}
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table class="seats-table">
+            <thead>
+              <tr>
+                <th class="th-sno">#</th>
+                <th class="sortable" (click)="setSort('coach')">Coach {{ getSortIcon('coach') }}</th>
+                <th>Seats</th>
+                <th>Count</th>
+                <th>Berth</th>
+                <th class="sortable" (click)="setSort('from')">From {{ getSortIcon('from') }}</th>
+                <th>From Time</th>
+                <th class="sortable" (click)="setSort('to')">To {{ getSortIcon('to') }}</th>
+                <th>To Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of sortedEntries(); track entry.sno) {
+                <tr>
+                  <td class="td-sno">{{ entry.sno }}</td>
+                  <td class="td-coach">{{ entry.coach }}</td>
+                  <td class="td-seats">{{ entry.seats }}</td>
+                  <td class="td-count">{{ entry.seatCount }}</td>
+                  <td class="td-berth">{{ entry.berth || '—' }}</td>
+                  <td class="td-station">{{ entry.fromStation }}</td>
+                  <td class="td-time">
                     @if (entry.fromSchedule) {
-                      <span class="station-meta"
-                        >{{ entry.fromSchedule.display12h }} · {{ entry.fromSchedule.dayLabel }}</span
-                      >
+                      <span class="time-val">{{ entry.fromSchedule.display12h }}</span>
+                      <span class="day-val">{{ entry.fromSchedule.dayLabel }}</span>
+                    } @else {
+                      —
                     }
-                  </div>
-                  <span class="arrow">→</span>
-                  <div class="station to">
-                    <span class="station-label">To</span>
-                    <span class="station-value">{{ entry.toStation }}</span>
+                  </td>
+                  <td class="td-station">{{ entry.toStation }}</td>
+                  <td class="td-time">
                     @if (entry.toSchedule) {
-                      <span class="station-meta"
-                        >{{ entry.toSchedule.display12h }} · {{ entry.toSchedule.dayLabel }}</span
-                      >
+                      <span class="time-val">{{ entry.toSchedule.display12h }}</span>
+                      <span class="day-val">{{ entry.toSchedule.dayLabel }}</span>
+                    } @else {
+                      —
                     }
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     }
 
     <!-- Note -->
-    <div class="data-note">
+    <div class="data-note no-print">
       <h4>📋 Data Entry Guide</h4>
       <ul>
         <li><strong>Seat:</strong> Single number (40), comma-separated (51, 53, 54), or range with hyphen (1-3).</li>

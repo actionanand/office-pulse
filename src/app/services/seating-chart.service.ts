@@ -47,6 +47,27 @@ export class SeatingChartService {
     this.cache$ = undefined;
   }
 
+  /**
+   * Returns a Set of all booked YYYY-MM-DD strings by expanding
+   * single-date entries and date-range entries into individual days.
+   */
+  getBookedDatesSet(entries: SeatingEntry[]): Set<string> {
+    const dates = new Set<string>();
+    for (const entry of entries) {
+      if (entry.date) {
+        dates.add(entry.date);
+      }
+      if (entry.dateRangeStart && entry.dateRangeEnd) {
+        const start = new Date(entry.dateRangeStart + 'T00:00:00');
+        const end = new Date(entry.dateRangeEnd + 'T00:00:00');
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          dates.add(this.toDateString(new Date(d)));
+        }
+      }
+    }
+    return dates;
+  }
+
   /** Filter entries that apply to the given date (single date or range). */
   getEntriesForDate(entries: SeatingEntry[], date: Date): SeatingEntry[] {
     const dateStr = this.toDateString(date);

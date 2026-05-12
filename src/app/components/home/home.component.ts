@@ -102,6 +102,13 @@ export class HomeComponent {
       description: 'View and render markdown files with syntax highlighting',
       color: '#8b5cf6',
     },
+    {
+      path: '/seating-chart',
+      icon: '🪑',
+      title: 'Seating Chart',
+      description: 'View WFO seat allocations by date or browse booked months',
+      color: '#0891b2',
+    },
   ];
 
   readonly currentHour = new Date().getHours();

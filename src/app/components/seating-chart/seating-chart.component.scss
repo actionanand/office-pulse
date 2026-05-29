@@ -161,6 +161,15 @@
   padding: 0.75rem;
 }
 
+.seat-summary {
+  padding: 0.4rem 1rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1565c0;
+  border-top: 1px solid #f0f0f0;
+  margin-top: -2px;
+}
+
 .week-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);

@@ -17,6 +17,8 @@ export interface CalendarMonth {
   label: string;
   weeks: (CalendarDay | null)[][];
   bookedCount: number;
+  /** Seat summary for the month, e.g. "Seat 232", "232, 233", "5 different seats" */
+  seatSummary: string;
 }
 
 @Component({
@@ -65,6 +67,7 @@ export class SeatingChartComponent implements OnInit {
   /** One mini-calendar per month that has at least one booking */
   calendarMonths = computed((): CalendarMonth[] => {
     const bookedDates = this.bookedDatesSet();
+    const allEntries = this.allEntries();
     const today = this.seatingChartService.toDateString(new Date());
 
     const monthSet = new Set<string>();
@@ -111,7 +114,29 @@ export class SeatingChartComponent implements OnInit {
           weeks.push(week);
         }
 
-        return { year, month, label, weeks, bookedCount };
+        // Collect unique seat numbers booked in this month
+        const monthSeats = new Set<string>();
+        for (let d = 1; d <= lastDayNum; d++) {
+          const dStr = `${yearStr}-${monthStr}-${String(d).padStart(2, '0')}`;
+          if (bookedDates.has(dStr)) {
+            for (const entry of this.seatingChartService.getEntriesForDate(allEntries, new Date(year, month, d))) {
+              if (entry.seatNumber?.trim()) {
+                monthSeats.add(entry.seatNumber.trim());
+              }
+            }
+          }
+        }
+
+        let seatSummary = '';
+        if (monthSeats.size === 1) {
+          seatSummary = `Seat ${[...monthSeats][0]}`;
+        } else if (monthSeats.size >= 2 && monthSeats.size < 5) {
+          seatSummary = `Seats ${[...monthSeats].join(', ')}`;
+        } else if (monthSeats.size >= 5) {
+          seatSummary = `${monthSeats.size} different seats booked`;
+        }
+
+        return { year, month, label, weeks, bookedCount, seatSummary };
       });
   });
 

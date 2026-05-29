@@ -57,6 +57,11 @@ export class SeatingChartService {
       if (entry.date) {
         dates.add(entry.date);
       }
+      if (entry.expandedDates) {
+        for (const d of entry.expandedDates) {
+          dates.add(d);
+        }
+      }
       if (entry.dateRangeStart && entry.dateRangeEnd) {
         const start = new Date(entry.dateRangeStart + 'T00:00:00');
         const end = new Date(entry.dateRangeEnd + 'T00:00:00');
@@ -74,6 +79,9 @@ export class SeatingChartService {
     return entries.filter(entry => {
       if (entry.date) {
         return entry.date === dateStr;
+      }
+      if (entry.expandedDates) {
+        return entry.expandedDates.includes(dateStr);
       }
       if (entry.dateRangeStart && entry.dateRangeEnd) {
         return dateStr >= entry.dateRangeStart && dateStr <= entry.dateRangeEnd;
@@ -133,6 +141,7 @@ export class SeatingChartService {
         let dateRangeStart: string | undefined;
         let dateRangeEnd: string | undefined;
         let dateRangeDisplay: string | undefined;
+        let expandedDates: string[] | undefined;
 
         if (dateCell?.v) {
           const parsed = this.parseGVizDateToString(dateCell.v as string);
@@ -142,10 +151,15 @@ export class SeatingChartService {
 
         if (dateRangeCell?.v) {
           dateRangeDisplay = dateRangeCell.v as string;
-          const parsed = this.parseDateRange(dateRangeCell.v as string);
-          if (parsed) {
-            dateRangeStart = parsed.start;
-            dateRangeEnd = parsed.end;
+          const multi = this.parseMultiDateRange(dateRangeCell.v as string);
+          if (multi) {
+            expandedDates = multi;
+          } else {
+            const parsed = this.parseDateRange(dateRangeCell.v as string);
+            if (parsed) {
+              dateRangeStart = parsed.start;
+              dateRangeEnd = parsed.end;
+            }
           }
         }
 
@@ -159,6 +173,7 @@ export class SeatingChartService {
           date,
           dateRangeStart,
           dateRangeEnd,
+          expandedDates,
           notes,
           dateDisplay,
           dateRangeDisplay,
@@ -187,5 +202,51 @@ export class SeatingChartService {
     const end = new Date(parts[1].trim());
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
     return { start: this.toDateString(start), end: this.toDateString(end) };
+  }
+
+  /**
+   * Parse same-month multi-date range: "June 2026 - 9, 10, 16-18, 23-24, 30"
+   * Returns expanded list of YYYY-MM-DD strings, or null if format doesn't match.
+   */
+  private parseMultiDateRange(rangeStr: string): string[] | null {
+    // Must start with "<MonthName> <YYYY> - <dates>"
+    const prefixMatch = rangeStr.match(/^([A-Za-z]+)\s+(\d{4})\s*-\s*(.+)$/);
+    if (!prefixMatch) return null;
+
+    const monthName = prefixMatch[1];
+    const year = parseInt(prefixMatch[2]);
+    const datesPart = prefixMatch[3];
+
+    const testDate = new Date(`${monthName} 1, ${year}`);
+    if (isNaN(testDate.getTime())) return null;
+    const month = testDate.getMonth(); // 0-indexed
+
+    const expanded: string[] = [];
+
+    for (const seg of datesPart.split(',')) {
+      const trimmed = seg.trim();
+      const rangeMatch = trimmed.match(/^(\d+)\s*-\s*(\d+)$/);
+      if (rangeMatch) {
+        const from = parseInt(rangeMatch[1]);
+        const to = parseInt(rangeMatch[2]);
+        for (let d = from; d <= to; d++) {
+          const date = new Date(year, month, d);
+          if (date.getMonth() === month) {
+            expanded.push(this.toDateString(date));
+          }
+        }
+      } else {
+        const dayMatch = trimmed.match(/^(\d+)$/);
+        if (dayMatch) {
+          const day = parseInt(dayMatch[1]);
+          const date = new Date(year, month, day);
+          if (date.getMonth() === month) {
+            expanded.push(this.toDateString(date));
+          }
+        }
+      }
+    }
+
+    return expanded.length > 0 ? expanded : null;
   }
 }

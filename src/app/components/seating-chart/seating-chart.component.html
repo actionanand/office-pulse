@@ -172,4 +172,33 @@
       </div>
     }
   }
+
+  <!-- Data Entry Guide -->
+  <div class="data-entry-guide">
+    <h3 class="guide-title">📋 Data Entry Guide</h3>
+    <p class="guide-intro">Supported date formats when entering data in the Google Sheet:</p>
+    <div class="guide-grid">
+      <div class="guide-item">
+        <h4>Single Date <span class="col-badge">Column G</span></h4>
+        <p>Select a date cell directly in Google Sheets — stored as a date type automatically.</p>
+        <div class="code-block">July 1 2026</div>
+      </div>
+      <div class="guide-item">
+        <h4>Date Range <span class="col-badge">Column H</span></h4>
+        <p>Two full dates separated by <strong> – </strong> (space‑hyphen‑space), same or different months.</p>
+        <div class="code-block">June 2 2026 - June 3 2026</div>
+      </div>
+      <div class="guide-item">
+        <h4>Same-month Multi-date <span class="col-badge">Column H</span></h4>
+        <p>Month &amp; year prefix, then comma-separated dates or sub-ranges — all within the same month.</p>
+        <div class="code-block">June 2026 - 9, 10, 16-18, 23-24, 30</div>
+        <ul class="guide-sub-list">
+          <li><code>9, 10, 30</code> — individual dates</li>
+          <li><code>16-18</code> or <code>16 - 18</code> — range (16, 17, 18)</li>
+          <li><code>23-24</code> — range (23, 24)</li>
+        </ul>
+      </div>
+    </div>
+    <p class="guide-note">⚠️ Leave Column G empty when using Column H (Date Range), and vice versa.</p>
+  </div>
 </div>

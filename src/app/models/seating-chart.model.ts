@@ -16,4 +16,6 @@ export interface SeatingEntry {
   dateDisplay?: string;
   /** Raw date range string from sheet, e.g. "May 15 2026 - May 16 2026" */
   dateRangeDisplay?: string;
+  /** Expanded date list from multi-date range, e.g. "June 2026 - 9, 10, 16-18" */
+  expandedDates?: string[];
 }

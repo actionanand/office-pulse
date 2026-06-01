@@ -1,0 +1,205 @@
+<div class="cc-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="title-section">
+      <h1>💳 Credit Card Tracker</h1>
+      <p class="subtitle">Monitor last usage to avoid accidental closure by bank</p>
+    </div>
+    <div class="header-actions">
+      <div class="view-toggle">
+        <button class="toggle-btn" [class.active]="view() === 'cards'" (click)="view.set('cards')">🃏 Cards</button>
+        <button class="toggle-btn" [class.active]="view() === 'table'" (click)="view.set('table')">📋 Table</button>
+      </div>
+      <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
+        <span class="refresh-icon">↻</span> Refresh
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading credit cards...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-container">
+      <p class="error-message">⚠️ {{ error() }}</p>
+      <button class="refresh-btn" (click)="refresh()">Try Again</button>
+    </div>
+  } @else {
+    <!-- Summary Bar -->
+    <div class="summary-bar">
+      <div class="stat">
+        <span class="stat-value">{{ totalCards() }}</span>
+        <span class="stat-label">Total Cards</span>
+      </div>
+      <div class="stat stat-frequent">
+        <span class="stat-value">{{ frequentCount() }}</span>
+        <span class="stat-label">Frequently Used</span>
+      </div>
+      <div class="stat stat-attention" [class.has-issues]="needAttentionCount() > 0">
+        <span class="stat-value">{{ needAttentionCount() }}</span>
+        <span class="stat-label">Need Attention</span>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <span class="legend-item age-recent">✅ Within 3 months</span>
+      <span class="legend-item age-moderate">⚠️ 3–6 months</span>
+      <span class="legend-item age-old">🔶 6–12 months</span>
+      <span class="legend-item age-very-old">🔴 Over 1 year</span>
+      <span class="legend-item age-frequent">⚡ Frequently used (always safe)</span>
+    </div>
+
+    <!-- ══════ CARDS VIEW ══════ -->
+    @if (view() === 'cards') {
+      <div class="sort-controls">
+        <span class="sort-label">Sort by:</span>
+        <button class="sort-btn" [class.active]="sortKey() === 'recent'" (click)="setSort('recent')">
+          Recently Used {{ getSortIcon('recent') }}
+        </button>
+        <button class="sort-btn" [class.active]="sortKey() === 'bank'" (click)="setSort('bank')">
+          Bank {{ getSortIcon('bank') }}
+        </button>
+        <button class="sort-btn" [class.active]="sortKey() === 'digits'" (click)="setSort('digits')">
+          Last 4 Digits {{ getSortIcon('digits') }}
+        </button>
+        <button class="sort-btn" [class.active]="sortKey() === 'frequent'" (click)="setSort('frequent')">
+          Frequent First {{ getSortIcon('frequent') }}
+        </button>
+      </div>
+
+      @if (sortedCards().length === 0) {
+        <div class="empty-state">
+          <span class="empty-icon">💳</span>
+          <p>No credit card entries found.</p>
+        </div>
+      } @else {
+        <div class="cards-grid">
+          @for (card of sortedCards(); track card.sno) {
+            <div class="cc-card" [class]="'age-' + card.age">
+              <div class="card-top">
+                <span class="bank-name">{{ card.bank }}</span>
+                <span class="age-badge">{{ getAgeLabel(card.age) }}</span>
+              </div>
+              <div class="card-body">
+                <div class="card-name">{{ card.name }}</div>
+                <div class="card-digits">•••• •••• •••• {{ card.digits }}</div>
+              </div>
+              <div class="card-footer">
+                <div class="last-used">
+                  <span class="last-used-label">Last used</span>
+                  <span class="last-used-date">{{ card.lastUsedDisplay }}</span>
+                  <span class="last-used-relative">{{ getRelativeTime(card.daysAgo) }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- ══════ TABLE VIEW ══════ -->
+    @if (view() === 'table') {
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-row">
+          <div class="filter-group">
+            <span class="filter-label">Bank</span>
+            <select class="bank-select" [(ngModel)]="filterBank" [ngModelOptions]="{ standalone: true }">
+              <option value="">All banks</option>
+              @for (bank of availableBanks(); track bank) {
+                <option [value]="bank">{{ bank }}</option>
+              }
+            </select>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Status</span>
+            <div class="age-chips">
+              <button class="age-chip" [class.active]="filterAge() === ''" (click)="filterAge.set('')">All</button>
+              <button
+                class="age-chip chip-frequent"
+                [class.active]="filterAge() === 'frequent'"
+                (click)="filterAge.set('frequent')">
+                ⚡ Frequent
+              </button>
+              <button
+                class="age-chip chip-recent"
+                [class.active]="filterAge() === 'recent'"
+                (click)="filterAge.set('recent')">
+                ✅ &lt;3 months
+              </button>
+              <button
+                class="age-chip chip-moderate"
+                [class.active]="filterAge() === 'moderate'"
+                (click)="filterAge.set('moderate')">
+                ⚠️ 3–6 months
+              </button>
+              <button class="age-chip chip-old" [class.active]="filterAge() === 'old'" (click)="filterAge.set('old')">
+                🔶 6–12 months
+              </button>
+              <button
+                class="age-chip chip-very-old"
+                [class.active]="filterAge() === 'very-old'"
+                (click)="filterAge.set('very-old')">
+                🔴 Over 1 year
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="filter-meta">
+          @if (activeFilterCount() > 0) {
+            <span class="filter-count">
+              Showing <strong>{{ sortedCards().length }}</strong> of {{ totalCards() }} card{{
+                totalCards() !== 1 ? 's' : ''
+              }}
+            </span>
+            <button class="clear-filters-btn" (click)="clearFilters()">× Clear filters</button>
+          } @else {
+            <span class="filter-count-neutral">{{ totalCards() }} cards total</span>
+          }
+        </div>
+      </div>
+
+      <!-- Table -->
+      @if (sortedCards().length === 0) {
+        <div class="empty-state">
+          <span class="empty-icon">🔍</span>
+          <p>No cards match the current filters.</p>
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table class="cc-table">
+            <thead>
+              <tr>
+                <th class="th-sno">#</th>
+                <th class="sortable" (click)="setSort('bank')">Bank {{ getSortIcon('bank') }}</th>
+                <th>Card Name</th>
+                <th class="sortable" (click)="setSort('digits')">Last 4 {{ getSortIcon('digits') }}</th>
+                <th class="sortable" (click)="setSort('recent')">Last Used {{ getSortIcon('recent') }}</th>
+                <th>Since</th>
+                <th class="sortable" (click)="setSort('frequent')">Status {{ getSortIcon('frequent') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (card of sortedCards(); track card.sno; let i = $index) {
+                <tr [class]="'row-age-' + card.age">
+                  <td class="td-sno">{{ i + 1 }}</td>
+                  <td class="td-bank">{{ card.bank }}</td>
+                  <td class="td-name">{{ card.name }}</td>
+                  <td class="td-digits">•••• {{ card.digits }}</td>
+                  <td class="td-date">{{ card.lastUsedDisplay }}</td>
+                  <td class="td-since">{{ getRelativeTime(card.daysAgo) }}</td>
+                  <td class="td-status">
+                    <span class="table-age-badge age-{{ card.age }}">{{ getAgeLabel(card.age) }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  }
+</div>

@@ -116,6 +116,13 @@ export class HomeComponent {
       description: 'Find vacant berths during your train journey for RAC passengers',
       color: '#1565c0',
     },
+    {
+      path: '/credit-card-tracker',
+      icon: '💳',
+      title: 'CC Tracker',
+      description: 'Monitor credit card last usage to avoid accidental closure by bank',
+      color: '#00695c',
+    },
   ];
 
   readonly currentHour = new Date().getHours();

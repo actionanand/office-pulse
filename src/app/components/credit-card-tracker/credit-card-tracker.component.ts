@@ -1,11 +1,12 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CreditCardService } from '../../services/credit-card.service';
 import { CreditCard, CreditCardAge, CreditCardSortKey, CreditCardSortDir } from '../../models/credit-card.model';
 
 @Component({
   selector: 'app-credit-card-tracker',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './credit-card-tracker.component.html',
   styleUrl: './credit-card-tracker.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -13,29 +14,50 @@ import { CreditCard, CreditCardAge, CreditCardSortKey, CreditCardSortDir } from 
 export class CreditCardTrackerComponent implements OnInit {
   private service = inject(CreditCardService);
 
+  // ── view / data ─────────────────────────────────────────────────────────
+  view = signal<'cards' | 'table'>('cards');
   loading = signal(true);
   error = signal<string | null>(null);
   allCards = signal<CreditCard[]>([]);
 
+  // ── sort ─────────────────────────────────────────────────────────────────
   sortKey = signal<CreditCardSortKey>('recent');
   sortDir = signal<CreditCardSortDir>('asc');
 
+  // ── filters (table view) ─────────────────────────────────────────────────
+  filterBank = signal<string>('');
+  filterAge = signal<CreditCardAge | ''>('');
+
+  // ── derived ──────────────────────────────────────────────────────────────
   totalCards = computed(() => this.allCards().length);
   frequentCount = computed(() => this.allCards().filter((c: CreditCard) => c.frequentlyUsed).length);
   needAttentionCount = computed(
     () => this.allCards().filter((c: CreditCard) => c.age === 'old' || c.age === 'very-old').length,
   );
 
+  availableBanks = computed(() => [...new Set(this.allCards().map((c: CreditCard) => c.bank))].sort());
+
+  activeFilterCount = computed(() => (this.filterBank() ? 1 : 0) + (this.filterAge() ? 1 : 0));
+
+  /** Cards after applying bank + age filters */
+  filteredCards = computed(() => {
+    let cards = this.allCards();
+    const bank = this.filterBank();
+    const age = this.filterAge();
+    if (bank) cards = cards.filter((c: CreditCard) => c.bank === bank);
+    if (age) cards = cards.filter((c: CreditCard) => c.age === age);
+    return cards;
+  });
+
+  /** Filtered cards after sorting — used by both card and table views */
   sortedCards = computed(() => {
-    const cards = [...this.allCards()];
+    const cards = [...this.filteredCards()];
     const key = this.sortKey();
     const dir = this.sortDir();
 
     cards.sort((a: CreditCard, b: CreditCard) => {
       let cmp = 0;
-
       if (key === 'recent') {
-        // Frequently used cards are treated as used today (daysAgo = -1)
         const aEff = a.frequentlyUsed ? -1 : a.daysAgo;
         const bEff = b.frequentlyUsed ? -1 : b.daysAgo;
         cmp = aEff - bEff;
@@ -51,7 +73,6 @@ export class CreditCardTrackerComponent implements OnInit {
           cmp = a.daysAgo - b.daysAgo;
         }
       }
-
       return dir === 'asc' ? cmp : -cmp;
     });
 
@@ -80,6 +101,11 @@ export class CreditCardTrackerComponent implements OnInit {
   refresh(): void {
     this.service.clearCache();
     this.loadData();
+  }
+
+  clearFilters(): void {
+    this.filterBank.set('');
+    this.filterAge.set('');
   }
 
   setSort(key: CreditCardSortKey): void {

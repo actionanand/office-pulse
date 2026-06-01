@@ -79,6 +79,12 @@ export const routes: Routes = [
     canActivate: [lockGuard],
   },
   {
+    path: 'credit-card-tracker',
+    loadComponent: () =>
+      import('./components/credit-card-tracker/credit-card-tracker.component').then(m => m.CreditCardTrackerComponent),
+    canActivate: [lockGuard],
+  },
+  {
     path: 'markdown',
     loadComponent: () =>
       import('./components/markdown-viewer/markdown-viewer.component').then(m => m.MarkdownViewerComponent),

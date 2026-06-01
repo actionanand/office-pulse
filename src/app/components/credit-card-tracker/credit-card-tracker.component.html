@@ -106,7 +106,7 @@
       <div class="filter-bar">
         <div class="filter-row">
           <div class="filter-group">
-            <label class="filter-label">Bank</label>
+            <span class="filter-label">Bank</span>
             <select class="bank-select" [(ngModel)]="filterBank" [ngModelOptions]="{ standalone: true }">
               <option value="">All banks</option>
               @for (bank of availableBanks(); track bank) {
@@ -115,7 +115,7 @@
             </select>
           </div>
           <div class="filter-group">
-            <label class="filter-label">Status</label>
+            <span class="filter-label">Status</span>
             <div class="age-chips">
               <button class="age-chip" [class.active]="filterAge() === ''" (click)="filterAge.set('')">All</button>
               <button
@@ -183,9 +183,9 @@
               </tr>
             </thead>
             <tbody>
-              @for (card of sortedCards(); track card.sno) {
+              @for (card of sortedCards(); track card.sno; let i = $index) {
                 <tr [class]="'row-age-' + card.age">
-                  <td class="td-sno">{{ card.sno }}</td>
+                  <td class="td-sno">{{ i + 1 }}</td>
                   <td class="td-bank">{{ card.bank }}</td>
                   <td class="td-name">{{ card.name }}</td>
                   <td class="td-digits">•••• {{ card.digits }}</td>

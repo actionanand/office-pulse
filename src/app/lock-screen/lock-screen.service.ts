@@ -11,6 +11,7 @@ interface AuthData {
 })
 export class LockScreenService {
   private readonly config: LockScreenConfig = LOCK_SCREEN_CONFIG;
+  private pendingUrl = '/';
 
   // Signal to track authentication state
   private readonly _isAuthenticated = signal<boolean>(false);
@@ -70,7 +71,6 @@ export class LockScreenService {
     if (hash === this.config.passwordHash) {
       this.saveAuth(hash);
       this._isAuthenticated.set(true);
-      this._showLockScreen.set(false);
       return true;
     }
 
@@ -82,6 +82,16 @@ export class LockScreenService {
    */
   showLock(): void {
     this._showLockScreen.set(true);
+  }
+
+  setPendingUrl(url: string): void {
+    this.pendingUrl = url || '/';
+  }
+
+  consumePendingUrl(): string {
+    const url = this.pendingUrl;
+    this.pendingUrl = '/';
+    return url;
   }
 
   /**

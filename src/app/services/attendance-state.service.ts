@@ -1,23 +1,34 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { GvizService, SheetEntry } from './gviz.service';
 import { StorageService } from './storage.service';
 import { environment as env } from '../../environments/environment';
 
+interface AttendanceCache {
+  entries: SheetEntry[];
+  fetchedAt: string;
+}
+
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AttendanceStateService {
-  private gvizService = new GvizService();
-  private storageService = new StorageService();
+  private gvizService = inject(GvizService);
+  private storageService = inject(StorageService);
+  private readonly cacheKey = 'office_pulse_attendance_cache';
 
   // All entries from API
   allEntries = signal<SheetEntry[]>([]);
   isLoading = signal<boolean>(false);
   lastFetchTime = signal<Date | null>(null);
-  
+
   // Signal to trigger reactivity when local storage changes
   // Increment this whenever local storage is updated
   private localStorageVersion = signal<number>(0);
+
+  constructor() {
+    this.loadCachedEntries();
+  }
 
   // Computed: Today's entry from API (based on entry date only)
   // NOTE: If entry exists in API with today's entry date, it means BOTH entry and exit are submitted
@@ -25,7 +36,7 @@ export class AttendanceStateService {
   todayEntryFromAPI = computed(() => {
     const today = this.getTodayDateString();
     const entries = this.allEntries();
-    
+
     // Find entries where the ENTRY TIME date is today (not exit time)
     // This supports night shift: entry on Day 1, exit on Day 2
     const todayEntries = entries.filter(entry => {
@@ -33,9 +44,9 @@ export class AttendanceStateService {
       const entryDate = this.getDateFromTimeString(entry.entryTime);
       return entryDate === today;
     });
-    
+
     if (todayEntries.length === 0) return null;
-    
+
     // Return latest entry for today based on entry time
     return todayEntries.reduce((latest, current) => {
       const latestTime = new Date(latest.entryTime).getTime();
@@ -51,9 +62,9 @@ export class AttendanceStateService {
   hasEntryToday = computed(() => {
     // Depend on localStorageVersion to trigger reactivity
     this.localStorageVersion();
-    
+
     const today = this.getTodayDateString();
-    
+
     // Check local storage - entry exists but not yet submitted to API
     const localEntry = this.storageService.getEntryLog();
     if (localEntry && localEntry.entryTime) {
@@ -62,7 +73,7 @@ export class AttendanceStateService {
         return true;
       }
     }
-    
+
     // Check API - if entry with today's entry date exists, both entry & exit are submitted
     return !!this.todayEntryFromAPI();
   });
@@ -74,9 +85,9 @@ export class AttendanceStateService {
   hasExitToday = computed(() => {
     // Depend on localStorageVersion to trigger reactivity
     this.localStorageVersion();
-    
+
     const today = this.getTodayDateString();
-    
+
     // Check local storage first - exit marked but not yet submitted
     const localEntry = this.storageService.getEntryLog();
     if (localEntry && localEntry.entryTime) {
@@ -85,7 +96,7 @@ export class AttendanceStateService {
         return true;
       }
     }
-    
+
     // Check API data - if entry with today's entry date exists, exit must be there too
     // because data only goes to API after complete submission
     const apiEntry = this.todayEntryFromAPI();
@@ -99,9 +110,9 @@ export class AttendanceStateService {
   isSubmittedToday = computed(() => {
     // Depend on localStorageVersion to trigger reactivity
     this.localStorageVersion();
-    
+
     const today = this.getTodayDateString();
-    
+
     // Check local storage submission flag
     const localEntry = this.storageService.getEntryLog();
     if (localEntry && localEntry.entryTime) {
@@ -110,7 +121,7 @@ export class AttendanceStateService {
         return true;
       }
     }
-    
+
     // Check API - if entry with today's entry date exists with both times, it's submitted
     const apiEntry = this.todayEntryFromAPI();
     return !!(apiEntry && apiEntry.entryTime && apiEntry.exitTime);
@@ -125,17 +136,21 @@ export class AttendanceStateService {
       return;
     }
 
-    this.isLoading.set(true);
+    const hasExistingEntries = this.allEntries().length > 0;
+    this.isLoading.set(!hasExistingEntries);
 
     try {
-      const entries = await this.gvizService.fetchEntries(
-        env.GOOGLE_SHEET_ID,
-        env.SHEET_GID,
-        90 // Fetch last 90 days
-      ).toPromise();
+      const entries = await firstValueFrom(
+        this.gvizService.fetchEntries(
+          env.GOOGLE_SHEET_ID,
+          env.SHEET_GID,
+          90, // Fetch last 90 days
+        ),
+      );
 
       this.allEntries.set(entries || []);
       this.lastFetchTime.set(new Date());
+      this.saveCachedEntries(entries || []);
     } catch (error) {
       console.error('Error fetching attendance data:', error);
     } finally {
@@ -156,14 +171,14 @@ export class AttendanceStateService {
    */
   async refreshIfNeeded(maxAgeMinutes: number = 5): Promise<void> {
     const lastFetch = this.lastFetchTime();
-    
+
     if (!lastFetch) {
       await this.fetchAttendanceData();
       return;
     }
 
     const ageMinutes = (Date.now() - lastFetch.getTime()) / 1000 / 60;
-    
+
     if (ageMinutes > maxAgeMinutes) {
       await this.fetchAttendanceData();
     }
@@ -177,12 +192,39 @@ export class AttendanceStateService {
     return `${year}-${month}-${day}`;
   }
 
+  private loadCachedEntries(): void {
+    try {
+      const cached = localStorage.getItem(this.cacheKey);
+      if (!cached) return;
+
+      const cache = JSON.parse(cached) as AttendanceCache;
+      if (!Array.isArray(cache.entries)) return;
+
+      this.allEntries.set(cache.entries);
+      this.lastFetchTime.set(cache.fetchedAt ? new Date(cache.fetchedAt) : null);
+    } catch {
+      localStorage.removeItem(this.cacheKey);
+    }
+  }
+
+  private saveCachedEntries(entries: SheetEntry[]): void {
+    try {
+      const cache: AttendanceCache = {
+        entries,
+        fetchedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(this.cacheKey, JSON.stringify(cache));
+    } catch {
+      // Ignore storage quota/private-mode errors. Fresh API data is already in memory.
+    }
+  }
+
   private getDateFromTimeString(timeStr: string): string {
     if (!timeStr) return '';
     try {
       const date = new Date(timeStr);
       if (isNaN(date.getTime())) return '';
-      
+
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');

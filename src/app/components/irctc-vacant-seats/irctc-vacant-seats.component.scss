@@ -238,11 +238,6 @@
     color: #007bff;
     font-weight: 500;
   }
-
-  .station-day {
-    font-size: 0.68rem;
-    color: #888;
-  }
 }
 
 .station-line {
@@ -382,6 +377,31 @@
   color: #1a1a1a;
 }
 
+.duration-row {
+  justify-content: space-between;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid #eef1f4;
+}
+
+.duration-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.berth-value {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .route-row {
   margin-top: 0.25rem;
   background: #f8f9fa;
@@ -423,6 +443,18 @@
 .station-meta {
   font-size: 0.72rem;
   color: #007bff;
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+
+  .station.to & {
+    justify-content: flex-end;
+  }
+}
+
+.day-bracket {
+  color: #7a8699;
+  font-weight: 500;
 }
 
 .arrow {
@@ -658,8 +690,10 @@
 }
 
 .td-berth {
-  font-size: 0.8rem;
-  color: #555;
+  color: #9a3412;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .td-station {
@@ -682,7 +716,13 @@
 
 .day-val {
   font-size: 0.7rem;
-  color: #888;
+  color: #7a8699;
+}
+
+.td-duration {
+  color: #0f766e;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 // ── PRINT / PDF ───────────────────────────────────────────────────────────

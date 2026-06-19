@@ -57,8 +57,10 @@
               <div class="station-dot"></div>
               <div class="station-info">
                 <span class="station-name">{{ station.place }}</span>
-                <span class="station-time">{{ station.display12h }}</span>
-                <span class="station-day">{{ station.dayLabel }}</span>
+                <span class="station-time">
+                  {{ station.display12h }}
+                  <span class="day-bracket">({{ station.dayLabel }})</span>
+                </span>
               </div>
             </div>
             @if (!last) {
@@ -72,6 +74,9 @@
     <!-- Sort Controls -->
     <div class="sort-controls no-print">
       <span class="sort-label">Sort by:</span>
+      <button class="sort-btn" [class.active]="sortKey() === 'duration'" (click)="setSort('duration')">
+        Duration {{ getSortIcon('duration') }}
+      </button>
       <button class="sort-btn" [class.active]="sortKey() === 'from'" (click)="setSort('from')">
         From Station {{ getSortIcon('from') }}
       </button>
@@ -99,6 +104,12 @@
                 <div class="seat-count">{{ entry.seatCount }} seat{{ entry.seatCount !== 1 ? 's' : '' }}</div>
               </div>
               <div class="card-body">
+                @if (entry.displayDuration) {
+                  <div class="info-row duration-row">
+                    <span class="field-label">Duration</span>
+                    <span class="duration-value">{{ entry.displayDuration }}</span>
+                  </div>
+                }
                 <div class="seats-row">
                   <span class="field-label">Seats</span>
                   <span class="seats-value">{{ entry.seats }}</span>
@@ -106,7 +117,7 @@
                 @if (entry.berth) {
                   <div class="info-row">
                     <span class="field-label">Berth</span>
-                    <span class="field-value">{{ entry.berth }}</span>
+                    <span class="berth-value">{{ entry.berth }}</span>
                   </div>
                 }
                 <div class="route-row">
@@ -115,9 +126,10 @@
                       <span class="station-label">From</span>
                       <span class="station-value">{{ entry.fromStation }}</span>
                       @if (entry.fromSchedule) {
-                        <span class="station-meta"
-                          >{{ entry.fromSchedule.display12h }} · {{ entry.fromSchedule.dayLabel }}</span
-                        >
+                        <span class="station-meta">
+                          <span>{{ entry.fromSchedule.display12h }}</span>
+                          <span class="day-bracket">({{ entry.fromSchedule.dayLabel }})</span>
+                        </span>
                       }
                     </div>
                     <span class="arrow">→</span>
@@ -125,9 +137,10 @@
                       <span class="station-label">To</span>
                       <span class="station-value">{{ entry.toStation }}</span>
                       @if (entry.toSchedule) {
-                        <span class="station-meta"
-                          >{{ entry.toSchedule.display12h }} · {{ entry.toSchedule.dayLabel }}</span
-                        >
+                        <span class="station-meta">
+                          <span>{{ entry.toSchedule.display12h }}</span>
+                          <span class="day-bracket">({{ entry.toSchedule.dayLabel }})</span>
+                        </span>
                       }
                     </div>
                   </div>
@@ -144,6 +157,9 @@
       <div class="table-section" [class.table-hidden]="view() !== 'table'">
         <div class="table-sort-controls no-print">
           <span class="sort-label">Sort by:</span>
+          <button class="sort-btn" [class.active]="sortKey() === 'duration'" (click)="setSort('duration')">
+            Duration {{ getSortIcon('duration') }}
+          </button>
           <button class="sort-btn" [class.active]="sortKey() === 'from'" (click)="setSort('from')">
             From {{ getSortIcon('from') }}
           </button>
@@ -167,6 +183,7 @@
                 <th>From Time</th>
                 <th class="sortable" (click)="setSort('to')">To {{ getSortIcon('to') }}</th>
                 <th>To Time</th>
+                <th class="sortable" (click)="setSort('duration')">Duration {{ getSortIcon('duration') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -181,7 +198,7 @@
                   <td class="td-time">
                     @if (entry.fromSchedule) {
                       <span class="time-val">{{ entry.fromSchedule.display12h }}</span>
-                      <span class="day-val">{{ entry.fromSchedule.dayLabel }}</span>
+                      <span class="day-val">({{ entry.fromSchedule.dayLabel }})</span>
                     } @else {
                       —
                     }
@@ -190,11 +207,12 @@
                   <td class="td-time">
                     @if (entry.toSchedule) {
                       <span class="time-val">{{ entry.toSchedule.display12h }}</span>
-                      <span class="day-val">{{ entry.toSchedule.dayLabel }}</span>
+                      <span class="day-val">({{ entry.toSchedule.dayLabel }})</span>
                     } @else {
                       —
                     }
                   </td>
+                  <td class="td-duration">{{ entry.displayDuration || '-' }}</td>
                 </tr>
               }
             </tbody>

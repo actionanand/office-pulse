@@ -119,6 +119,7 @@ export class IrctcVacantSeatService {
 
         const fromSchedule = stationLookup.get(this.toLookupKey(fromStation));
         const toSchedule = stationLookup.get(this.toLookupKey(toStation));
+        const durationMinutes = this.getDurationMinutes(fromSchedule, toSchedule);
 
         const entry: VacantSeatEntry = {
           sno,
@@ -131,6 +132,8 @@ export class IrctcVacantSeatService {
           toStation,
           fromSchedule,
           toSchedule,
+          durationMinutes,
+          displayDuration: durationMinutes == null ? undefined : this.formatDuration(durationMinutes),
         };
         return entry;
       })
@@ -178,6 +181,29 @@ export class IrctcVacantSeatService {
     const normalized = this.toLookupKey(value);
     if (!normalized) return '';
     return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  }
+
+  private getDurationMinutes(
+    fromSchedule: StationSchedule | undefined,
+    toSchedule: StationSchedule | undefined,
+  ): number | undefined {
+    if (!fromSchedule || !toSchedule) return undefined;
+
+    let duration = toSchedule.effectiveMinutes - fromSchedule.effectiveMinutes;
+    while (duration < 0) {
+      duration += 24 * 60;
+    }
+
+    return duration;
+  }
+
+  private formatDuration(totalMinutes: number): string {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours === 0) return `${minutes}m`;
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h ${minutes}m`;
   }
 
   /**

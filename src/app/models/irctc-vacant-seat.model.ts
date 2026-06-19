@@ -26,7 +26,11 @@ export interface VacantSeatEntry {
   fromSchedule?: StationSchedule;
   /** Looked-up schedule for toStation */
   toSchedule?: StationSchedule;
+  /** Travel time between fromSchedule and toSchedule, when both are known */
+  durationMinutes?: number;
+  /** e.g. "4h 35m" */
+  displayDuration?: string;
 }
 
-export type VacantSeatSortKey = 'from' | 'to' | 'coach';
+export type VacantSeatSortKey = 'duration' | 'from' | 'to' | 'coach';
 export type VacantSeatSortDir = 'asc' | 'desc';

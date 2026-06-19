@@ -81,7 +81,7 @@ export class IrctcVacantSeatService {
     const stations: StationSchedule[] = [];
     for (const row of data.table.rows) {
       const cells = row.c;
-      const place = (cells[7]?.v as string) || '';
+      const place = this.toDisplayName(cells[7]?.v);
       const timeVal = cells[8]?.v as number | null;
       const dayVal = cells[9]?.v as number | null;
 
@@ -95,10 +95,10 @@ export class IrctcVacantSeatService {
       }
     }
 
-    // Build a lookup from station name (lowercase) → StationSchedule
+    // Build a lookup from normalized station name → StationSchedule
     const stationLookup = new Map<string, StationSchedule>();
     for (const s of stations) {
-      stationLookup.set(s.place.toLowerCase(), s);
+      stationLookup.set(this.toLookupKey(s.place), s);
     }
 
     // Parse seat entries from columns A-F
@@ -108,17 +108,18 @@ export class IrctcVacantSeatService {
         const sno = (cells[0]?.v as number) ?? 0;
         if (sno <= 0) return null;
 
-        const coach = (cells[1]?.v as string) ?? '';
+        const coach = this.toDisplayName(cells[1]?.v);
         const seats = (cells[2]?.v as string) ?? '';
         const berth = (cells[3]?.v as string) ?? '';
-        const fromStation = (cells[4]?.v as string) || 'From Start';
-        const toStation = (cells[5]?.v as string) || 'Till End';
+        const fromStation = this.toDisplayName(cells[4]?.v || 'From Start');
+        const toStation = this.toDisplayName(cells[5]?.v || 'Till End');
 
         const seatList = this.expandSeats(seats);
         const seatCount = seatList.length;
 
-        const fromSchedule = stationLookup.get(fromStation.toLowerCase());
-        const toSchedule = stationLookup.get(toStation.toLowerCase());
+        const fromSchedule = stationLookup.get(this.toLookupKey(fromStation));
+        const toSchedule = stationLookup.get(this.toLookupKey(toStation));
+        const durationMinutes = this.getDurationMinutes(fromSchedule, toSchedule);
 
         const entry: VacantSeatEntry = {
           sno,
@@ -131,6 +132,8 @@ export class IrctcVacantSeatService {
           toStation,
           fromSchedule,
           toSchedule,
+          durationMinutes,
+          displayDuration: durationMinutes == null ? undefined : this.formatDuration(durationMinutes),
         };
         return entry;
       })
@@ -165,6 +168,42 @@ export class IrctcVacantSeatService {
     if (day === 0) return 'Same Day';
     if (day === 1) return 'Next Day';
     return `Day ${day + 1}`;
+  }
+
+  private toLookupKey(value: string | number | boolean | null | undefined): string {
+    return String(value ?? '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+  }
+
+  private toDisplayName(value: string | number | boolean | null | undefined): string {
+    const normalized = this.toLookupKey(value);
+    if (!normalized) return '';
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  }
+
+  private getDurationMinutes(
+    fromSchedule: StationSchedule | undefined,
+    toSchedule: StationSchedule | undefined,
+  ): number | undefined {
+    if (!fromSchedule || !toSchedule) return undefined;
+
+    let duration = toSchedule.effectiveMinutes - fromSchedule.effectiveMinutes;
+    while (duration < 0) {
+      duration += 24 * 60;
+    }
+
+    return duration;
+  }
+
+  private formatDuration(totalMinutes: number): string {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours === 0) return `${minutes}m`;
+    if (minutes === 0) return `${hours}h`;
+    return `${hours}h ${minutes}m`;
   }
 
   /**

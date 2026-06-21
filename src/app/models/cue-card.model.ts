@@ -6,6 +6,7 @@ export interface CueCard {
   title: string;
   contentHtml: string;
   tableName: string;
+  tableHeaderBold: boolean;
   table: CueCardTable | null;
   isOffline?: boolean;
 }
@@ -21,6 +22,7 @@ export const cueCardSheetColumns = [
   'Title',
   'ContentHtml',
   'TableName',
+  'TableHeaderBold',
   'TableData',
 ] as const;
 

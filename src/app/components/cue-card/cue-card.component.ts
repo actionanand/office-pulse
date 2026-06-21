@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signa
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CueCard, CueCardMode } from '../../models/cue-card.model';
+import { CueCard, CueCardMode, CueCardTable } from '../../models/cue-card.model';
 import { SafeCueCardHtmlPipe } from '../../pipes/safe-cue-card-html.pipe';
 import { CueCardService } from '../../services/cue-card.service';
 
@@ -33,9 +33,16 @@ export class CueCardComponent {
   protected readonly errorMessage = signal('');
   protected readonly sheetCards = signal<CueCard[]>([]);
   protected readonly offlineCards = signal<CueCard[]>(this.cueCardService.getOfflineCueCards());
+  protected readonly selectedCard = signal<CueCard | null>(null);
+  protected readonly editingCard = signal<CueCard | null>(null);
+  protected readonly table = signal<CueCardTable | null>(null);
+  protected readonly tablePasteText = signal('');
+  protected readonly newTableColumnCount = signal(3);
   protected readonly textColorOptions = this.cueCardService.textColorOptions;
   protected readonly backgroundColorOptions = this.cueCardService.backgroundColorOptions;
   protected readonly editor = viewChild<ElementRef<HTMLDivElement>>('contentEditor');
+  protected readonly maxTableRows = 13;
+  protected readonly maxTableColumns = 7;
 
   protected readonly cards = computed(() => {
     const offlineCards = this.offlineCards();
@@ -43,10 +50,19 @@ export class CueCardComponent {
     return [...offlineCards, ...this.sheetCards().filter(card => !offlineIds.has(card.id))];
   });
   protected readonly hasOfflineCards = computed(() => this.offlineCards().length > 0);
+  protected readonly isEditing = computed(() => this.editingCard() !== null);
+  protected readonly tableColumnCount = computed(() => this.table()?.rows[0]?.length ?? 0);
+  protected readonly canAddTableColumn = computed(
+    () => this.tableColumnCount() > 0 && this.tableColumnCount() < this.maxTableColumns,
+  );
+  protected readonly canAddTableRow = computed(
+    () => Boolean(this.table()) && (this.table()?.rows.length ?? 0) < this.maxTableRows,
+  );
 
   protected readonly form = this.formBuilder.nonNullable.group({
     title: ['', [Validators.required]],
     contentHtml: ['', [Validators.required]],
+    tableName: [''],
   });
 
   protected setMode(mode: CueCardMode): void {
@@ -107,8 +123,15 @@ export class CueCardComponent {
     if (!card) return;
 
     try {
-      await navigator.clipboard.writeText(this.cueCardService.toGoogleSheetClipboard(card));
-      this.statusMessage.set('Copied cue card header and row for Google Sheet.');
+      const clipboardValue = card.rowNumber
+        ? this.cueCardService.toTsvRow(card)
+        : this.cueCardService.toGoogleSheetClipboard(card);
+      await navigator.clipboard.writeText(clipboardValue);
+      this.statusMessage.set(
+        card.rowNumber
+          ? `Copied replacement row for Google Sheet row ${card.rowNumber}.`
+          : 'Copied cue card header and row for Google Sheet.',
+      );
     } catch {
       this.errorMessage.set('Clipboard copy failed. Select the generated content and copy manually.');
     }
@@ -146,14 +169,146 @@ export class CueCardComponent {
     });
   }
 
+  protected openCard(card: CueCard): void {
+    this.selectedCard.set(card);
+  }
+
+  protected closeCard(): void {
+    this.selectedCard.set(null);
+  }
+
+  protected editCard(card: CueCard): void {
+    this.closeCard();
+    this.mode.set('generate');
+    this.editingCard.set(card);
+    this.form.patchValue({
+      title: card.title,
+      contentHtml: card.contentHtml,
+      tableName: card.tableName,
+    });
+    this.table.set(this.cueCardService.cloneTable(card.table));
+    this.statusMessage.set(
+      card.rowNumber
+        ? `Editing Google Sheet row ${card.rowNumber}. Replace that row with the copied row.`
+        : 'Editing offline cue card.',
+    );
+    this.errorMessage.set('');
+
+    queueMicrotask(() => {
+      const editor = this.editor();
+      if (editor) {
+        editor.nativeElement.innerHTML = card.contentHtml;
+      }
+    });
+  }
+
   protected resetForm(): void {
-    this.form.reset({ title: '', contentHtml: '' });
+    this.form.reset({ title: '', contentHtml: '', tableName: '' });
     const editor = this.editor();
     if (editor) {
       editor.nativeElement.innerHTML = '';
     }
+    this.table.set(null);
+    this.tablePasteText.set('');
+    this.editingCard.set(null);
     this.statusMessage.set('');
     this.errorMessage.set('');
+  }
+
+  protected previewText(card: CueCard): string {
+    return this.cueCardService.previewText(card, 100);
+  }
+
+  protected friendlyDate(value: string): string {
+    if (!value) return 'No date';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    return date.toLocaleString('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  }
+
+  protected createTable(): void {
+    this.table.set({
+      rows: [this.createEmptyTableRow(this.newTableColumnCount())],
+    });
+  }
+
+  protected clearTable(): void {
+    this.table.set(null);
+    this.tablePasteText.set('');
+  }
+
+  protected addTableRow(): void {
+    this.updateTable(table => ({
+      rows: [...table.rows, this.createEmptyTableRow(table.rows[0]?.length ?? 1)].slice(0, this.maxTableRows),
+    }));
+  }
+
+  protected addTableColumn(): void {
+    this.updateTable(table => ({
+      rows: table.rows.map(row => [...row, ''].slice(0, this.maxTableColumns)),
+    }));
+  }
+
+  protected removeLastTableRow(): void {
+    this.updateTable(table => ({
+      rows:
+        table.rows.length > 1
+          ? table.rows.slice(0, table.rows.length - 1)
+          : [this.createEmptyTableRow(table.rows[0]?.length ?? 1)],
+    }));
+  }
+
+  protected removeLastTableColumn(): void {
+    this.updateTable(table => {
+      const nextColumnCount = Math.max(1, (table.rows[0]?.length ?? 1) - 1);
+      return {
+        rows: table.rows.map(row => row.slice(0, nextColumnCount)),
+      };
+    });
+  }
+
+  protected updateNewTableColumnCount(value: string): void {
+    this.newTableColumnCount.set(this.clampInteger(Number(value), 1, this.maxTableColumns));
+  }
+
+  protected updateTablePasteText(value: string): void {
+    this.tablePasteText.set(value);
+  }
+
+  protected applyTablePaste(): void {
+    const rows = this.cueCardService.parsePastedTable(this.tablePasteText());
+    if (rows.length === 0) return;
+
+    this.table.set({
+      rows: rows.map(row => row.map(cell => this.cueCardService.sanitizeTableCellHtml(cell))),
+    });
+    this.tablePasteText.set('');
+  }
+
+  protected updateTableCell(rowIndex: number, columnIndex: number, value: string): void {
+    const sanitizedValue = this.cueCardService.sanitizeTableCellHtml(value);
+    this.updateTable(table => ({
+      rows: table.rows.map((row, currentRowIndex) =>
+        currentRowIndex === rowIndex
+          ? row.map((cell, currentColumnIndex) => (currentColumnIndex === columnIndex ? sanitizedValue : cell))
+          : row,
+      ),
+    }));
+  }
+
+  protected pasteIntoTable(event: ClipboardEvent, rowIndex: number, columnIndex: number): void {
+    const pastedText = event.clipboardData?.getData('text/plain') ?? '';
+    const rows = this.cueCardService.parsePastedTable(pastedText);
+
+    if (rows.length === 0 || (rows.length === 1 && rows[0]?.length === 1)) return;
+
+    event.preventDefault();
+    this.mergeTableRows(rows, rowIndex, columnIndex);
   }
 
   private buildCurrentCard(): CueCard | null {
@@ -166,10 +321,56 @@ export class CueCardComponent {
     }
 
     this.errorMessage.set('');
-    return this.cueCardService.buildCueCard(value.title, value.contentHtml);
+    return this.cueCardService.buildCueCard({
+      title: value.title,
+      contentHtml: value.contentHtml,
+      tableName: value.tableName,
+      table: this.table(),
+      existingCard: this.editingCard(),
+    });
   }
 
   private refreshOfflineCards(): void {
     this.offlineCards.set(this.cueCardService.getOfflineCueCards());
+  }
+
+  private updateTable(updater: (table: CueCardTable) => CueCardTable): void {
+    this.table.update(table => (table ? updater(table) : table));
+  }
+
+  private mergeTableRows(rows: string[][], startRowIndex: number, startColumnIndex: number): void {
+    this.updateTable(table => {
+      const columnCount = Math.min(
+        this.maxTableColumns,
+        Math.max(table.rows[0]?.length ?? 1, startColumnIndex + (rows[0]?.length ?? 1)),
+      );
+      const rowCount = Math.min(this.maxTableRows, Math.max(table.rows.length, startRowIndex + rows.length));
+      const nextRows = Array.from({ length: rowCount }, (_, rowIndex) => {
+        const existingRow = table.rows[rowIndex] ?? [];
+        return Array.from({ length: columnCount }, (_, columnIndex) => existingRow[columnIndex] ?? '');
+      });
+
+      rows.forEach((row, pastedRowIndex) => {
+        row.forEach((cell, pastedColumnIndex) => {
+          const nextRowIndex = startRowIndex + pastedRowIndex;
+          const nextColumnIndex = startColumnIndex + pastedColumnIndex;
+
+          if (nextRows[nextRowIndex] && nextColumnIndex < columnCount) {
+            nextRows[nextRowIndex][nextColumnIndex] = this.cueCardService.sanitizeTableCellHtml(cell);
+          }
+        });
+      });
+
+      return { rows: nextRows };
+    });
+  }
+
+  private createEmptyTableRow(columnCount: number): string[] {
+    return Array.from({ length: this.clampInteger(columnCount, 1, this.maxTableColumns) }, () => '');
+  }
+
+  private clampInteger(value: number, min: number, max: number): number {
+    if (!Number.isFinite(value)) return min;
+    return Math.max(min, Math.min(max, Math.trunc(value)));
   }
 }

@@ -5,6 +5,7 @@ const appPackage = 'com.actionanand.officepulse.app';
 const javaDir = join('android', 'app', 'src', 'main', 'java', ...appPackage.split('.'));
 const mainActivityPath = join(javaDir, 'MainActivity.java');
 const reminderPluginPath = join(javaDir, 'OfficePulseReminderPlugin.java');
+const reminderReceiverPath = join(javaDir, 'OfficePulseReminderReceiver.java');
 const manifestPath = join('android', 'app', 'src', 'main', 'AndroidManifest.xml');
 const valuesDir = join('android', 'app', 'src', 'main', 'res', 'values');
 const colorsPath = join(valuesDir, 'colors.xml');
@@ -17,26 +18,140 @@ mkdirSync(javaDir, { recursive: true });
 mkdirSync(valuesDir, { recursive: true });
 
 writeFileSync(
-  reminderPluginPath,
+  reminderReceiverPath,
   `package ${appPackage};
 
-import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 
+public class OfficePulseReminderReceiver extends BroadcastReceiver {
+  public static final String CHANNEL_ID = "office-pulse-logoff-alerts";
+  public static final String EXTRA_ID = "id";
+  public static final String EXTRA_TITLE = "title";
+  public static final String EXTRA_BODY = "body";
+
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    int id = intent.getIntExtra(EXTRA_ID, 701601);
+    String title = intent.getStringExtra(EXTRA_TITLE);
+    String body = intent.getStringExtra(EXTRA_BODY);
+
+    if (title == null || title.trim().isEmpty()) {
+      title = "Log off reminder";
+    }
+    if (body == null || body.trim().isEmpty()) {
+      body = "Your log off time is coming up.";
+    }
+
+    showNotification(context, id, title, body);
+  }
+
+  public static void showNotification(Context context, int id, String title, String body) {
+    NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+    if (manager == null) {
+      return;
+    }
+
+    ensureChannel(manager);
+    manager.notify(id, buildNotification(context, title, body, id));
+  }
+
+  public static void cancelNotification(Context context, int id) {
+    NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+    if (manager != null) {
+      manager.cancel(id);
+    }
+  }
+
+  public static PendingIntent createPendingIntent(Context context, int id, String title, String body, int flags) {
+    Intent intent = new Intent(context, OfficePulseReminderReceiver.class);
+    intent.setAction("com.actionanand.officepulse.LOGOFF_REMINDER_" + id);
+    intent.putExtra(EXTRA_ID, id);
+    intent.putExtra(EXTRA_TITLE, title);
+    intent.putExtra(EXTRA_BODY, body);
+    return PendingIntent.getBroadcast(context, id, intent, flags);
+  }
+
+  private static Notification buildNotification(Context context, String title, String body, int requestCode) {
+    Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+    int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      flags |= PendingIntent.FLAG_IMMUTABLE;
+    }
+    PendingIntent pendingIntent = launchIntent == null
+      ? null
+      : PendingIntent.getActivity(context, requestCode, launchIntent, flags);
+
+    Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+      ? new Notification.Builder(context, CHANNEL_ID)
+      : new Notification.Builder(context);
+
+    builder
+      .setSmallIcon(context.getApplicationInfo().icon)
+      .setContentTitle(title)
+      .setContentText(body)
+      .setStyle(new Notification.BigTextStyle().bigText(body))
+      .setAutoCancel(true)
+      .setDefaults(Notification.DEFAULT_ALL)
+      .setPriority(Notification.PRIORITY_HIGH)
+      .setShowWhen(true)
+      .setWhen(System.currentTimeMillis());
+
+    if (pendingIntent != null) {
+      builder.setContentIntent(pendingIntent);
+    }
+
+    return builder.build();
+  }
+
+  private static void ensureChannel(NotificationManager manager) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+      return;
+    }
+
+    NotificationChannel channel = new NotificationChannel(
+      CHANNEL_ID,
+      "Log off alerts",
+      NotificationManager.IMPORTANCE_HIGH
+    );
+    channel.setDescription("Reminders before your calculated Office Pulse log off time");
+    channel.enableLights(true);
+    channel.setLightColor(Color.rgb(102, 126, 234));
+    channel.enableVibration(true);
+    manager.createNotificationChannel(channel);
+  }
+}
+`,
+);
+
+writeFileSync(
+  reminderPluginPath,
+  `package ${appPackage};
+
+import android.Manifest;
+import android.app.AlarmManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Build;
+
 import com.getcapacitor.JSObject;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
+
+import org.json.JSONObject;
 
 @CapacitorPlugin(
   name = "OfficePulseReminder",
@@ -45,7 +160,6 @@ import com.getcapacitor.annotation.Permission;
   }
 )
 public class OfficePulseReminderPlugin extends Plugin {
-  private static final String CHANNEL_ID = "office-pulse-logoff-alerts";
   private static final int[] REMINDER_IDS = {701601, 701630, 701615};
 
   @PluginMethod
@@ -68,8 +182,7 @@ public class OfficePulseReminderPlugin extends Plugin {
         return;
       }
 
-      ensureChannel(manager);
-      manager.notify(id, buildNotification(title, body, id));
+      OfficePulseReminderReceiver.showNotification(getContext(), id, title, body);
 
       JSObject result = new JSObject();
       result.put("sent", true);
@@ -80,64 +193,100 @@ public class OfficePulseReminderPlugin extends Plugin {
   }
 
   @PluginMethod
-  public void cancelLogoffReminders(PluginCall call) {
-    NotificationManager manager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-    if (manager != null) {
-      for (int id : REMINDER_IDS) {
-        manager.cancel(id);
+  public void scheduleLogoffReminders(PluginCall call) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        && getContext().checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+      call.reject("Notification permission is not granted.");
+      return;
+    }
+
+    JSArray reminders = call.getArray("reminders");
+    if (reminders == null) {
+      call.reject("Reminders are required.");
+      return;
+    }
+
+    AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+    if (alarmManager == null) {
+      call.reject("Alarm manager is not available.");
+      return;
+    }
+
+    try {
+      for (int index = 0; index < reminders.length(); index++) {
+        JSONObject reminder = reminders.getJSONObject(index);
+        int id = reminder.getInt("id");
+        long atMillis = reminder.getLong("atMillis");
+        String title = reminder.optString("title", "Log off reminder");
+        String body = reminder.optString("body", "Your log off time is coming up.");
+
+        cancelAlarm(id);
+
+        if (atMillis > System.currentTimeMillis()) {
+          PendingIntent pendingIntent = OfficePulseReminderReceiver.createPendingIntent(
+            getContext(),
+            id,
+            title,
+            body,
+            pendingIntentFlags()
+          );
+          scheduleAlarm(alarmManager, atMillis, pendingIntent);
+        }
       }
+
+      JSObject result = new JSObject();
+      result.put("scheduled", true);
+      call.resolve(result);
+    } catch (Exception ex) {
+      call.reject("Unable to schedule log off reminders.");
+    }
+  }
+
+  @PluginMethod
+  public void cancelLogoffReminders(PluginCall call) {
+    for (int id : REMINDER_IDS) {
+      cancelAlarm(id);
+      OfficePulseReminderReceiver.cancelNotification(getContext(), id);
     }
 
     call.resolve();
   }
 
-  private Notification buildNotification(String title, String body, int requestCode) {
-    Intent launchIntent = getContext().getPackageManager().getLaunchIntentForPackage(getContext().getPackageName());
+  private void cancelAlarm(int id) {
+    AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+    if (alarmManager == null) {
+      return;
+    }
+
+    PendingIntent pendingIntent = OfficePulseReminderReceiver.createPendingIntent(
+      getContext(),
+      id,
+      "",
+      "",
+      pendingIntentFlags()
+    );
+    alarmManager.cancel(pendingIntent);
+    pendingIntent.cancel();
+  }
+
+  private void scheduleAlarm(AlarmManager alarmManager, long atMillis, PendingIntent pendingIntent) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+      alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, atMillis, pendingIntent);
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, atMillis, pendingIntent);
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      alarmManager.setExact(AlarmManager.RTC_WAKEUP, atMillis, pendingIntent);
+    } else {
+      alarmManager.set(AlarmManager.RTC_WAKEUP, atMillis, pendingIntent);
+    }
+  }
+
+  private int pendingIntentFlags() {
     int flags = PendingIntent.FLAG_UPDATE_CURRENT;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       flags |= PendingIntent.FLAG_IMMUTABLE;
     }
-    PendingIntent pendingIntent = launchIntent == null
-      ? null
-      : PendingIntent.getActivity(getContext(), requestCode, launchIntent, flags);
-
-    Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-      ? new Notification.Builder(getContext(), CHANNEL_ID)
-      : new Notification.Builder(getContext());
-
-    builder
-      .setSmallIcon(getContext().getApplicationInfo().icon)
-      .setContentTitle(title)
-      .setContentText(body)
-      .setStyle(new Notification.BigTextStyle().bigText(body))
-      .setAutoCancel(true)
-      .setDefaults(Notification.DEFAULT_ALL)
-      .setPriority(Notification.PRIORITY_HIGH)
-      .setShowWhen(true)
-      .setWhen(System.currentTimeMillis());
-
-    if (pendingIntent != null) {
-      builder.setContentIntent(pendingIntent);
-    }
-
-    return builder.build();
-  }
-
-  private void ensureChannel(NotificationManager manager) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-      return;
-    }
-
-    NotificationChannel channel = new NotificationChannel(
-      CHANNEL_ID,
-      "Log off alerts",
-      NotificationManager.IMPORTANCE_HIGH
-    );
-    channel.setDescription("Reminders before your calculated Office Pulse log off time");
-    channel.enableLights(true);
-    channel.setLightColor(Color.rgb(102, 126, 234));
-    channel.enableVibration(true);
-    manager.createNotificationChannel(channel);
+    return flags;
   }
 }
 `,
@@ -252,6 +401,13 @@ if (!/android\.permission\.SCHEDULE_EXACT_ALARM/.test(manifest)) {
   manifest = manifest.replace(
     /<manifest([^>]*)>/,
     '<manifest$1>\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+  );
+}
+
+if (!/OfficePulseReminderReceiver/.test(manifest)) {
+  manifest = manifest.replace(
+    /<\/application>/,
+    '        <receiver android:name=".OfficePulseReminderReceiver" android:exported="false" />\n    </application>',
   );
 }
 

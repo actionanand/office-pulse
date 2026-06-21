@@ -41,6 +41,16 @@ interface OfficePulseReminderPlugin {
     minutesBefore: number;
     logoffAt: string;
   }) => Promise<unknown>;
+  scheduleLogoffReminders?: (options: {
+    reminders: Array<{
+      id: number;
+      title: string;
+      body: string;
+      minutesBefore: number;
+      logoffAt: string;
+      atMillis: number;
+    }>;
+  }) => Promise<unknown>;
   cancelLogoffReminders?: () => Promise<unknown>;
 }
 
@@ -109,6 +119,8 @@ export class AndroidLogoffNotificationService {
         return;
       }
 
+      await this.schedule(entryTime, workHours, now);
+
       const reminder = this.getReminderFromRemainingText(remainingText);
       if (!reminder) return;
 
@@ -123,7 +135,9 @@ export class AndroidLogoffNotificationService {
 
       await this.sendImmediateReminder(reminder, logoffAt);
       state.notifiedMinutes = Array.from(new Set([...state.notifiedMinutes, reminder.minutes]));
+      state.scheduledKey = '';
       this.writeState(state);
+      await this.schedule(entryTime, workHours, now);
     } catch {
       // Notification support is best-effort and Android-only.
     }
@@ -173,29 +187,44 @@ export class AndroidLogoffNotificationService {
           reminder,
           notifyAt: new Date(logoffAt.getTime() - reminder.minutes * 60 * 1000),
         }))
-        .filter(({ notifyAt }) => notifyAt.getTime() > now.getTime() + 1000);
+        .filter(
+          ({ reminder, notifyAt }) =>
+            notifyAt.getTime() > now.getTime() + 1000 && !state.notifiedMinutes.includes(reminder.minutes),
+        );
       const scheduledKey = this.getScheduledKey(sessionKey, futureReminders);
       const shouldRescheduleFuture = isNewSession || state.scheduledKey !== scheduledKey;
 
       if (!shouldRescheduleFuture && !immediateReminder) return;
 
+      const nativePlugin = this.getNativeReminderPlugin();
       const plugin = this.getPlugin();
-      if (!plugin) return;
+      if (!nativePlugin && !plugin) return;
 
-      const permissionGranted = await this.ensurePermission(plugin);
+      const permissionGranted = plugin ? await this.ensurePermission(plugin) : true;
       if (!permissionGranted) return;
 
-      await this.ensureChannel(plugin);
-      const useExactSchedule = await this.canUseExactSchedule(plugin);
+      if (plugin) {
+        await this.ensureChannel(plugin);
+      }
+      const useExactSchedule = plugin ? await this.canUseExactSchedule(plugin) : false;
 
       if (shouldRescheduleFuture) {
-        await this.cancelKnownNotifications(plugin);
-        const futureNotifications = futureReminders.map(({ reminder, notifyAt }) =>
-          this.createNotification(reminder, notifyAt, logoffAt, useExactSchedule),
-        );
+        if (nativePlugin?.scheduleLogoffReminders) {
+          await nativePlugin.cancelLogoffReminders?.();
+          await nativePlugin.scheduleLogoffReminders({
+            reminders: futureReminders.map(({ reminder, notifyAt }) =>
+              this.createNativeReminderPayload(reminder, notifyAt, logoffAt),
+            ),
+          });
+        } else if (plugin) {
+          await this.cancelKnownNotifications(plugin);
+          const futureNotifications = futureReminders.map(({ reminder, notifyAt }) =>
+            this.createNotification(reminder, notifyAt, logoffAt, useExactSchedule),
+          );
 
-        if (futureNotifications.length > 0) {
-          await plugin.schedule({ notifications: futureNotifications });
+          if (futureNotifications.length > 0) {
+            await plugin.schedule({ notifications: futureNotifications });
+          }
         }
 
         state.scheduledKey = scheduledKey;
@@ -293,6 +322,28 @@ export class AndroidLogoffNotificationService {
         logoffAt: logoffAt.toISOString(),
         minutesBefore: reminder.minutes,
       },
+    };
+  }
+
+  private createNativeReminderPayload(
+    reminder: { minutes: number; id: number; label: string },
+    notifyAt: Date,
+    logoffAt: Date,
+  ): {
+    id: number;
+    title: string;
+    body: string;
+    minutesBefore: number;
+    logoffAt: string;
+    atMillis: number;
+  } {
+    return {
+      id: reminder.id,
+      title: `Log off in ${reminder.label}`,
+      body: `Remaining time is ${this.getRemainingDisplay(reminder.minutes)}. Target time: ${this.formatTime(logoffAt)}.`,
+      minutesBefore: reminder.minutes,
+      logoffAt: logoffAt.toISOString(),
+      atMillis: notifyAt.getTime(),
     };
   }
 

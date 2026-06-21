@@ -189,11 +189,11 @@ The web app uses `window.open(...).print()` for browser PDF generation. In the A
 
 ## Log Off Reminder Notifications
 
-In the Android app, `/logger` syncs the visible `.remaining-text` value while an active entry timer exists. When the displayed remaining time becomes `1 hr 0 min`, `30 min`, or `15 min`, the app sends that Android notification immediately once for the current entry/work-hours session. Reminders are cancelled when exit is marked or submitted, and the reminder state resets when default work hours changes. Browser/PWA usage does not schedule these notifications.
+In the Android app, `/logger` syncs reminders while an active entry timer exists. While the logger screen is open, the visible `.remaining-text` value sends a notification immediately once when it becomes `1 hr 0 min`, `30 min`, or `15 min`. At the same time, the app schedules native Android background alarms for the future 1 hour, 30 minute, and 15 minute thresholds, so reminders can still fire after the app is backgrounded. Reminders are cancelled when exit is marked or submitted, and the reminder state resets when default work hours changes. Browser/PWA usage does not schedule these notifications.
 
 Android 13+ requires notification permission. The generated Android manifest includes `POST_NOTIFICATIONS` through `scripts/patch-android-pip.mjs`, and the app asks for runtime permission the first time reminders are scheduled.
 
-Android can delay scheduled notifications when the device enters battery-saving modes. The generated native `OfficePulseReminder` plugin avoids that for the open logger screen by sending the notification immediately when the visible remaining text reaches the threshold. The app still keeps the Capacitor local-notification path as a fallback, and the generated manifest includes `SCHEDULE_EXACT_ALARM` through `scripts/patch-android-pip.mjs`.
+Android can delay scheduled notifications when the device enters battery-saving modes. The generated native `OfficePulseReminder` plugin uses Android `AlarmManager` and a `BroadcastReceiver` for background reminders, and sends the notification immediately when the visible remaining text reaches the threshold while the logger is open. The app still keeps the Capacitor local-notification path as a fallback, and the generated manifest includes `SCHEDULE_EXACT_ALARM` through `scripts/patch-android-pip.mjs`.
 
 The same Android shell patch sets the status bar to the Office Pulse header color so the top native area matches the mobile app header.
 

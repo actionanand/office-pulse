@@ -15,6 +15,7 @@ writeFileSync(
   exportPluginPath,
   `package ${appPackage};
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -72,16 +73,18 @@ public class OfficePulseExportPlugin extends Plugin {
 
       File outputFile = new File(exportDir, filename);
       WebView webView = new WebView(getContext());
+      webView.setBackgroundColor(Color.WHITE);
       webView.getSettings().setJavaScriptEnabled(false);
+      webView.getSettings().setDefaultTextEncodingName("UTF-8");
       webView.setWebViewClient(new WebViewClient() {
         @Override
         public void onPageFinished(WebView view, String url) {
-          view.postDelayed(() -> writeWebViewToPdf(call, view, outputFile, title), 250);
+          view.postDelayed(() -> writeWebViewToPdf(call, view, outputFile, title), 500);
         }
       });
       webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
     } catch (Exception ex) {
-      call.reject("Unable to export PDF.");
+      call.reject("Unable to prepare PDF export.");
     }
   }
 
@@ -126,6 +129,8 @@ public class OfficePulseExportPlugin extends Plugin {
       JSObject result = new JSObject();
       result.put("path", outputFile.getAbsolutePath());
       call.resolve(result);
+    } catch (ActivityNotFoundException ex) {
+      call.reject("No app can save or share this PDF.");
     } catch (Exception ex) {
       call.reject("Unable to export PDF.");
     } finally {
@@ -170,10 +175,27 @@ writeFileSync(
 
 let mainActivity = readFileSync(mainActivityPath, 'utf8');
 if (!/registerPlugin\(OfficePulseExportPlugin\.class\)/.test(mainActivity)) {
-  mainActivity = mainActivity.replace(
-    /super\.onCreate\(savedInstanceState\);/,
-    'registerPlugin(OfficePulseExportPlugin.class);\n    super.onCreate(savedInstanceState);',
-  );
+  if (/super\.onCreate\(savedInstanceState\);/.test(mainActivity)) {
+    mainActivity = mainActivity.replace(
+      /super\.onCreate\(savedInstanceState\);/,
+      'registerPlugin(OfficePulseExportPlugin.class);\n    super.onCreate(savedInstanceState);',
+    );
+  } else {
+    mainActivity = `package ${appPackage};
+
+import android.os.Bundle;
+
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    registerPlugin(OfficePulseExportPlugin.class);
+    super.onCreate(savedInstanceState);
+  }
+}
+`;
+  }
   writeFileSync(mainActivityPath, mainActivity);
 }
 

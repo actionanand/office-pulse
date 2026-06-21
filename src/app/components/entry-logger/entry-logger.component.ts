@@ -286,6 +286,7 @@ export class EntryLoggerComponent implements OnInit {
 
   constructor() {
     effect(() => {
+      this.currentTime();
       const log = this.entryLog();
       const workHours = this.workHours();
       const hasFinishedToday = this.hasExitedToday() || this.isSubmittedToday();
@@ -295,7 +296,7 @@ export class EntryLoggerComponent implements OnInit {
         return;
       }
 
-      void this.logoffNotifications.schedule(log.entryTime, workHours);
+      void this.logoffNotifications.schedule(log.entryTime, workHours, new Date());
     });
 
     // Update current time every second

@@ -119,6 +119,13 @@ if (!/android\.permission\.POST_NOTIFICATIONS/.test(manifest)) {
   );
 }
 
+if (!/android\.permission\.SCHEDULE_EXACT_ALARM/.test(manifest)) {
+  manifest = manifest.replace(
+    /<manifest([^>]*)>/,
+    '<manifest$1>\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />',
+  );
+}
+
 writeFileSync(manifestPath, manifest);
 
 let colors = readOptionalFile(colorsPath);

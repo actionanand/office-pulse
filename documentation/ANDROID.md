@@ -26,7 +26,7 @@ This project uses PKCS12 format for Android release signing.
 3. `scripts/inject-env.js` injects production secrets.
 4. Angular builds to `dist/office-pulse/browser`.
 5. Capacitor generates the Android project.
-6. `scripts/patch-android-pip.mjs` applies native Android shell polish and Internet permission.
+6. `scripts/patch-android-pip.mjs` applies native Android shell polish and Android permissions.
 7. `scripts/patch-android-export.mjs` adds native PDF export support for downloads such as `/calendar`.
 8. `@capacitor/local-notifications` provides Android-only log off reminder notifications.
 9. Capacitor syncs web assets.
@@ -189,9 +189,11 @@ The web app uses `window.open(...).print()` for browser PDF generation. In the A
 
 ## Log Off Reminder Notifications
 
-In the Android app, `/logger` schedules local notifications after entry is marked and the active timer exists. Reminders are scheduled at 1 hour, 30 minutes, and 15 minutes before the calculated log off time (`entryTime + defaultWorkHours`). They are cancelled when exit is marked or submitted, and rescheduled when default work hours changes. Browser/PWA usage does not schedule these notifications.
+In the Android app, `/logger` schedules local notifications after entry is marked and the active timer exists. Reminders are scheduled at 1 hour, 30 minutes, and 15 minutes before the calculated log off time (`entryTime + defaultWorkHours`). If the logger screen is already open and the remaining time crosses a reminder point, the app sends that reminder immediately once. Reminders are cancelled when exit is marked or submitted, and rescheduled when default work hours changes. Browser/PWA usage does not schedule these notifications.
 
 Android 13+ requires notification permission. The generated Android manifest includes `POST_NOTIFICATIONS` through `scripts/patch-android-pip.mjs`, and the app asks for runtime permission the first time reminders are scheduled.
+
+Android can delay scheduled notifications when the device enters battery-saving modes. The app uses doze-friendly exact scheduling when Android allows exact alarms, and otherwise falls back to normal local notifications plus the live logger-screen threshold check. The generated manifest includes `SCHEDULE_EXACT_ALARM` through `scripts/patch-android-pip.mjs`.
 
 The same Android shell patch sets the status bar to the Office Pulse header color so the top native area matches the mobile app header.
 

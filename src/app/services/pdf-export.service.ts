@@ -6,6 +6,7 @@ import { PdfExportOptions, PdfEntryRow, MonthSummary } from '../models/pdf-expor
 declare global {
   interface Window {
     Capacitor?: {
+      getPlatform?: () => string;
       isNativePlatform?: () => boolean;
       Plugins?: {
         OfficePulseExport?: {
@@ -706,16 +707,24 @@ export class PdfExportService {
    * Download PDF using print dialog
    */
   private downloadPdf(html: string, fileName: string): void {
-    const nativeExport = window.Capacitor?.Plugins?.OfficePulseExport;
+    const capacitor = window.Capacitor;
+    const nativeExport = capacitor?.Plugins?.OfficePulseExport;
+    const isNativeAndroid = capacitor?.isNativePlatform?.() === true && capacitor.getPlatform?.() === 'android';
 
-    if (window.Capacitor?.isNativePlatform?.() && nativeExport) {
+    if (isNativeAndroid) {
+      if (!nativeExport) {
+        this.snackbarService.error('PDF download is not available in this Android build');
+        return;
+      }
+
+      this.snackbarService.success('Preparing PDF export');
       nativeExport
         .exportPdf({
           filename: `${fileName}.pdf`,
           html,
           title: 'Office Pulse PDF Export',
         })
-        .then(() => this.snackbarService.success('PDF export ready'))
+        .then(() => this.snackbarService.success('Choose an app to save or share the PDF'))
         .catch(() => this.snackbarService.error('Unable to download PDF'));
       return;
     }

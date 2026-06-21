@@ -1,10 +1,11 @@
-import { Component, signal, computed, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, signal, computed, effect, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { StorageService } from '../../services/storage.service';
 import { AttendanceStateService } from '../../services/attendance-state.service';
 import { SnackbarService } from '../../services/snackbar.service';
+import { AndroidLogoffNotificationService } from '../../services/android-logoff-notification.service';
 import { EntryLog } from '../../models/entry-log.model';
 import { TodoListComponent } from '../todo-list/todo-list.component';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
@@ -21,6 +22,7 @@ export class EntryLoggerComponent implements OnInit {
   private storageService = new StorageService();
   private attendanceState = inject(AttendanceStateService);
   private snackbarService = inject(SnackbarService);
+  private logoffNotifications = inject(AndroidLogoffNotificationService);
 
   entryLog = signal<EntryLog | null>(null);
   currentTime = signal<string>('');
@@ -283,6 +285,19 @@ export class EntryLoggerComponent implements OnInit {
   });
 
   constructor() {
+    effect(() => {
+      const log = this.entryLog();
+      const workHours = this.workHours();
+      const hasFinishedToday = this.hasExitedToday() || this.isSubmittedToday();
+
+      if (!log?.entryTime || log.exitTime || log.isSubmitted || hasFinishedToday) {
+        void this.logoffNotifications.cancel();
+        return;
+      }
+
+      void this.logoffNotifications.schedule(log.entryTime, workHours);
+    });
+
     // Update current time every second
     setInterval(() => {
       this.currentTime.set(this.formatTo12Hour(new Date()));

@@ -79,10 +79,8 @@ export class CueCardService {
   }
 
   saveOfflineCueCard(card: CueCard): void {
-    const cards = this.getOfflineCueCards();
     const cleanCard = this.cleanCueCard(card, true);
-    const nextCards = [cleanCard, ...cards.filter(item => item.id !== cleanCard.id)];
-    localStorage.setItem(this.offlineStorageKey, JSON.stringify(nextCards));
+    localStorage.setItem(this.offlineStorageKey, JSON.stringify([cleanCard]));
   }
 
   deleteOfflineCueCard(cardId: string): void {
@@ -156,8 +154,9 @@ export class CueCardService {
     const sanitized = Array.from(template.content.childNodes)
       .map(node => this.sanitizeNode(node))
       .join('');
+    const trimmedSanitized = sanitized.replace(/^(?:\s|<br>)+/g, '').replace(/(?:<br>\s*)+$/g, '');
 
-    return sanitized === '<br>' ? '' : sanitized;
+    return trimmedSanitized === '<br>' ? '' : trimmedSanitized;
   }
 
   sanitizeTableCellHtml(html: string): string {

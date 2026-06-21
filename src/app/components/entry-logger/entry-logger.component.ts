@@ -289,14 +289,15 @@ export class EntryLoggerComponent implements OnInit {
       this.currentTime();
       const log = this.entryLog();
       const workHours = this.workHours();
+      const remainingText = this.remainingTime();
       const hasFinishedToday = this.hasExitedToday() || this.isSubmittedToday();
 
-      if (!log?.entryTime || log.exitTime || log.isSubmitted || hasFinishedToday) {
+      if (!log?.entryTime || !remainingText || log.exitTime || log.isSubmitted || hasFinishedToday) {
         void this.logoffNotifications.cancel();
         return;
       }
 
-      void this.logoffNotifications.schedule(log.entryTime, workHours, new Date());
+      void this.logoffNotifications.syncFromRemainingText(log.entryTime, workHours, remainingText, new Date());
     });
 
     // Update current time every second

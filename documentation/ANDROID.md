@@ -14,7 +14,7 @@ This project uses PKCS12 format for Android release signing.
 | `scripts/bump-android-version.js`                         | Bumps Android version values                                   |
 | `scripts/generate-keystore.mjs`                           | Generates a PKCS12 release keystore                            |
 | `scripts/detect-keystore-format.mjs`                      | Checks whether a keystore is PKCS12                            |
-| `scripts/patch-android-pip.mjs`                           | Applies Office Pulse native Android shell polish in CI         |
+| `scripts/patch-android-pip.mjs`                           | Applies Office Pulse native Android shell polish/reminders     |
 | `scripts/patch-android-export.mjs`                        | Adds native Android PDF export/download support                |
 | `scripts/inject-env.js`                                   | Injects GitHub secrets into `src/environments/environment.ts`  |
 | `src/app/services/android-logoff-notification.service.ts` | Schedules Android-only log off reminders from `/logger`        |
@@ -189,11 +189,11 @@ The web app uses `window.open(...).print()` for browser PDF generation. In the A
 
 ## Log Off Reminder Notifications
 
-In the Android app, `/logger` schedules local notifications after entry is marked and the active timer exists. Reminders are scheduled at 1 hour, 30 minutes, and 15 minutes before the calculated log off time (`entryTime + defaultWorkHours`). If the logger screen is already open and the remaining time crosses a reminder point, the app sends that reminder immediately once. Reminders are cancelled when exit is marked or submitted, and rescheduled when default work hours changes. Browser/PWA usage does not schedule these notifications.
+In the Android app, `/logger` syncs the visible `.remaining-text` value while an active entry timer exists. When the displayed remaining time becomes `1 hr 0 min`, `30 min`, or `15 min`, the app sends that Android notification immediately once for the current entry/work-hours session. Reminders are cancelled when exit is marked or submitted, and the reminder state resets when default work hours changes. Browser/PWA usage does not schedule these notifications.
 
 Android 13+ requires notification permission. The generated Android manifest includes `POST_NOTIFICATIONS` through `scripts/patch-android-pip.mjs`, and the app asks for runtime permission the first time reminders are scheduled.
 
-Android can delay scheduled notifications when the device enters battery-saving modes. The app uses doze-friendly exact scheduling when Android allows exact alarms, and otherwise falls back to normal local notifications plus the live logger-screen threshold check. The generated manifest includes `SCHEDULE_EXACT_ALARM` through `scripts/patch-android-pip.mjs`.
+Android can delay scheduled notifications when the device enters battery-saving modes. The generated native `OfficePulseReminder` plugin avoids that for the open logger screen by sending the notification immediately when the visible remaining text reaches the threshold. The app still keeps the Capacitor local-notification path as a fallback, and the generated manifest includes `SCHEDULE_EXACT_ALARM` through `scripts/patch-android-pip.mjs`.
 
 The same Android shell patch sets the status bar to the Office Pulse header color so the top native area matches the mobile app header.
 

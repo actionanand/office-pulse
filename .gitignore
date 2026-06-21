@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 /bazel-out
+/android
 
 # Node
 /node_modules
@@ -40,3 +41,9 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Android signing material
+release-keystore.jks
+*.keystore
+*.p12
+keystore.b64.txt

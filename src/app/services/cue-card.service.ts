@@ -85,6 +85,17 @@ export class CueCardService {
     localStorage.setItem(this.offlineStorageKey, JSON.stringify(nextCards));
   }
 
+  deleteOfflineCueCard(cardId: string): void {
+    const nextCards = this.getOfflineCueCards().filter(card => card.id !== cardId);
+
+    if (nextCards.length === 0) {
+      localStorage.removeItem(this.offlineStorageKey);
+      return;
+    }
+
+    localStorage.setItem(this.offlineStorageKey, JSON.stringify(nextCards));
+  }
+
   clearOfflineCueCards(): void {
     localStorage.removeItem(this.offlineStorageKey);
   }
@@ -93,6 +104,7 @@ export class CueCardService {
     title: string;
     contentHtml: string;
     tableName: string;
+    tableHeaderBold: boolean;
     table: CueCardTable | null;
     existingCard?: CueCard | null;
   }): CueCard {
@@ -109,6 +121,7 @@ export class CueCardService {
       title: input.title.trim(),
       contentHtml: sanitizedHtml,
       tableName: input.tableName.trim(),
+      tableHeaderBold: input.tableHeaderBold,
       table: normalizedTable,
       isOffline: existingCard?.isOffline,
     };
@@ -126,6 +139,7 @@ export class CueCardService {
       Title: card.title,
       ContentHtml: card.contentHtml,
       TableName: card.tableName,
+      TableHeaderBold: card.tableHeaderBold ? 'TRUE' : 'FALSE',
       TableData: this.encodeTableData(card.table),
     };
 
@@ -261,6 +275,7 @@ export class CueCardService {
     const id = this.cellValue(cells[indexes.CueCardId]);
     const title = this.cellValue(cells[indexes.Title]);
     const contentHtml = this.sanitizeRichText(this.cellValue(cells[indexes.ContentHtml]));
+    const tableHeaderBold = this.booleanCellValue(cells[indexes.TableHeaderBold]);
     const table = this.decodeTableData(this.cellValue(cells[indexes.TableData]));
 
     if (!id && !title && !contentHtml && !table) return null;
@@ -273,12 +288,19 @@ export class CueCardService {
       title,
       contentHtml,
       tableName: this.cellValue(cells[indexes.TableName]),
+      tableHeaderBold,
       table,
     };
   }
 
   private cellValue(cell: GVizCell | null | undefined): string {
     return String(cell?.f ?? cell?.v ?? '').trim();
+  }
+
+  private booleanCellValue(cell: GVizCell | null | undefined): boolean {
+    const value = this.cellValue(cell).toLowerCase();
+
+    return value === 'true' || value === 'yes' || value === '1';
   }
 
   private encodeTableData(table: CueCardTable | null): string {
@@ -336,9 +358,19 @@ export class CueCardService {
       title: (card.title ?? '').trim(),
       contentHtml: this.sanitizeRichText(card.contentHtml ?? ''),
       tableName: (card.tableName ?? '').trim(),
+      tableHeaderBold: this.coerceBoolean(card.tableHeaderBold),
       table: this.normalizeTable(card.table),
       isOffline: isOffline || card.isOffline,
     };
+  }
+
+  private coerceBoolean(value: unknown): boolean {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') return value === 1;
+    if (typeof value !== 'string') return false;
+
+    const normalizedValue = value.trim().toLowerCase();
+    return normalizedValue === 'true' || normalizedValue === 'yes' || normalizedValue === '1';
   }
 
   private sanitizeNode(node: ChildNode): string {

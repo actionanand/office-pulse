@@ -79,7 +79,7 @@
             (click)="formatContent('insertUnorderedList')"
             aria-label="Unordered list"
             title="Unordered list">
-            <span class="toolbar-icon icon-unordered-list" aria-hidden="true"></span>
+            <span class="material-symbols-rounded" aria-hidden="true">format_list_bulleted</span>
           </button>
           <button
             type="button"
@@ -88,7 +88,7 @@
             (click)="formatContent('insertOrderedList')"
             aria-label="Ordered list"
             title="Ordered list">
-            <span class="toolbar-icon icon-ordered-list" aria-hidden="true"></span>
+            <span class="material-symbols-rounded" aria-hidden="true">format_list_numbered</span>
           </button>
           <button
             type="button"
@@ -97,7 +97,7 @@
             (click)="formatContent('indent')"
             aria-label="Indent list item"
             title="Indent">
-            <span class="toolbar-icon icon-indent" aria-hidden="true"></span>
+            <span class="material-symbols-rounded" aria-hidden="true">format_indent_increase</span>
           </button>
           <button
             type="button"
@@ -106,7 +106,7 @@
             (click)="formatContent('outdent')"
             aria-label="Outdent list item"
             title="Outdent">
-            <span class="toolbar-icon icon-outdent" aria-hidden="true"></span>
+            <span class="material-symbols-rounded" aria-hidden="true">format_indent_decrease</span>
           </button>
 
           <span class="toolbar-divider" aria-hidden="true"></span>
@@ -156,36 +156,60 @@
               <p>Add a small table when the cue card needs rows and columns.</p>
             </div>
             @if (table()) {
-              <button type="button" class="ghost-button" (click)="clearTable()">Remove table</button>
+              <button type="button" class="ghost-button icon-text-button" (click)="clearTable()">
+                <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+                Remove table
+              </button>
             }
           </div>
 
-          <label class="field-label" for="cue-card-table-name">Table name</label>
-          <input
-            id="cue-card-table-name"
-            class="text-input"
-            type="text"
-            formControlName="tableName"
-            placeholder="Example: Revision matrix" />
+          <div class="table-settings">
+            <div class="table-name-field">
+              <label class="field-label" for="cue-card-table-name">Table name</label>
+              <input
+                id="cue-card-table-name"
+                class="text-input"
+                type="text"
+                formControlName="tableName"
+                placeholder="Example: Revision matrix" />
+            </div>
+
+            <label class="checkbox-field">
+              <input type="checkbox" formControlName="tableHeaderBold" />
+              <span>Bold table header</span>
+            </label>
+          </div>
 
           @if (table(); as currentTable) {
             <div class="table-tools" role="group" aria-label="Table actions">
-              <button type="button" class="secondary-button" (click)="addTableRow()" [disabled]="!canAddTableRow()">
+              <button
+                type="button"
+                class="secondary-button icon-text-button"
+                (click)="addTableRow()"
+                [disabled]="!canAddTableRow()">
+                <span class="material-symbols-rounded" aria-hidden="true">add</span>
                 Add row
               </button>
               <button
                 type="button"
-                class="secondary-button"
+                class="secondary-button icon-text-button"
                 (click)="addTableColumn()"
                 [disabled]="!canAddTableColumn()">
+                <span class="material-symbols-rounded" aria-hidden="true">view_column_2</span>
                 Add column
               </button>
-              <button type="button" class="ghost-button" (click)="removeLastTableRow()">Remove row</button>
-              <button type="button" class="ghost-button" (click)="removeLastTableColumn()">Remove column</button>
+              <button type="button" class="ghost-button icon-text-button" (click)="removeLastTableRow()">
+                <span class="material-symbols-rounded" aria-hidden="true">remove</span>
+                Remove row
+              </button>
+              <button type="button" class="ghost-button icon-text-button" (click)="removeLastTableColumn()">
+                <span class="material-symbols-rounded" aria-hidden="true">splitscreen_left</span>
+                Remove column
+              </button>
             </div>
 
             <div class="table-builder-wrap">
-              <table class="table-builder">
+              <table class="table-builder" [class.bold-header]="form.controls.tableHeaderBold.value">
                 <tbody>
                   @for (row of currentTable.rows; track $index; let rowIndex = $index) {
                     <tr>
@@ -220,7 +244,10 @@
                   [value]="newTableColumnCount()"
                   (input)="updateNewTableColumnCount($any($event.target).value)" />
               </div>
-              <button type="button" class="secondary-button" (click)="createTable()">Create table</button>
+              <button type="button" class="secondary-button icon-text-button" (click)="createTable()">
+                <span class="material-symbols-rounded" aria-hidden="true">table</span>
+                Create table
+              </button>
             </div>
 
             <div class="table-paste-panel">
@@ -232,19 +259,36 @@
                 [value]="tablePasteText()"
                 placeholder="Paste rows copied from a sheet"
                 (input)="updateTablePasteText($any($event.target).value)"></textarea>
-              <button type="button" class="ghost-button" (click)="applyTablePaste()">Use pasted table</button>
+              <button type="button" class="ghost-button icon-text-button" (click)="applyTablePaste()">
+                <span class="material-symbols-rounded" aria-hidden="true">content_paste</span>
+                Use pasted table
+              </button>
             </div>
           }
         </section>
 
         <div class="action-row">
-          <button type="button" class="primary-button" (click)="copyForSheet()">
-            {{ isEditing() ? 'Copy replacement row' : 'Copy to Google Sheet' }}
+          <button type="button" class="primary-button icon-text-button" (click)="copyForSheet(false)">
+            <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+            {{ isEditing() ? 'Copy replacement row' : 'Copy row' }}
           </button>
-          <button type="button" class="secondary-button" (click)="saveOffline()">Save offline</button>
-          <button type="button" class="ghost-button" (click)="resetForm()">Clear editor</button>
+          <button type="button" class="secondary-button icon-text-button" (click)="copyForSheet(true)">
+            <span class="material-symbols-rounded" aria-hidden="true">table_rows</span>
+            Copy with header
+          </button>
+          <button type="button" class="secondary-button icon-text-button" (click)="saveOffline()">
+            <span class="material-symbols-rounded" aria-hidden="true">save</span>
+            Save offline
+          </button>
+          <button type="button" class="ghost-button icon-text-button" (click)="resetForm()">
+            <span class="material-symbols-rounded" aria-hidden="true">mop</span>
+            Clear editor
+          </button>
           @if (hasOfflineCards()) {
-            <button type="button" class="danger-button" (click)="clearOfflineCueCards()">Clear offline cue card</button>
+            <button type="button" class="danger-button icon-text-button" (click)="clearOfflineCueCards()">
+              <span class="material-symbols-rounded" aria-hidden="true">delete_sweep</span>
+              Clear offline cue card
+            </button>
           }
         </div>
       </section>
@@ -256,7 +300,12 @@
           <h2 id="view-cue-card-title">View cue card</h2>
           <p>{{ cards().length }} cue card{{ cards().length === 1 ? '' : 's' }}</p>
         </div>
-        <button type="button" class="secondary-button" (click)="refreshCueCards()" [disabled]="isLoading()">
+        <button
+          type="button"
+          class="secondary-button icon-text-button"
+          (click)="refreshCueCards()"
+          [disabled]="isLoading()">
+          <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
           Refresh
         </button>
       </div>
@@ -296,7 +345,24 @@
               </header>
 
               <p class="preview-text">{{ previewText(card) }}</p>
-              <button type="button" class="open-button" (click)="$event.stopPropagation(); openCard(card)">Open</button>
+              <div class="preview-actions">
+                <button
+                  type="button"
+                  class="open-button icon-text-button"
+                  (click)="$event.stopPropagation(); openCard(card)">
+                  <span class="material-symbols-rounded" aria-hidden="true">open_in_full</span>
+                  Open
+                </button>
+                @if (card.isOffline) {
+                  <button
+                    type="button"
+                    class="danger-button compact-button"
+                    aria-label="Delete offline cue card"
+                    (click)="$event.stopPropagation(); deleteOfflineCueCard(card)">
+                    <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+                  </button>
+                }
+              </div>
             </article>
           }
         </div>
@@ -325,7 +391,7 @@
               <span class="row-badge">Row {{ card.rowNumber }}</span>
             }
             <button type="button" class="close-button" aria-label="Close cue card" (click)="closeCard()">
-              &times;
+              <span class="material-symbols-rounded" aria-hidden="true">close</span>
             </button>
           </div>
         </header>
@@ -338,7 +404,7 @@
               <h3>{{ card.tableName }}</h3>
             }
             <div class="detail-table-wrap">
-              <table class="detail-table">
+              <table class="detail-table" [class.bold-header]="card.tableHeaderBold">
                 <tbody>
                   @for (row of detailTable.rows; track $index; let rowIndex = $index) {
                     <tr>
@@ -354,8 +420,20 @@
         }
 
         <footer class="detail-footer">
-          <button type="button" class="primary-button" (click)="editCard(card)">Edit cue card</button>
-          <button type="button" class="ghost-button" (click)="closeCard()">Close</button>
+          <button type="button" class="primary-button icon-text-button" (click)="editCard(card)">
+            <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+            Edit cue card
+          </button>
+          @if (card.isOffline) {
+            <button type="button" class="danger-button icon-text-button" (click)="deleteOfflineCueCard(card)">
+              <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+              Delete offline
+            </button>
+          }
+          <button type="button" class="ghost-button icon-text-button" (click)="closeCard()">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+            Close
+          </button>
         </footer>
       </article>
     </div>

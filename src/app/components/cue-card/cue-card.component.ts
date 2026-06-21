@@ -27,7 +27,7 @@ export class CueCardComponent {
   private readonly cueCardService = inject(CueCardService);
   private readonly formBuilder = inject(FormBuilder);
 
-  protected readonly mode = signal<CueCardMode>('generate');
+  protected readonly mode = signal<CueCardMode>('view');
   protected readonly isLoading = signal(false);
   protected readonly statusMessage = signal('');
   protected readonly errorMessage = signal('');
@@ -63,7 +63,12 @@ export class CueCardComponent {
     title: ['', [Validators.required]],
     contentHtml: ['', [Validators.required]],
     tableName: [''],
+    tableHeaderBold: [false],
   });
+
+  constructor() {
+    this.refreshCueCards();
+  }
 
   protected setMode(mode: CueCardMode): void {
     this.mode.set(mode);
@@ -118,19 +123,21 @@ export class CueCardComponent {
     }
   }
 
-  protected async copyForSheet(): Promise<void> {
+  protected async copyForSheet(includeHeader: boolean): Promise<void> {
     const card = this.buildCurrentCard();
     if (!card) return;
 
     try {
-      const clipboardValue = card.rowNumber
-        ? this.cueCardService.toTsvRow(card)
-        : this.cueCardService.toGoogleSheetClipboard(card);
+      const clipboardValue = includeHeader
+        ? this.cueCardService.toGoogleSheetClipboard(card)
+        : this.cueCardService.toTsvRow(card);
       await navigator.clipboard.writeText(clipboardValue);
       this.statusMessage.set(
-        card.rowNumber
-          ? `Copied replacement row for Google Sheet row ${card.rowNumber}.`
-          : 'Copied cue card header and row for Google Sheet.',
+        includeHeader
+          ? 'Copied cue card header and row for Google Sheet.'
+          : card.rowNumber
+            ? `Copied replacement row for Google Sheet row ${card.rowNumber}.`
+            : 'Copied cue card row for Google Sheet.',
       );
     } catch {
       this.errorMessage.set('Clipboard copy failed. Select the generated content and copy manually.');
@@ -149,7 +156,17 @@ export class CueCardComponent {
   protected clearOfflineCueCards(): void {
     this.cueCardService.clearOfflineCueCards();
     this.refreshOfflineCards();
+    this.closeCard();
     this.statusMessage.set('Offline cue cards cleared.');
+  }
+
+  protected deleteOfflineCueCard(card: CueCard): void {
+    if (!card.isOffline) return;
+
+    this.cueCardService.deleteOfflineCueCard(card.id);
+    this.refreshOfflineCards();
+    this.closeCard();
+    this.statusMessage.set('Offline cue card deleted.');
   }
 
   protected refreshCueCards(): void {
@@ -185,6 +202,7 @@ export class CueCardComponent {
       title: card.title,
       contentHtml: card.contentHtml,
       tableName: card.tableName,
+      tableHeaderBold: card.tableHeaderBold,
     });
     this.table.set(this.cueCardService.cloneTable(card.table));
     this.statusMessage.set(
@@ -194,16 +212,17 @@ export class CueCardComponent {
     );
     this.errorMessage.set('');
 
-    queueMicrotask(() => {
+    window.setTimeout(() => {
       const editor = this.editor();
       if (editor) {
         editor.nativeElement.innerHTML = card.contentHtml;
+        this.form.controls.contentHtml.setValue(card.contentHtml);
       }
-    });
+    }, 0);
   }
 
   protected resetForm(): void {
-    this.form.reset({ title: '', contentHtml: '', tableName: '' });
+    this.form.reset({ title: '', contentHtml: '', tableName: '', tableHeaderBold: false });
     const editor = this.editor();
     if (editor) {
       editor.nativeElement.innerHTML = '';
@@ -325,6 +344,7 @@ export class CueCardComponent {
       title: value.title,
       contentHtml: value.contentHtml,
       tableName: value.tableName,
+      tableHeaderBold: value.tableHeaderBold,
       table: this.table(),
       existingCard: this.editingCard(),
     });

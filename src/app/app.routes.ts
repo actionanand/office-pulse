@@ -85,6 +85,11 @@ export const routes: Routes = [
     canActivate: [lockGuard],
   },
   {
+    path: 'cue-card',
+    loadComponent: () => import('./components/cue-card/cue-card.component').then(m => m.CueCardComponent),
+    canActivate: [lockGuard],
+  },
+  {
     path: 'markdown',
     loadComponent: () =>
       import('./components/markdown-viewer/markdown-viewer.component').then(m => m.MarkdownViewerComponent),

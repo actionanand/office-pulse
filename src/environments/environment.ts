@@ -21,5 +21,6 @@ export const environment = {
   WFO_SHEET_GID: 2112832792,
   IRCTC_VACANT_SEAT_GID: 1698819958,
   CC_SHEET_GID: 407166043,
+  CUE_CARD_SHEET_GID: 1397990789,
   passwordHash: 'PASSWORD_HASH_PLACEHOLDER', // To be replaced during build with actual hash
 };

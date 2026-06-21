@@ -123,6 +123,13 @@ export class HomeComponent {
       description: 'Monitor credit card last usage to avoid accidental closure by bank',
       color: '#00695c',
     },
+    {
+      path: '/cue-card',
+      icon: 'CC',
+      title: 'Cue Card',
+      description: 'Create rich quick notes and review sheet or offline cue cards',
+      color: '#0f766e',
+    },
   ];
 
   readonly currentHour = new Date().getHours();

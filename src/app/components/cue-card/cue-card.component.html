@@ -1,0 +1,202 @@
+<div class="cue-card-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Cue cards</p>
+      <h1>Focused notes for quick recall</h1>
+    </div>
+
+    <div class="mode-toggle" role="group" aria-label="Cue card mode">
+      <button type="button" [class.active]="mode() === 'generate'" (click)="setMode('generate')">
+        Generate cue card
+      </button>
+      <button type="button" [class.active]="mode() === 'view'" (click)="setMode('view')">View cue card</button>
+    </div>
+  </header>
+
+  @if (statusMessage()) {
+    <p class="status-message" aria-live="polite">{{ statusMessage() }}</p>
+  }
+
+  @if (errorMessage()) {
+    <p class="error-message" aria-live="assertive">{{ errorMessage() }}</p>
+  }
+
+  @if (mode() === 'generate') {
+    <form class="editor-shell" [formGroup]="form">
+      <section class="editor-panel" aria-labelledby="cue-card-editor-title">
+        <div class="section-heading">
+          <h2 id="cue-card-editor-title">Generate cue card</h2>
+        </div>
+
+        <label class="field-label" for="cue-card-title">Title</label>
+        <input
+          id="cue-card-title"
+          class="text-input"
+          type="text"
+          formControlName="title"
+          placeholder="Example: Release checklist" />
+
+        <div class="toolbar" role="toolbar" aria-label="Cue card formatting">
+          <button
+            type="button"
+            class="format-button"
+            (mousedown)="keepEditorSelection($event)"
+            (click)="formatContent('bold')"
+            aria-label="Bold">
+            B
+          </button>
+          <button
+            type="button"
+            class="format-button italic"
+            (mousedown)="keepEditorSelection($event)"
+            (click)="formatContent('italic')"
+            aria-label="Italic">
+            I
+          </button>
+          <button
+            type="button"
+            class="format-button strike"
+            (mousedown)="keepEditorSelection($event)"
+            (click)="formatContent('strikeThrough')"
+            aria-label="Strikethrough">
+            S
+          </button>
+          <button
+            type="button"
+            class="format-button"
+            (mousedown)="keepEditorSelection($event)"
+            (click)="formatContent('insertUnorderedList')"
+            aria-label="Unordered list">
+            UL
+          </button>
+          <button
+            type="button"
+            class="format-button"
+            (mousedown)="keepEditorSelection($event)"
+            (click)="formatContent('insertOrderedList')"
+            aria-label="Ordered list">
+            OL
+          </button>
+          <button
+            type="button"
+            class="format-button"
+            (mousedown)="keepEditorSelection($event)"
+            (click)="formatContent('indent')"
+            aria-label="Indent list item">
+            Indent
+          </button>
+          <button
+            type="button"
+            class="format-button"
+            (mousedown)="keepEditorSelection($event)"
+            (click)="formatContent('outdent')"
+            aria-label="Outdent list item">
+            Outdent
+          </button>
+
+          <span class="toolbar-divider" aria-hidden="true"></span>
+
+          <div class="swatch-group" role="group" aria-label="Font color">
+            @for (color of textColorOptions; track color.value) {
+              <button
+                type="button"
+                class="swatch-button text-swatch"
+                [style.color]="color.value"
+                (mousedown)="keepEditorSelection($event)"
+                (click)="colorContent('foreColor', color.value)"
+                [attr.aria-label]="color.label">
+                A
+              </button>
+            }
+          </div>
+
+          <div class="swatch-group" role="group" aria-label="Highlight color">
+            @for (color of backgroundColorOptions; track color.value) {
+              <button
+                type="button"
+                class="swatch-button"
+                [style.background-color]="color.value"
+                (mousedown)="keepEditorSelection($event)"
+                (click)="colorContent('hiliteColor', color.value)"
+                [attr.aria-label]="color.label"></button>
+            }
+          </div>
+        </div>
+
+        <div
+          #contentEditor
+          class="rich-editor"
+          contenteditable="true"
+          role="textbox"
+          aria-multiline="true"
+          aria-label="Cue card content"
+          data-placeholder="Write concise bullets, steps, reminders, or talking points"
+          (input)="updateContentValue()"
+          (blur)="syncContent()"></div>
+
+        <div class="action-row">
+          <button type="button" class="primary-button" (click)="copyForSheet()">Copy to Google Sheet</button>
+          <button type="button" class="secondary-button" (click)="saveOffline()">Save offline</button>
+          <button type="button" class="ghost-button" (click)="resetForm()">Clear editor</button>
+          @if (hasOfflineCards()) {
+            <button type="button" class="danger-button" (click)="clearOfflineCueCards()">Clear offline cue card</button>
+          }
+        </div>
+      </section>
+    </form>
+  } @else {
+    <section class="view-panel" aria-labelledby="view-cue-card-title">
+      <div class="section-heading with-action">
+        <div>
+          <h2 id="view-cue-card-title">View cue card</h2>
+          <p>{{ cards().length }} cue card{{ cards().length === 1 ? '' : 's' }}</p>
+        </div>
+        <button type="button" class="secondary-button" (click)="refreshCueCards()" [disabled]="isLoading()">
+          Refresh
+        </button>
+      </div>
+
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading cue cards...</p>
+        </div>
+      } @else if (cards().length === 0) {
+        <div class="empty-state">
+          <p>No cue cards found yet.</p>
+        </div>
+      } @else {
+        <div class="cue-card-grid">
+          @for (card of cards(); track card.id) {
+            <article class="cue-card">
+              <header class="cue-card-header">
+                <div>
+                  <h3>{{ card.title || 'Untitled cue card' }}</h3>
+                  <p>{{ card.updatedAt || card.createdAt }}</p>
+                </div>
+                @if (card.isOffline) {
+                  <span class="offline-badge">Offline</span>
+                }
+              </header>
+
+              <div class="cue-card-content" [innerHTML]="card.contentHtml | safeCueCardHtml"></div>
+
+              @if (card.formatSummary || card.listItems) {
+                <footer class="cue-card-meta">
+                  @if (card.formatSummary) {
+                    <span>{{ card.formatSummary }}</span>
+                  }
+                  @if (card.listItems) {
+                    <span>{{ card.listItems }}</span>
+                  }
+                </footer>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <p class="info-note">For detailed notes, create markdown and view it from <a routerLink="/markdown">/markdown</a>.</p>
+</div>

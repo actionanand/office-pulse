@@ -170,6 +170,15 @@
               <span class="nav-icon">💳</span>
               <span class="nav-text">CC Tracker</span>
             </a>
+            <a
+              routerLink="/cue-card"
+              routerLinkActive="active"
+              class="dropdown-item"
+              aria-label="Cue Card"
+              (click)="closeAll()">
+              <span class="nav-icon">CC</span>
+              <span class="nav-text">Cue Card</span>
+            </a>
           </div>
         }
       </div>
@@ -287,6 +296,10 @@
           (click)="closeAll()">
           <span class="nav-icon">💳</span>
           <span class="nav-text">CC Tracker</span>
+        </a>
+        <a routerLink="/cue-card" routerLinkActive="active" class="nav-link" aria-label="Cue Card" (click)="closeAll()">
+          <span class="nav-icon">CC</span>
+          <span class="nav-text">Cue Card</span>
         </a>
       </div>
     </div>

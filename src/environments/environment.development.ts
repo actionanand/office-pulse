@@ -21,5 +21,6 @@ export const environment = {
   WFO_SHEET_GID: 2112832792,
   IRCTC_VACANT_SEAT_GID: 1698819958,
   CC_SHEET_GID: 407166043,
+  CUE_CARD_SHEET_GID: 1397990789,
   passwordHash: 'cbfdac6008f9cab4083784cbd1874f76618d2a97', // Default hash for 'password123'
 };

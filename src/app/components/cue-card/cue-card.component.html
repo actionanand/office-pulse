@@ -24,8 +24,19 @@
   @if (mode() === 'generate') {
     <form class="editor-shell" [formGroup]="form">
       <section class="editor-panel" aria-labelledby="cue-card-editor-title">
-        <div class="section-heading">
-          <h2 id="cue-card-editor-title">Generate cue card</h2>
+        <div class="section-heading with-action">
+          <div>
+            <h2 id="cue-card-editor-title">{{ isEditing() ? 'Edit cue card' : 'Generate cue card' }}</h2>
+            @if (editingCard(); as card) {
+              <p>
+                @if (card.rowNumber) {
+                  Google Sheet row {{ card.rowNumber }}
+                } @else {
+                  Offline cue card
+                }
+              </p>
+            }
+          </div>
         </div>
 
         <label class="field-label" for="cue-card-title">Title</label>
@@ -63,35 +74,39 @@
           </button>
           <button
             type="button"
-            class="format-button"
+            class="format-button icon-button"
             (mousedown)="keepEditorSelection($event)"
             (click)="formatContent('insertUnorderedList')"
-            aria-label="Unordered list">
-            UL
+            aria-label="Unordered list"
+            title="Unordered list">
+            <span class="toolbar-icon icon-unordered-list" aria-hidden="true"></span>
           </button>
           <button
             type="button"
-            class="format-button"
+            class="format-button icon-button"
             (mousedown)="keepEditorSelection($event)"
             (click)="formatContent('insertOrderedList')"
-            aria-label="Ordered list">
-            OL
+            aria-label="Ordered list"
+            title="Ordered list">
+            <span class="toolbar-icon icon-ordered-list" aria-hidden="true"></span>
           </button>
           <button
             type="button"
-            class="format-button"
+            class="format-button icon-button"
             (mousedown)="keepEditorSelection($event)"
             (click)="formatContent('indent')"
-            aria-label="Indent list item">
-            Indent
+            aria-label="Indent list item"
+            title="Indent">
+            <span class="toolbar-icon icon-indent" aria-hidden="true"></span>
           </button>
           <button
             type="button"
-            class="format-button"
+            class="format-button icon-button"
             (mousedown)="keepEditorSelection($event)"
             (click)="formatContent('outdent')"
-            aria-label="Outdent list item">
-            Outdent
+            aria-label="Outdent list item"
+            title="Outdent">
+            <span class="toolbar-icon icon-outdent" aria-hidden="true"></span>
           </button>
 
           <span class="toolbar-divider" aria-hidden="true"></span>
@@ -134,8 +149,98 @@
           (input)="updateContentValue()"
           (blur)="syncContent()"></div>
 
+        <section class="table-panel" aria-labelledby="cue-card-table-title">
+          <div class="section-heading with-action">
+            <div>
+              <h3 id="cue-card-table-title">Table</h3>
+              <p>Add a small table when the cue card needs rows and columns.</p>
+            </div>
+            @if (table()) {
+              <button type="button" class="ghost-button" (click)="clearTable()">Remove table</button>
+            }
+          </div>
+
+          <label class="field-label" for="cue-card-table-name">Table name</label>
+          <input
+            id="cue-card-table-name"
+            class="text-input"
+            type="text"
+            formControlName="tableName"
+            placeholder="Example: Revision matrix" />
+
+          @if (table(); as currentTable) {
+            <div class="table-tools" role="group" aria-label="Table actions">
+              <button type="button" class="secondary-button" (click)="addTableRow()" [disabled]="!canAddTableRow()">
+                Add row
+              </button>
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="addTableColumn()"
+                [disabled]="!canAddTableColumn()">
+                Add column
+              </button>
+              <button type="button" class="ghost-button" (click)="removeLastTableRow()">Remove row</button>
+              <button type="button" class="ghost-button" (click)="removeLastTableColumn()">Remove column</button>
+            </div>
+
+            <div class="table-builder-wrap">
+              <table class="table-builder">
+                <tbody>
+                  @for (row of currentTable.rows; track $index; let rowIndex = $index) {
+                    <tr>
+                      @for (cell of row; track $index; let columnIndex = $index) {
+                        <td>
+                          <div
+                            #tableCell
+                            class="table-cell-editor"
+                            contenteditable="true"
+                            role="textbox"
+                            aria-label="Table cell"
+                            [innerHTML]="cell | safeCueCardHtml"
+                            (blur)="updateTableCell(rowIndex, columnIndex, tableCell.innerHTML)"
+                            (paste)="pasteIntoTable($event, rowIndex, columnIndex)"></div>
+                        </td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="new-table-panel">
+              <div class="inline-field">
+                <label class="field-label" for="cue-card-table-columns">Columns</label>
+                <input
+                  id="cue-card-table-columns"
+                  class="number-input"
+                  type="number"
+                  min="1"
+                  [max]="maxTableColumns"
+                  [value]="newTableColumnCount()"
+                  (input)="updateNewTableColumnCount($any($event.target).value)" />
+              </div>
+              <button type="button" class="secondary-button" (click)="createTable()">Create table</button>
+            </div>
+
+            <div class="table-paste-panel">
+              <label class="field-label" for="cue-card-table-paste">Paste table data</label>
+              <textarea
+                id="cue-card-table-paste"
+                class="table-paste-input"
+                rows="3"
+                [value]="tablePasteText()"
+                placeholder="Paste rows copied from a sheet"
+                (input)="updateTablePasteText($any($event.target).value)"></textarea>
+              <button type="button" class="ghost-button" (click)="applyTablePaste()">Use pasted table</button>
+            </div>
+          }
+        </section>
+
         <div class="action-row">
-          <button type="button" class="primary-button" (click)="copyForSheet()">Copy to Google Sheet</button>
+          <button type="button" class="primary-button" (click)="copyForSheet()">
+            {{ isEditing() ? 'Copy replacement row' : 'Copy to Google Sheet' }}
+          </button>
           <button type="button" class="secondary-button" (click)="saveOffline()">Save offline</button>
           <button type="button" class="ghost-button" (click)="resetForm()">Clear editor</button>
           @if (hasOfflineCards()) {
@@ -168,34 +273,92 @@
       } @else {
         <div class="cue-card-grid">
           @for (card of cards(); track card.id) {
-            <article class="cue-card">
+            <article
+              class="cue-card preview-card"
+              role="button"
+              tabindex="0"
+              (click)="openCard(card)"
+              (keydown.enter)="openCard(card)"
+              (keydown.space)="$event.preventDefault(); openCard(card)">
               <header class="cue-card-header">
                 <div>
                   <h3>{{ card.title || 'Untitled cue card' }}</h3>
-                  <p>{{ card.updatedAt || card.createdAt }}</p>
+                  <p>{{ friendlyDate(card.updatedAt || card.createdAt) }}</p>
                 </div>
-                @if (card.isOffline) {
-                  <span class="offline-badge">Offline</span>
-                }
+                <div class="badge-stack">
+                  @if (card.isOffline) {
+                    <span class="offline-badge">Offline</span>
+                  }
+                  @if (card.rowNumber) {
+                    <span class="row-badge">Row {{ card.rowNumber }}</span>
+                  }
+                </div>
               </header>
 
-              <div class="cue-card-content" [innerHTML]="card.contentHtml | safeCueCardHtml"></div>
-
-              @if (card.formatSummary || card.listItems) {
-                <footer class="cue-card-meta">
-                  @if (card.formatSummary) {
-                    <span>{{ card.formatSummary }}</span>
-                  }
-                  @if (card.listItems) {
-                    <span>{{ card.listItems }}</span>
-                  }
-                </footer>
-              }
+              <p class="preview-text">{{ previewText(card) }}</p>
+              <button type="button" class="open-button" (click)="$event.stopPropagation(); openCard(card)">Open</button>
             </article>
           }
         </div>
       }
     </section>
+  }
+
+  @if (selectedCard(); as card) {
+    <div class="detail-backdrop" role="presentation" (click)="closeCard()">
+      <article
+        class="detail-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cue-card-detail-title"
+        (click)="$event.stopPropagation()">
+        <header class="detail-header">
+          <div>
+            <h2 id="cue-card-detail-title">{{ card.title || 'Untitled cue card' }}</h2>
+            <p>{{ friendlyDate(card.updatedAt || card.createdAt) }}</p>
+          </div>
+          <div class="detail-actions">
+            @if (card.isOffline) {
+              <span class="offline-badge">Offline</span>
+            }
+            @if (card.rowNumber) {
+              <span class="row-badge">Row {{ card.rowNumber }}</span>
+            }
+            <button type="button" class="close-button" aria-label="Close cue card" (click)="closeCard()">
+              &times;
+            </button>
+          </div>
+        </header>
+
+        <div class="detail-content cue-card-content" [innerHTML]="card.contentHtml | safeCueCardHtml"></div>
+
+        @if (card.table; as detailTable) {
+          <section class="detail-table-section" aria-label="Cue card table">
+            @if (card.tableName) {
+              <h3>{{ card.tableName }}</h3>
+            }
+            <div class="detail-table-wrap">
+              <table class="detail-table">
+                <tbody>
+                  @for (row of detailTable.rows; track $index; let rowIndex = $index) {
+                    <tr>
+                      @for (cell of row; track $index; let columnIndex = $index) {
+                        <td [innerHTML]="cell | safeCueCardHtml"></td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+        }
+
+        <footer class="detail-footer">
+          <button type="button" class="primary-button" (click)="editCard(card)">Edit cue card</button>
+          <button type="button" class="ghost-button" (click)="closeCard()">Close</button>
+        </footer>
+      </article>
+    </div>
   }
 
   <p class="info-note">For detailed notes, create markdown and view it from <a routerLink="/markdown">/markdown</a>.</p>

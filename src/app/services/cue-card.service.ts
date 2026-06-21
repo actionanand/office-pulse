@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CueCard, CueCardSheetColumn, cueCardSheetColumns } from '../models/cue-card.model';
+import { CueCard, CueCardSheetColumn, CueCardTable, cueCardSheetColumns } from '../models/cue-card.model';
 
 interface GVizCell {
   v: string | number | boolean | null;
@@ -12,6 +12,7 @@ interface GVizCell {
 interface GVizResponse {
   status: string;
   table?: {
+    parsedNumHeaders?: number;
     cols: Array<{ label: string }>;
     rows: Array<{ c: Array<GVizCell | null> }>;
   };
@@ -70,11 +71,7 @@ export class CueCardService {
       const cards = JSON.parse(saved) as CueCard[];
       if (!Array.isArray(cards)) return [];
 
-      return cards.map(card => ({
-        ...card,
-        contentHtml: this.sanitizeRichText(card.contentHtml),
-        isOffline: true,
-      }));
+      return cards.map(card => this.cleanCueCard(card, true));
     } catch {
       localStorage.removeItem(this.offlineStorageKey);
       return [];
@@ -83,7 +80,8 @@ export class CueCardService {
 
   saveOfflineCueCard(card: CueCard): void {
     const cards = this.getOfflineCueCards();
-    const nextCards = [{ ...card, isOffline: true }, ...cards.filter(item => item.id !== card.id)];
+    const cleanCard = this.cleanCueCard(card, true);
+    const nextCards = [cleanCard, ...cards.filter(item => item.id !== cleanCard.id)];
     localStorage.setItem(this.offlineStorageKey, JSON.stringify(nextCards));
   }
 
@@ -91,19 +89,28 @@ export class CueCardService {
     localStorage.removeItem(this.offlineStorageKey);
   }
 
-  buildCueCard(title: string, contentHtml: string): CueCard {
-    const sanitizedHtml = this.sanitizeRichText(contentHtml);
-    const createdAt = new Date().toISOString();
+  buildCueCard(input: {
+    title: string;
+    contentHtml: string;
+    tableName: string;
+    table: CueCardTable | null;
+    existingCard?: CueCard | null;
+  }): CueCard {
+    const sanitizedHtml = this.sanitizeRichText(input.contentHtml);
+    const normalizedTable = this.normalizeTable(input.table);
+    const now = new Date().toISOString();
+    const existingCard = input.existingCard;
 
     return {
-      id: this.createCueCardId(),
-      createdAt,
-      updatedAt: createdAt,
-      title: title.trim(),
+      id: existingCard?.id ?? this.createCueCardId(),
+      rowNumber: existingCard?.rowNumber,
+      createdAt: existingCard?.createdAt || now,
+      updatedAt: now,
+      title: input.title.trim(),
       contentHtml: sanitizedHtml,
-      contentText: this.htmlToText(sanitizedHtml),
-      listItems: this.extractListItems(sanitizedHtml).join(' | '),
-      formatSummary: this.getFormatSummary(sanitizedHtml),
+      tableName: input.tableName.trim(),
+      table: normalizedTable,
+      isOffline: existingCard?.isOffline,
     };
   }
 
@@ -118,9 +125,8 @@ export class CueCardService {
       UpdatedAt: new Date().toISOString(),
       Title: card.title,
       ContentHtml: card.contentHtml,
-      ContentText: card.contentText,
-      ListItems: card.listItems,
-      FormatSummary: card.formatSummary,
+      TableName: card.tableName,
+      TableData: this.encodeTableData(card.table),
     };
 
     return cueCardSheetColumns.map(column => this.escapeTsvCell(row[column])).join('\t');
@@ -138,6 +144,71 @@ export class CueCardService {
       .join('');
 
     return sanitized === '<br>' ? '' : sanitized;
+  }
+
+  sanitizeTableCellHtml(html: string): string {
+    return this.sanitizeRichText(html);
+  }
+
+  htmlToText(value: string): string {
+    const template = document.createElement('template');
+    template.innerHTML = value;
+
+    return (template.content.textContent ?? '').trim();
+  }
+
+  previewText(card: CueCard, wordLimit = 100): string {
+    const tableText = card.table?.rows.map(row => row.map(cell => this.htmlToText(cell)).join(' ')).join(' ') ?? '';
+    const words = `${this.htmlToText(card.contentHtml)} ${tableText}`.trim().split(/\s+/).filter(Boolean);
+
+    if (words.length <= wordLimit) return words.join(' ');
+    return `${words.slice(0, wordLimit).join(' ')}...`;
+  }
+
+  cloneTable(table: CueCardTable | null): CueCardTable | null {
+    return table ? { rows: table.rows.map(row => [...row]) } : null;
+  }
+
+  normalizeTable(table: CueCardTable | null | undefined): CueCardTable | null {
+    if (!table) return null;
+
+    const rows = this.normalizeTableRows(table.rows).map(row => row.map(cell => this.sanitizeTableCellHtml(cell)));
+
+    if (rows.length === 0 || rows.every(row => row.every(cell => this.htmlToText(cell).trim() === ''))) {
+      return null;
+    }
+
+    return { rows };
+  }
+
+  normalizeTableRows(rows: readonly string[][]): string[][] {
+    const columnCount = Math.max(...rows.map(row => row.length), 1);
+    const normalizedRows = rows
+      .slice(0, 13)
+      .map(row => Array.from({ length: Math.min(Math.max(columnCount, 1), 7) }, (_, index) => row[index] ?? ''));
+
+    while (normalizedRows.length > 0 && (normalizedRows.at(-1) ?? []).every(cell => !this.htmlToText(cell).trim())) {
+      normalizedRows.pop();
+    }
+
+    return normalizedRows;
+  }
+
+  parsePastedTable(value: string): string[][] {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) return [];
+
+    const markdownRows = this.parseMarkdownTable(trimmedValue);
+    if (markdownRows.length > 0) {
+      return this.normalizeTableRows(markdownRows);
+    }
+
+    return this.normalizeTableRows(
+      trimmedValue
+        .split(/\r?\n/)
+        .map(row => row.split('\t').map(cell => cell.trim()))
+        .filter(row => row.some(cell => cell.length > 0)),
+    );
   }
 
   private buildGVizUrl(): string {
@@ -161,9 +232,10 @@ export class CueCardService {
       if (data.status !== 'ok' || !data.table?.rows) return [];
 
       const columnIndexes = this.getColumnIndexes(data.table.cols.map(col => col.label));
+      const firstDataRowNumber = (data.table.parsedNumHeaders ?? 1) + 1;
 
       return data.table.rows
-        .map(row => this.cardFromCells(row.c, columnIndexes))
+        .map((row, index) => this.cardFromCells(row.c, columnIndexes, firstDataRowNumber + index))
         .filter((card): card is CueCard => card !== null);
     } catch (error) {
       console.error('Error parsing cue cards:', error);
@@ -181,27 +253,92 @@ export class CueCardService {
     );
   }
 
-  private cardFromCells(cells: Array<GVizCell | null>, indexes: Record<CueCardSheetColumn, number>): CueCard | null {
+  private cardFromCells(
+    cells: Array<GVizCell | null>,
+    indexes: Record<CueCardSheetColumn, number>,
+    rowNumber: number,
+  ): CueCard | null {
     const id = this.cellValue(cells[indexes.CueCardId]);
     const title = this.cellValue(cells[indexes.Title]);
     const contentHtml = this.sanitizeRichText(this.cellValue(cells[indexes.ContentHtml]));
+    const table = this.decodeTableData(this.cellValue(cells[indexes.TableData]));
 
-    if (!id && !title && !contentHtml) return null;
+    if (!id && !title && !contentHtml && !table) return null;
 
     return {
       id: id || this.createCueCardId(),
+      rowNumber,
       createdAt: this.cellValue(cells[indexes.CreatedAt]),
       updatedAt: this.cellValue(cells[indexes.UpdatedAt]),
       title,
       contentHtml,
-      contentText: this.cellValue(cells[indexes.ContentText]) || this.htmlToText(contentHtml),
-      listItems: this.cellValue(cells[indexes.ListItems]) || this.extractListItems(contentHtml).join(' | '),
-      formatSummary: this.cellValue(cells[indexes.FormatSummary]) || this.getFormatSummary(contentHtml),
+      tableName: this.cellValue(cells[indexes.TableName]),
+      table,
     };
   }
 
   private cellValue(cell: GVizCell | null | undefined): string {
     return String(cell?.f ?? cell?.v ?? '').trim();
+  }
+
+  private encodeTableData(table: CueCardTable | null): string {
+    const normalizedTable = this.normalizeTable(table);
+    if (!normalizedTable) return '';
+
+    return JSON.stringify({
+      v: 1,
+      r: normalizedTable.rows,
+    });
+  }
+
+  private decodeTableData(value: string): CueCardTable | null {
+    if (!value.trim()) return null;
+
+    try {
+      const parsedValue = JSON.parse(value) as { r?: unknown };
+      if (!Array.isArray(parsedValue.r)) return null;
+
+      return this.normalizeTable({
+        rows: parsedValue.r
+          .filter((row): row is unknown[] => Array.isArray(row))
+          .map(row => row.map(cell => String(cell ?? '')).slice(0, 7))
+          .slice(0, 13),
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  private parseMarkdownTable(value: string): string[][] {
+    const lines = value
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line.includes('|'));
+
+    return lines
+      .filter(line => !/^(\|?\s*:?-{3,}:?\s*)+\|?$/.test(line))
+      .map(line =>
+        line
+          .replace(/^\|/, '')
+          .replace(/\|$/, '')
+          .split('|')
+          .map(cell => cell.trim()),
+      )
+      .filter(row => row.some(cell => cell.length > 0));
+  }
+
+  private cleanCueCard(card: CueCard, isOffline = false): CueCard {
+    return {
+      id: card.id || this.createCueCardId(),
+      rowNumber: card.rowNumber,
+      createdAt: card.createdAt || new Date().toISOString(),
+      updatedAt: card.updatedAt || card.createdAt || new Date().toISOString(),
+      title: (card.title ?? '').trim(),
+      contentHtml: this.sanitizeRichText(card.contentHtml ?? ''),
+      tableName: (card.tableName ?? '').trim(),
+      table: this.normalizeTable(card.table),
+      isOffline: isOffline || card.isOffline,
+    };
   }
 
   private sanitizeNode(node: ChildNode): string {
@@ -275,38 +412,6 @@ export class CueCardService {
     const aliasedValue = colorAliases[normalizedValue] ?? normalizedValue;
 
     return allowedColors.find(color => color === aliasedValue) ?? '';
-  }
-
-  private htmlToText(value: string): string {
-    const template = document.createElement('template');
-    template.innerHTML = value;
-
-    return (template.content.textContent ?? '').trim();
-  }
-
-  private extractListItems(value: string): string[] {
-    const template = document.createElement('template');
-    template.innerHTML = value;
-
-    return Array.from(template.content.querySelectorAll('li'))
-      .map(item => item.textContent?.trim() ?? '')
-      .filter(Boolean);
-  }
-
-  private getFormatSummary(value: string): string {
-    const template = document.createElement('template');
-    template.innerHTML = value;
-    const summary = [
-      template.content.querySelector('b,strong') ? 'bold' : '',
-      template.content.querySelector('i,em') ? 'italic' : '',
-      template.content.querySelector('s,strike') ? 'strike' : '',
-      template.content.querySelector('ul') ? 'unordered-list' : '',
-      template.content.querySelector('ol') ? 'ordered-list' : '',
-      template.content.querySelector('[style*="color"]') ? 'font-color' : '',
-      template.content.querySelector('[style*="background-color"]') ? 'highlight' : '',
-    ].filter(Boolean);
-
-    return summary.join(', ');
   }
 
   private escapeHtml(value: string): string {

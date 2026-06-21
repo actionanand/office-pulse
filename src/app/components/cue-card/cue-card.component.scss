@@ -12,7 +12,11 @@
 .page-header,
 .section-heading.with-action,
 .action-row,
-.toolbar {
+.toolbar,
+.table-tools,
+.new-table-panel,
+.detail-actions,
+.detail-footer {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -97,6 +101,7 @@ h3 {
 
 .section-heading p,
 .cue-card-header p,
+.detail-header p,
 .info-note {
   color: #667085;
   font-size: 0.86rem;
@@ -109,6 +114,8 @@ h3 {
 }
 
 .text-input,
+.number-input,
+.table-paste-input,
 .rich-editor {
   width: 100%;
   border: 1px solid #d0d5dd;
@@ -118,14 +125,29 @@ h3 {
   font: inherit;
 }
 
-.text-input {
+.text-input,
+.number-input {
   min-height: 2.75rem;
   padding: 0.65rem 0.75rem;
 }
 
+.number-input {
+  width: 7rem;
+}
+
+.table-paste-input {
+  min-height: 5rem;
+  padding: 0.65rem 0.75rem;
+  resize: vertical;
+}
+
 .text-input:focus,
+.number-input:focus,
+.table-paste-input:focus,
 .rich-editor:focus,
-button:focus-visible {
+.table-cell-editor:focus,
+button:focus-visible,
+.preview-card:focus-visible {
   outline: 3px solid rgba(21, 101, 192, 0.22);
   outline-offset: 2px;
 }
@@ -143,7 +165,9 @@ button:focus-visible {
 .primary-button,
 .secondary-button,
 .ghost-button,
-.danger-button {
+.danger-button,
+.close-button,
+.open-button {
   min-height: 2.4rem;
   border-radius: 8px;
   cursor: pointer;
@@ -165,6 +189,89 @@ button:focus-visible {
 
 .format-button.strike {
   text-decoration: line-through;
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  padding: 0.35rem;
+}
+
+.toolbar-icon {
+  position: relative;
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.toolbar-icon::before,
+.toolbar-icon::after {
+  position: absolute;
+  content: '';
+}
+
+.icon-unordered-list::before,
+.icon-unordered-list::after,
+.icon-ordered-list::after,
+.icon-indent::after,
+.icon-outdent::after {
+  left: 0.52rem;
+  width: 0.65rem;
+  height: 0.1rem;
+  background: currentColor;
+  box-shadow:
+    0 0.36rem 0 currentColor,
+    0 0.72rem 0 currentColor;
+}
+
+.icon-unordered-list::before {
+  left: 0.08rem;
+  width: 0.18rem;
+  height: 0.18rem;
+  border-radius: 50%;
+  box-shadow:
+    0 0.36rem 0 currentColor,
+    0 0.72rem 0 currentColor;
+  top: 0.16rem;
+}
+
+.icon-unordered-list::after,
+.icon-ordered-list::after {
+  top: 0.19rem;
+}
+
+.icon-ordered-list::before {
+  content: '1';
+  top: 0.02rem;
+  left: 0.02rem;
+  color: currentColor;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.icon-indent::before,
+.icon-outdent::before {
+  top: 0.33rem;
+  width: 0;
+  height: 0;
+  border-top: 0.22rem solid transparent;
+  border-bottom: 0.22rem solid transparent;
+}
+
+.icon-indent::before {
+  left: 0.08rem;
+  border-left: 0.34rem solid currentColor;
+}
+
+.icon-outdent::before {
+  left: 0.08rem;
+  border-right: 0.34rem solid currentColor;
+}
+
+.icon-indent::after,
+.icon-outdent::after {
+  top: 0.08rem;
 }
 
 .toolbar-divider {
@@ -203,25 +310,44 @@ button:focus-visible {
   color: #98a2b3;
 }
 
-.rich-editor ul,
-.rich-editor ol,
-.cue-card-content ul,
-.cue-card-content ol {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
+:host ::ng-deep .rich-editor ul,
+:host ::ng-deep .rich-editor ol,
+:host ::ng-deep .cue-card-content ul,
+:host ::ng-deep .cue-card-content ol,
+:host ::ng-deep .table-cell-editor ul,
+:host ::ng-deep .table-cell-editor ol,
+:host ::ng-deep .detail-table td ul,
+:host ::ng-deep .detail-table td ol {
+  margin: 0.45rem 0;
+  padding-left: 1.75rem;
+  list-style-position: outside;
 }
 
-.rich-editor li ul,
-.rich-editor li ol,
-.cue-card-content li ul,
-.cue-card-content li ol {
-  margin: 0.35rem 0;
+:host ::ng-deep .rich-editor li,
+:host ::ng-deep .cue-card-content li,
+:host ::ng-deep .table-cell-editor li,
+:host ::ng-deep .detail-table td li {
+  margin: 0.18rem 0;
+  padding-left: 0.12rem;
+}
+
+:host ::ng-deep .rich-editor li ul,
+:host ::ng-deep .rich-editor li ol,
+:host ::ng-deep .cue-card-content li ul,
+:host ::ng-deep .cue-card-content li ol,
+:host ::ng-deep .table-cell-editor li ul,
+:host ::ng-deep .table-cell-editor li ol,
+:host ::ng-deep .detail-table td li ul,
+:host ::ng-deep .detail-table td li ol {
+  margin: 0.3rem 0;
+  padding-left: 1.5rem;
 }
 
 .primary-button,
 .secondary-button,
 .ghost-button,
-.danger-button {
+.danger-button,
+.open-button {
   padding: 0.55rem 0.85rem;
   border: 1px solid transparent;
 }
@@ -254,6 +380,13 @@ button:focus-visible {
   color: #be123c;
 }
 
+.open-button {
+  justify-self: start;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
 .status-message,
 .error-message,
 .info-note {
@@ -272,6 +405,69 @@ button:focus-visible {
   background: #fef3f2;
   border: 1px solid #fecdca;
   color: #b42318;
+}
+
+.table-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  background: #fcfcfd;
+}
+
+.table-tools {
+  justify-content: flex-start;
+}
+
+.inline-field,
+.table-paste-panel {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.new-table-panel {
+  justify-content: flex-start;
+  align-items: end;
+}
+
+.table-paste-panel {
+  max-width: 34rem;
+}
+
+.table-builder-wrap,
+.detail-table-wrap {
+  overflow-x: auto;
+}
+
+.table-builder,
+.detail-table {
+  width: 100%;
+  min-width: 36rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.table-builder td,
+.detail-table td {
+  border: 1px solid #cfd8dc;
+  vertical-align: top;
+}
+
+.table-cell-editor {
+  min-height: 3rem;
+  padding: 0.55rem;
+  background: #fff;
+  color: #1f2937;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.detail-table td {
+  padding: 0.65rem;
+  color: #1f2937;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .loading-state,
@@ -314,6 +510,21 @@ button:focus-visible {
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
 }
 
+.preview-card {
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+.preview-card:hover {
+  border-color: #b9c9ef;
+  box-shadow: 0 8px 20px rgba(16, 24, 40, 0.1);
+  transform: translateY(-1px);
+}
+
 .cue-card-header {
   display: flex;
   justify-content: space-between;
@@ -322,38 +533,103 @@ button:focus-visible {
   padding-bottom: 0.7rem;
 }
 
-.cue-card-content {
+.badge-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.cue-card-content,
+.preview-text {
   color: #1f2937;
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
 
-.offline-badge {
+.preview-text {
+  margin-bottom: 0;
+  color: #344054;
+}
+
+.offline-badge,
+.row-badge {
   align-self: start;
   border-radius: 999px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  color: #9a3412;
   font-size: 0.72rem;
   font-weight: 800;
   padding: 0.18rem 0.5rem;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.cue-card-meta {
+.offline-badge {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.row-badge {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+}
+
+.detail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.detail-card {
+  display: grid;
+  gap: 1rem;
+  width: min(820px, 100%);
+  max-height: min(760px, calc(100vh - 2rem));
+  overflow: auto;
+  padding: 1.1rem;
+  border-radius: 8px;
+  border: 1px solid #e4e7ec;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+}
+
+.detail-header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding-top: 0.7rem;
-  border-top: 1px solid #eef2f6;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #eef2f6;
 }
 
-.cue-card-meta span {
-  border-radius: 999px;
-  background: #f2f4f7;
+.close-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2.4rem;
+  border: 1px solid #d0d5dd;
+  background: #fff;
   color: #475467;
-  font-size: 0.72rem;
-  padding: 0.2rem 0.55rem;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.detail-content {
+  padding: 0.1rem 0;
+}
+
+.detail-table-section {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.detail-footer {
+  justify-content: flex-end;
+  padding-top: 0.8rem;
+  border-top: 1px solid #eef2f6;
 }
 
 .info-note {
@@ -370,18 +646,29 @@ button:focus-visible {
 @media (max-width: 720px) {
   .page-header,
   .section-heading.with-action,
-  .action-row {
+  .action-row,
+  .detail-header,
+  .detail-footer {
     align-items: stretch;
     flex-direction: column;
   }
 
   .mode-toggle,
   .mode-toggle button,
-  .action-row button {
+  .action-row button,
+  .detail-footer button,
+  .table-tools button,
+  .new-table-panel button,
+  .table-paste-panel button {
     width: 100%;
   }
 
   .toolbar {
     gap: 0.45rem;
+  }
+
+  .badge-stack,
+  .detail-actions {
+    align-items: flex-start;
   }
 }

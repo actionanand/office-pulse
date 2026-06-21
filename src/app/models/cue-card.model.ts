@@ -1,13 +1,17 @@
 export interface CueCard {
   id: string;
+  rowNumber?: number;
   createdAt: string;
   updatedAt: string;
   title: string;
   contentHtml: string;
-  contentText: string;
-  listItems: string;
-  formatSummary: string;
+  tableName: string;
+  table: CueCardTable | null;
   isOffline?: boolean;
+}
+
+export interface CueCardTable {
+  rows: string[][];
 }
 
 export const cueCardSheetColumns = [
@@ -16,9 +20,8 @@ export const cueCardSheetColumns = [
   'UpdatedAt',
   'Title',
   'ContentHtml',
-  'ContentText',
-  'ListItems',
-  'FormatSummary',
+  'TableName',
+  'TableData',
 ] as const;
 
 export type CueCardSheetColumn = (typeof cueCardSheetColumns)[number];

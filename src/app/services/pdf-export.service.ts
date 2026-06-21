@@ -10,7 +10,7 @@ declare global {
       isNativePlatform?: () => boolean;
       Plugins?: {
         OfficePulseExport?: {
-          exportPdf: (options: { filename: string; html: string; title: string }) => Promise<void>;
+          exportPdf: (options: { filename: string; content: string; html?: string; title: string }) => Promise<void>;
         };
       };
     };
@@ -29,7 +29,8 @@ export class PdfExportService {
   generatePdf(entries: SheetEntry[], options: PdfExportOptions): void {
     const { title, rows, monthSummaries } = this.prepareData(entries, options);
     const html = this.generateHtml(title, rows, options, monthSummaries);
-    this.downloadPdf(html, this.generateFileName(options));
+    const androidPayload = this.generateAndroidPayload(title, rows, options, monthSummaries);
+    this.downloadPdf(html, this.generateFileName(options), androidPayload);
   }
 
   /**
@@ -682,6 +683,77 @@ export class PdfExportService {
     return `<tr class="${rowClass}">${cells}</tr>`;
   }
 
+  private generateAndroidPayload(
+    title: string,
+    rows: PdfEntryRow[],
+    options: PdfExportOptions,
+    monthSummaries: MonthSummary[],
+  ): string {
+    const headers = this.getTableHeaders(options);
+    const isFullYear = options.dateRangeType === 'full-year';
+    const totalMinutes = monthSummaries.reduce((sum, summary) => sum + summary.totalMinutes, 0);
+    const totalHours = Math.floor(totalMinutes / 60);
+    const totalMins = totalMinutes % 60;
+    const noEntryDays = rows.filter(row => row.isNoEntry).length;
+    const summary = [
+      { label: 'Working Days', value: String(rows.filter(row => !row.isWeekOff && !row.isNoEntry).length) },
+      { label: 'Week Offs', value: String(rows.filter(row => row.isWeekOff).length) },
+      ...(noEntryDays > 0 ? [{ label: 'No Entry Days', value: String(noEntryDays) }] : []),
+      { label: 'Total Hours', value: `${totalHours}h ${totalMins}m` },
+    ];
+
+    const sections = isFullYear
+      ? monthSummaries
+          .map(monthSummary => {
+            const sectionRows = rows.filter(row => row.month === monthSummary.month && row.year === monthSummary.year);
+            const hours = Math.floor(monthSummary.totalMinutes / 60);
+            const mins = monthSummary.totalMinutes % 60;
+
+            return {
+              title: monthSummary.monthName,
+              stats: [
+                { label: 'Days', value: String(monthSummary.workingDays) },
+                { label: 'Hours', value: `${hours}h ${mins}m` },
+              ],
+              rows: sectionRows.map(row => this.toAndroidRow(row, options)),
+            };
+          })
+          .filter(section => section.rows.length > 0)
+      : [
+          {
+            title: 'Entries',
+            stats: [],
+            rows: rows.map(row => this.toAndroidRow(row, options)),
+          },
+        ];
+
+    return JSON.stringify({
+      title,
+      generatedOn: new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+      summary,
+      headers,
+      sections,
+    });
+  }
+
+  private toAndroidRow(row: PdfEntryRow, options: PdfExportOptions): { state: string; cells: string[] } {
+    const cells = [row.date, row.dayName, row.entryTime, row.exitTime, row.duration];
+
+    if (options.includeCompanyName) cells.push(row.companyName || '-');
+    if (options.includeStatus) cells.push(row.status || '-');
+    if (options.includeComments) cells.push(row.comments || '-');
+
+    return {
+      state: row.isWeekOff ? 'week-off' : row.isNoEntry ? 'no-entry' : 'normal',
+      cells,
+    };
+  }
+
   /**
    * Generate file name
    */
@@ -706,7 +778,7 @@ export class PdfExportService {
   /**
    * Download PDF using print dialog
    */
-  private downloadPdf(html: string, fileName: string): void {
+  private downloadPdf(html: string, fileName: string, androidPayload: string): void {
     const capacitor = window.Capacitor;
     const nativeExport = capacitor?.Plugins?.OfficePulseExport;
     const isNativeAndroid = capacitor?.isNativePlatform?.() === true && capacitor.getPlatform?.() === 'android';
@@ -718,12 +790,22 @@ export class PdfExportService {
       }
 
       this.snackbarService.success('Preparing PDF export');
-      nativeExport
-        .exportPdf({
-          filename: `${fileName}.pdf`,
-          html,
-          title: 'Office Pulse PDF Export',
-        })
+      const exportPromise = nativeExport.exportPdf({
+        filename: `${fileName}.pdf`,
+        content: androidPayload,
+        html,
+        title: 'Office Pulse PDF Export',
+      });
+      let timeoutId = 0;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = window.setTimeout(() => reject(new Error('PDF export timed out')), 20000);
+      });
+      exportPromise.then(
+        () => window.clearTimeout(timeoutId),
+        () => window.clearTimeout(timeoutId),
+      );
+
+      Promise.race([exportPromise, timeoutPromise])
         .then(() => this.snackbarService.success('Choose an app to save or share the PDF'))
         .catch(() => this.snackbarService.error('Unable to download PDF'));
       return;

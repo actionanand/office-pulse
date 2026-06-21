@@ -3,6 +3,19 @@ import { SheetEntry } from './gviz.service';
 import { SnackbarService } from './snackbar.service';
 import { PdfExportOptions, PdfEntryRow, MonthSummary } from '../models/pdf-export.model';
 
+declare global {
+  interface Window {
+    Capacitor?: {
+      isNativePlatform?: () => boolean;
+      Plugins?: {
+        OfficePulseExport?: {
+          exportPdf: (options: { filename: string; html: string; title: string }) => Promise<void>;
+        };
+      };
+    };
+  }
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -415,13 +428,13 @@ export class PdfExportService {
     <h1>${title}</h1>
     <p class="subtitle">Generated on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
   </div>
-  
+
   ${this.generateOverallSummary(rows, monthSummaries)}
-  
+
   ${isFullYear ? this.generateMonthWiseTables(rows, options, headers, monthSummaries) : this.generateSingleTable(rows, options, headers)}
-  
+
   ${isFullYear ? this.generateYearlySummary(monthSummaries, options.selectedYear) : ''}
-  
+
   <div class="footer">
     <p>Office Pulse - Attendance Tracker</p>
   </div>
@@ -692,8 +705,21 @@ export class PdfExportService {
   /**
    * Download PDF using print dialog
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private downloadPdf(html: string, _fileName: string): void {
+  private downloadPdf(html: string, fileName: string): void {
+    const nativeExport = window.Capacitor?.Plugins?.OfficePulseExport;
+
+    if (window.Capacitor?.isNativePlatform?.() && nativeExport) {
+      nativeExport
+        .exportPdf({
+          filename: `${fileName}.pdf`,
+          html,
+          title: 'Office Pulse PDF Export',
+        })
+        .then(() => this.snackbarService.success('PDF export ready'))
+        .catch(() => this.snackbarService.error('Unable to download PDF'));
+      return;
+    }
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       this.snackbarService.error('Please allow popups to download PDF');

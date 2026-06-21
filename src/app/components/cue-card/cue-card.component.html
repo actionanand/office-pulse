@@ -377,7 +377,8 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="cue-card-detail-title"
-        (click)="$event.stopPropagation()">
+        (click)="$event.stopPropagation()"
+        (keydown)="$event.stopPropagation()">
         <header class="detail-header">
           <div class="detail-title-block">
             <h2 id="cue-card-detail-title">{{ card.title || 'Untitled cue card' }}</h2>

@@ -33,12 +33,24 @@ interface LocalNotificationsPlugin {
   removeDeliveredNotifications?: (options: { notifications: Array<{ id: number }> }) => Promise<unknown>;
 }
 
+interface OfficePulseReminderPlugin {
+  sendLogoffReminder: (options: {
+    id: number;
+    title: string;
+    body: string;
+    minutesBefore: number;
+    logoffAt: string;
+  }) => Promise<unknown>;
+  cancelLogoffReminders?: () => Promise<unknown>;
+}
+
 interface CapacitorBridge {
   getPlatform?: () => string;
   isNativePlatform?: () => boolean;
   registerPlugin?: <T>(pluginName: string) => T;
   Plugins?: {
     LocalNotifications?: LocalNotificationsPlugin;
+    OfficePulseReminder?: OfficePulseReminderPlugin;
   };
 }
 
@@ -58,7 +70,6 @@ export class AndroidLogoffNotificationService {
     { minutes: 30, id: 701630, label: '30 minutes' },
     { minutes: 15, id: 701615, label: '15 minutes' },
   ];
-  private readonly immediateReminderGraceMs = 10 * 1000;
   private readonly channelId = 'office-pulse-logoff-reminders';
   private readonly stateKey = 'office_pulse_logoff_reminder_state';
 
@@ -70,6 +81,52 @@ export class AndroidLogoffNotificationService {
     }
 
     await this.schedule(log.entryTime, workHours, now);
+  }
+
+  async syncFromRemainingText(
+    entryTime: string,
+    workHours: number,
+    remainingText: string,
+    now: Date = new Date(),
+  ): Promise<void> {
+    try {
+      if (!remainingText || /^time to log off/i.test(remainingText.trim())) {
+        await this.cancel();
+        return;
+      }
+
+      if (!Number.isFinite(workHours) || workHours <= 0) {
+        await this.cancel();
+        return;
+      }
+
+      const entryDate = new Date(entryTime);
+      if (Number.isNaN(entryDate.getTime())) return;
+
+      const logoffAt = new Date(entryDate.getTime() + workHours * 60 * 60 * 1000);
+      if (logoffAt.getTime() <= now.getTime()) {
+        await this.cancel();
+        return;
+      }
+
+      const reminder = this.getReminderFromRemainingText(remainingText);
+      if (!reminder) return;
+
+      const sessionKey = this.getSessionKey(entryTime, workHours, logoffAt);
+      const existingState = this.readState();
+      const state: ReminderState =
+        !existingState || existingState.sessionKey !== sessionKey
+          ? { sessionKey, notifiedMinutes: [], scheduledKey: '' }
+          : existingState;
+
+      if (state.notifiedMinutes.includes(reminder.minutes)) return;
+
+      await this.sendImmediateReminder(reminder, logoffAt);
+      state.notifiedMinutes = Array.from(new Set([...state.notifiedMinutes, reminder.minutes]));
+      this.writeState(state);
+    } catch {
+      // Notification support is best-effort and Android-only.
+    }
   }
 
   async schedule(entryTime: string, workHours: number, now: Date = new Date()): Promise<void> {
@@ -108,9 +165,7 @@ export class AndroidLogoffNotificationService {
       }
 
       const crossedReminders = this.reminderOffsets.filter(
-        reminder =>
-          remainingMs <= reminder.minutes * 60 * 1000 - this.immediateReminderGraceMs &&
-          !state.notifiedMinutes.includes(reminder.minutes),
+        reminder => remainingMs <= reminder.minutes * 60 * 1000 && !state.notifiedMinutes.includes(reminder.minutes),
       );
       const immediateReminder = crossedReminders.at(-1);
       const futureReminders = this.reminderOffsets
@@ -147,13 +202,7 @@ export class AndroidLogoffNotificationService {
       }
 
       if (immediateReminder) {
-        await this.cancelNotification(plugin, immediateReminder.id);
-        await plugin.schedule({
-          notifications: [
-            this.createNotification(immediateReminder, new Date(Date.now() + 1000), logoffAt, useExactSchedule),
-          ],
-        });
-
+        await this.sendImmediateReminder(immediateReminder, logoffAt, plugin, useExactSchedule);
         const crossedMinutes = crossedReminders.map(reminder => reminder.minutes);
         state.notifiedMinutes = Array.from(new Set([...state.notifiedMinutes, ...crossedMinutes]));
       }
@@ -166,6 +215,8 @@ export class AndroidLogoffNotificationService {
 
   async cancel(): Promise<void> {
     try {
+      await this.getNativeReminderPlugin()?.cancelLogoffReminders?.();
+
       const plugin = this.getPlugin();
       if (!plugin) {
         this.clearState();
@@ -180,16 +231,56 @@ export class AndroidLogoffNotificationService {
     }
   }
 
+  private async sendImmediateReminder(
+    reminder: { minutes: number; id: number; label: string },
+    logoffAt: Date,
+    localPlugin: LocalNotificationsPlugin | null = null,
+    useExactSchedule = false,
+  ): Promise<void> {
+    const title = `Log off in ${reminder.label}`;
+    const body = `Remaining time is ${this.getRemainingDisplay(reminder.minutes)}. Target time: ${this.formatTime(logoffAt)}.`;
+    const nativePlugin = this.getNativeReminderPlugin();
+    const plugin = localPlugin ?? this.getPlugin();
+
+    if (plugin) {
+      const permissionGranted = await this.ensurePermission(plugin);
+      if (!permissionGranted) return;
+    }
+
+    if (nativePlugin) {
+      await nativePlugin.sendLogoffReminder({
+        id: reminder.id,
+        title,
+        body,
+        minutesBefore: reminder.minutes,
+        logoffAt: logoffAt.toISOString(),
+      });
+      return;
+    }
+
+    if (!plugin) return;
+
+    await this.ensureChannel(plugin);
+    await this.cancelNotification(plugin, reminder.id);
+    await plugin.schedule({
+      notifications: [
+        this.createNotification(reminder, new Date(Date.now() + 1000), logoffAt, useExactSchedule, title, body),
+      ],
+    });
+  }
+
   private createNotification(
     reminder: { minutes: number; id: number; label: string },
     notifyAt: Date,
     logoffAt: Date,
     useExactSchedule: boolean,
+    title = `Log off in ${reminder.label}`,
+    body = `Remaining time is less than ${reminder.label}. Target time: ${this.formatTime(logoffAt)}.`,
   ): CapacitorLocalNotification {
     return {
       id: reminder.id,
-      title: `Log off in ${reminder.label}`,
-      body: `Remaining time is less than ${reminder.label}. Target time: ${this.formatTime(logoffAt)}.`,
+      title,
+      body,
       channelId: this.channelId,
       autoCancel: true,
       schedule: {
@@ -231,7 +322,17 @@ export class AndroidLogoffNotificationService {
     );
   }
 
+  private getNativeReminderPlugin(): OfficePulseReminderPlugin | null {
+    const capacitor = (window as Window & { Capacitor?: CapacitorBridge }).Capacitor;
+    const isAndroidApp = capacitor?.isNativePlatform?.() === true && capacitor.getPlatform?.() === 'android';
+
+    if (!isAndroidApp) return null;
+    return capacitor?.Plugins?.OfficePulseReminder ?? null;
+  }
+
   private async ensurePermission(plugin: LocalNotificationsPlugin): Promise<boolean> {
+    if (!plugin.checkPermissions && !plugin.requestPermissions) return true;
+
     const status = await plugin.checkPermissions?.();
     if (status?.display === 'granted') return true;
 
@@ -263,6 +364,29 @@ export class AndroidLogoffNotificationService {
 
   private getSessionKey(entryTime: string, workHours: number, logoffAt: Date): string {
     return `${entryTime}|${workHours}|${logoffAt.toISOString()}`;
+  }
+
+  private getReminderFromRemainingText(remainingText: string): { minutes: number; id: number; label: string } | null {
+    const normalized = remainingText
+      .toLowerCase()
+      .replace(/^remaining:\s*/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (/^1\s*(hr|hour)\s*0\s*(min|minute)s?$/.test(normalized)) {
+      return this.reminderOffsets[0];
+    }
+
+    const minuteMatch = normalized.match(/^(\d+)\s*(min|minute)s?$/);
+    if (!minuteMatch) return null;
+
+    const minutes = Number(minuteMatch[1]);
+    return this.reminderOffsets.find(reminder => reminder.minutes === minutes) ?? null;
+  }
+
+  private getRemainingDisplay(minutes: number): string {
+    if (minutes === 60) return '1 hour 0 minutes';
+    return `${minutes} minutes`;
   }
 
   private getScheduledKey(

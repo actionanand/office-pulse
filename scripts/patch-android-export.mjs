@@ -16,13 +16,11 @@ writeFileSync(
   `package ${appPackage};
 
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.CancellationSignal;
-import android.os.ParcelFileDescriptor;
-import android.print.PageRange;
-import android.print.PrintAttributes;
-import android.print.PrintDocumentAdapter;
+import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -35,9 +33,13 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.File;
+import java.io.FileOutputStream;
 
 @CapacitorPlugin(name = "OfficePulseExport")
 public class OfficePulseExportPlugin extends Plugin {
+  private static final int PAGE_WIDTH = 595;
+  private static final int PAGE_HEIGHT = 842;
+
   @PluginMethod
   public void exportPdf(PluginCall call) {
     String filename = call.getString("filename");
@@ -74,7 +76,7 @@ public class OfficePulseExportPlugin extends Plugin {
       webView.setWebViewClient(new WebViewClient() {
         @Override
         public void onPageFinished(WebView view, String url) {
-          writeWebViewToPdf(call, view, outputFile, title);
+          view.postDelayed(() -> writeWebViewToPdf(call, view, outputFile, title), 250);
         }
       });
       webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
@@ -84,63 +86,50 @@ public class OfficePulseExportPlugin extends Plugin {
   }
 
   private void writeWebViewToPdf(PluginCall call, WebView webView, File outputFile, String title) {
+    PdfDocument document = new PdfDocument();
+
     try {
-      PrintAttributes attributes = new PrintAttributes.Builder()
-        .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
-        .setResolution(new PrintAttributes.Resolution("office-pulse-pdf", "Office Pulse PDF", 300, 300))
-        .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
-        .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
-        .build();
+      int widthSpec = View.MeasureSpec.makeMeasureSpec(PAGE_WIDTH, View.MeasureSpec.EXACTLY);
+      int heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+      webView.measure(widthSpec, heightSpec);
 
-      PrintDocumentAdapter adapter = webView.createPrintDocumentAdapter(title);
-      adapter.onLayout(null, attributes, null, new PrintDocumentAdapter.LayoutResultCallback() {
-        @Override
-        public void onLayoutFinished(android.print.PrintDocumentInfo info, boolean changed) {
-          try {
-            ParcelFileDescriptor descriptor = ParcelFileDescriptor.open(
-              outputFile,
-              ParcelFileDescriptor.MODE_CREATE | ParcelFileDescriptor.MODE_TRUNCATE | ParcelFileDescriptor.MODE_READ_WRITE
-            );
-            adapter.onWrite(
-              new PageRange[] { PageRange.ALL_PAGES },
-              descriptor,
-              new CancellationSignal(),
-              new PrintDocumentAdapter.WriteResultCallback() {
-                @Override
-                public void onWriteFinished(PageRange[] pages) {
-                  try {
-                    descriptor.close();
-                    shareFile(outputFile, "application/pdf", title);
-                    JSObject result = new JSObject();
-                    result.put("path", outputFile.getAbsolutePath());
-                    call.resolve(result);
-                    webView.destroy();
-                  } catch (Exception ex) {
-                    call.reject("Unable to share PDF.");
-                  }
-                }
+      int contentHeight = Math.max(
+        webView.getMeasuredHeight(),
+        Math.round(webView.getContentHeight() * webView.getScale())
+      );
+      contentHeight = Math.max(contentHeight, PAGE_HEIGHT);
+      webView.layout(0, 0, PAGE_WIDTH, contentHeight);
 
-                @Override
-                public void onWriteFailed(CharSequence error) {
-                  call.reject(error == null ? "Unable to write PDF." : error.toString());
-                  webView.destroy();
-                }
-              }
-            );
-          } catch (Exception ex) {
-            call.reject("Unable to write PDF.");
-            webView.destroy();
-          }
-        }
+      int pageCount = Math.max(1, (int) Math.ceil((double) contentHeight / PAGE_HEIGHT));
 
-        @Override
-        public void onLayoutFailed(CharSequence error) {
-          call.reject(error == null ? "Unable to layout PDF." : error.toString());
-          webView.destroy();
-        }
-      }, new Bundle());
+      for (int pageIndex = 0; pageIndex < pageCount; pageIndex++) {
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(
+          PAGE_WIDTH,
+          PAGE_HEIGHT,
+          pageIndex + 1
+        ).create();
+        PdfDocument.Page page = document.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+        canvas.drawColor(Color.WHITE);
+        canvas.save();
+        canvas.translate(0, -pageIndex * PAGE_HEIGHT);
+        webView.draw(canvas);
+        canvas.restore();
+        document.finishPage(page);
+      }
+
+      try (FileOutputStream output = new FileOutputStream(outputFile, false)) {
+        document.writeTo(output);
+      }
+
+      shareFile(outputFile, "application/pdf", title);
+      JSObject result = new JSObject();
+      result.put("path", outputFile.getAbsolutePath());
+      call.resolve(result);
     } catch (Exception ex) {
       call.reject("Unable to export PDF.");
+    } finally {
+      document.close();
       webView.destroy();
     }
   }

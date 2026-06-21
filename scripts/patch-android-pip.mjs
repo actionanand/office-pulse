@@ -10,6 +10,7 @@ const colorsPath = join(valuesDir, 'colors.xml');
 const stylesPath = join(valuesDir, 'styles.xml');
 const lightShellColor = '#F7F8FB';
 const darkShellColor = '#111827';
+const headerStartColor = '#667EEA';
 
 mkdirSync(javaDir, { recursive: true });
 mkdirSync(valuesDir, { recursive: true });
@@ -32,6 +33,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
   private static final int APP_LIGHT_COLOR = Color.rgb(247, 248, 251);
   private static final int APP_DARK_COLOR = Color.rgb(17, 24, 39);
+  private static final int APP_HEADER_COLOR = Color.rgb(102, 126, 234);
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -62,7 +64,7 @@ public class MainActivity extends BridgeActivity {
     int systemUiVisibility = decorView.getSystemUiVisibility();
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      window.setStatusBarColor(shellColor);
+      window.setStatusBarColor(APP_HEADER_COLOR);
       window.setNavigationBarColor(shellColor);
       View content = window.findViewById(android.R.id.content);
 
@@ -72,11 +74,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      if (darkTheme) {
-        systemUiVisibility &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-      } else {
-        systemUiVisibility |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-      }
+      systemUiVisibility &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -110,7 +108,14 @@ let manifest = readFileSync(manifestPath, 'utf8');
 if (!/android\.permission\.INTERNET/.test(manifest)) {
   manifest = manifest.replace(
     /<manifest([^>]*)>/,
-    '<manifest$1>\\n    <uses-permission android:name="android.permission.INTERNET" />',
+    '<manifest$1>\n    <uses-permission android:name="android.permission.INTERNET" />',
+  );
+}
+
+if (!/android\.permission\.POST_NOTIFICATIONS/.test(manifest)) {
+  manifest = manifest.replace(
+    /<manifest([^>]*)>/,
+    '<manifest$1>\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
   );
 }
 
@@ -119,6 +124,7 @@ writeFileSync(manifestPath, manifest);
 let colors = readOptionalFile(colorsPath);
 colors = ensureResourceColor(colors, 'office_pulse_shell_light', lightShellColor);
 colors = ensureResourceColor(colors, 'office_pulse_shell_dark', darkShellColor);
+colors = ensureResourceColor(colors, 'office_pulse_header', headerStartColor);
 writeFileSync(colorsPath, colors);
 
 let styles = readOptionalFile(stylesPath);
@@ -128,9 +134,9 @@ const shellStyleItems = [
   ['android:windowActionBar', 'false'],
   ['android:windowNoTitle', 'true'],
   ['android:windowBackground', '@color/office_pulse_shell_light'],
-  ['android:statusBarColor', '@color/office_pulse_shell_light'],
+  ['android:statusBarColor', '@color/office_pulse_header'],
   ['android:navigationBarColor', '@color/office_pulse_shell_light'],
-  ['android:windowLightStatusBar', 'true'],
+  ['android:windowLightStatusBar', 'false'],
   ['android:windowLightNavigationBar', 'true'],
   ['android:windowOptOutEdgeToEdgeEnforcement', 'true'],
 ];

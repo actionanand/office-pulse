@@ -3,7 +3,7 @@ name: GitHub Pages - Angular 20.3.0
 on:
   push:
     branches:
-      - main
+      - main-github
 
 permissions:
   contents: write

@@ -57,9 +57,9 @@ Tables can be created manually or pasted from spreadsheet/tab-separated content.
 
 ## Offline Storage
 
-`Save offline` stores a cue card in browser local storage. Offline cards are shown before Google Sheet cards. If an offline card has the same cue card id as a sheet card, the offline card is shown as the local version.
+`Save offline` stores one cue card in browser local storage. Saving another cue card offline replaces the existing offline content after confirmation. The offline cue card is shown before Google Sheet cards. If the offline card has the same cue card id as a sheet card, the offline card is shown as the local version.
 
-Users can delete individual offline cue cards from the preview or detail dialog. `Clear offline cue card` removes all offline cue cards.
+Users can delete the offline cue card from the preview or detail dialog. `Clear offline cue card` removes the saved offline cue card.
 
 ## Related Notes
 

@@ -156,7 +156,7 @@
               <p>Add a small table when the cue card needs rows and columns.</p>
             </div>
             @if (table()) {
-              <button type="button" class="ghost-button icon-text-button" (click)="clearTable()">
+              <button type="button" class="danger-button icon-text-button" (click)="clearTable()">
                 <span class="material-symbols-rounded" aria-hidden="true">delete</span>
                 Remove table
               </button>
@@ -280,7 +280,7 @@
             <span class="material-symbols-rounded" aria-hidden="true">save</span>
             Save offline
           </button>
-          <button type="button" class="ghost-button icon-text-button" (click)="resetForm()">
+          <button type="button" class="danger-button icon-text-button" (click)="requestClearEditor()">
             <span class="material-symbols-rounded" aria-hidden="true">mop</span>
             Clear editor
           </button>
@@ -379,17 +379,19 @@
         aria-labelledby="cue-card-detail-title"
         (click)="$event.stopPropagation()">
         <header class="detail-header">
-          <div>
+          <div class="detail-title-block">
             <h2 id="cue-card-detail-title">{{ card.title || 'Untitled cue card' }}</h2>
+            <div class="detail-badges">
+              @if (card.isOffline) {
+                <span class="offline-badge">Offline</span>
+              }
+              @if (card.rowNumber) {
+                <span class="row-badge">Row {{ card.rowNumber }}</span>
+              }
+            </div>
             <p>{{ friendlyDate(card.updatedAt || card.createdAt) }}</p>
           </div>
           <div class="detail-actions">
-            @if (card.isOffline) {
-              <span class="offline-badge">Offline</span>
-            }
-            @if (card.rowNumber) {
-              <span class="row-badge">Row {{ card.rowNumber }}</span>
-            }
             <button type="button" class="close-button" aria-label="Close cue card" (click)="closeCard()">
               <span class="material-symbols-rounded" aria-hidden="true">close</span>
             </button>
@@ -437,6 +439,15 @@
         </footer>
       </article>
     </div>
+  }
+
+  @if (confirmationDialog(); as dialog) {
+    <app-confirmation-popup
+      [title]="dialog.title"
+      [message]="dialog.message"
+      [confirmLabel]="dialog.confirmLabel"
+      (cancelled)="cancelConfirmation()"
+      (confirmed)="confirmDialogAction()" />
   }
 
   <p class="info-note">For detailed notes, create markdown and view it from <a routerLink="/markdown">/markdown</a>.</p>

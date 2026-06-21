@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { CueCard, CueCardMode, CueCardTable } from '../../models/cue-card.model';
 import { SafeCueCardHtmlPipe } from '../../pipes/safe-cue-card-html.pipe';
 import { CueCardService } from '../../services/cue-card.service';
+import { ConfirmationPopupComponent } from '../confirmation-popup/confirmation-popup.component';
 
 type RichTextCommand =
   | 'bold'
@@ -15,10 +16,16 @@ type RichTextCommand =
   | 'indent'
   | 'outdent';
 type RichTextColorCommand = 'foreColor' | 'hiliteColor';
+type ConfirmationDialog = {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  action: () => void;
+};
 
 @Component({
   selector: 'app-cue-card',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SafeCueCardHtmlPipe],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, SafeCueCardHtmlPipe, ConfirmationPopupComponent],
   templateUrl: './cue-card.component.html',
   styleUrl: './cue-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +42,7 @@ export class CueCardComponent {
   protected readonly offlineCards = signal<CueCard[]>(this.cueCardService.getOfflineCueCards());
   protected readonly selectedCard = signal<CueCard | null>(null);
   protected readonly editingCard = signal<CueCard | null>(null);
+  protected readonly confirmationDialog = signal<ConfirmationDialog | null>(null);
   protected readonly table = signal<CueCardTable | null>(null);
   protected readonly tablePasteText = signal('');
   protected readonly newTableColumnCount = signal(3);
@@ -71,6 +79,10 @@ export class CueCardComponent {
   }
 
   protected setMode(mode: CueCardMode): void {
+    if (mode === 'generate') {
+      this.resetForm();
+    }
+
     this.mode.set(mode);
     this.statusMessage.set('');
     this.errorMessage.set('');
@@ -148,25 +160,78 @@ export class CueCardComponent {
     const card = this.buildCurrentCard();
     if (!card) return;
 
-    this.cueCardService.saveOfflineCueCard(card);
-    this.refreshOfflineCards();
-    this.statusMessage.set('Saved cue card offline.');
+    this.openConfirmation({
+      title: this.hasOfflineCards() ? 'Replace offline cue card?' : 'Save offline cue card?',
+      message: this.hasOfflineCards()
+        ? 'Only one cue card can be saved offline. Saving this cue card will replace the existing offline content.'
+        : 'Only one cue card can be saved offline. This cue card will become the offline content.',
+      confirmLabel: this.hasOfflineCards() ? 'Replace and save' : 'Save offline',
+      action: () => this.saveOfflineCard(card),
+    });
   }
 
   protected clearOfflineCueCards(): void {
-    this.cueCardService.clearOfflineCueCards();
-    this.refreshOfflineCards();
-    this.closeCard();
-    this.statusMessage.set('Offline cue cards cleared.');
+    this.openConfirmation({
+      title: 'Clear offline cue card?',
+      message: 'This removes the saved offline cue card from this browser.',
+      confirmLabel: 'Clear offline',
+      action: () => {
+        this.cueCardService.clearOfflineCueCards();
+        this.refreshOfflineCards();
+        this.closeCard();
+        this.statusMessage.set('Offline cue card cleared.');
+      },
+    });
   }
 
   protected deleteOfflineCueCard(card: CueCard): void {
     if (!card.isOffline) return;
 
-    this.cueCardService.deleteOfflineCueCard(card.id);
+    this.openConfirmation({
+      title: 'Delete offline cue card?',
+      message: 'This removes the offline cue card from this browser.',
+      confirmLabel: 'Delete offline',
+      action: () => {
+        this.cueCardService.deleteOfflineCueCard(card.id);
+        this.refreshOfflineCards();
+        this.closeCard();
+        this.statusMessage.set('Offline cue card deleted.');
+      },
+    });
+  }
+
+  protected cancelConfirmation(): void {
+    this.confirmationDialog.set(null);
+  }
+
+  protected confirmDialogAction(): void {
+    const dialog = this.confirmationDialog();
+    this.confirmationDialog.set(null);
+    dialog?.action();
+  }
+
+  protected requestClearEditor(): void {
+    this.openConfirmation({
+      title: 'Clear editor?',
+      message: 'This will clear the title, rich text content, and table from the editor.',
+      confirmLabel: 'Clear editor',
+      action: () => this.resetForm(),
+    });
+  }
+
+  protected requestClearTable(): void {
+    this.openConfirmation({
+      title: 'Remove table?',
+      message: 'This will remove the current table from the cue card editor.',
+      confirmLabel: 'Remove table',
+      action: () => this.clearTableImmediately(),
+    });
+  }
+
+  private saveOfflineCard(card: CueCard): void {
+    this.cueCardService.saveOfflineCueCard(card);
     this.refreshOfflineCards();
-    this.closeCard();
-    this.statusMessage.set('Offline cue card deleted.');
+    this.statusMessage.set('Saved cue card offline.');
   }
 
   protected refreshCueCards(): void {
@@ -257,6 +322,10 @@ export class CueCardComponent {
   }
 
   protected clearTable(): void {
+    this.requestClearTable();
+  }
+
+  private clearTableImmediately(): void {
     this.table.set(null);
     this.tablePasteText.set('');
   }
@@ -352,6 +421,10 @@ export class CueCardComponent {
 
   private refreshOfflineCards(): void {
     this.offlineCards.set(this.cueCardService.getOfflineCueCards());
+  }
+
+  private openConfirmation(dialog: ConfirmationDialog): void {
+    this.confirmationDialog.set(dialog);
   }
 
   private updateTable(updater: (table: CueCardTable) => CueCardTable): void {

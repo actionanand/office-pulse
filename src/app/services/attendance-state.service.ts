@@ -16,6 +16,8 @@ export class AttendanceStateService {
   private gvizService = inject(GvizService);
   private storageService = inject(StorageService);
   private readonly cacheKey = 'office_pulse_attendance_cache';
+  private readonly cacheMaxAgeMs = 7 * 24 * 60 * 60 * 1000;
+  private readonly cacheRetentionDays = 7;
 
   // All entries from API
   allEntries = signal<SheetEntry[]>([]);
@@ -198,10 +200,24 @@ export class AttendanceStateService {
       if (!cached) return;
 
       const cache = JSON.parse(cached) as AttendanceCache;
-      if (!Array.isArray(cache.entries)) return;
+      if (!Array.isArray(cache.entries)) {
+        localStorage.removeItem(this.cacheKey);
+        return;
+      }
 
-      this.allEntries.set(cache.entries);
-      this.lastFetchTime.set(cache.fetchedAt ? new Date(cache.fetchedAt) : null);
+      const fetchedAt = cache.fetchedAt ? new Date(cache.fetchedAt) : null;
+      if (!fetchedAt || isNaN(fetchedAt.getTime()) || Date.now() - fetchedAt.getTime() > this.cacheMaxAgeMs) {
+        localStorage.removeItem(this.cacheKey);
+        return;
+      }
+
+      const entries = this.filterEntriesForCache(cache.entries);
+      this.allEntries.set(entries);
+      this.lastFetchTime.set(fetchedAt);
+
+      if (entries.length !== cache.entries.length) {
+        this.saveCachedEntries(entries);
+      }
     } catch {
       localStorage.removeItem(this.cacheKey);
     }
@@ -210,13 +226,30 @@ export class AttendanceStateService {
   private saveCachedEntries(entries: SheetEntry[]): void {
     try {
       const cache: AttendanceCache = {
-        entries,
+        entries: this.filterEntriesForCache(entries),
         fetchedAt: new Date().toISOString(),
       };
       localStorage.setItem(this.cacheKey, JSON.stringify(cache));
     } catch {
       // Ignore storage quota/private-mode errors. Fresh API data is already in memory.
     }
+  }
+
+  private filterEntriesForCache(entries: SheetEntry[]): SheetEntry[] {
+    const cutoff = this.getDateStringWithOffset(-this.cacheRetentionDays + 1);
+    return entries.filter(entry => {
+      const entryDate = entry.date || this.getDateFromTimeString(entry.entryTime);
+      return entryDate >= cutoff;
+    });
+  }
+
+  private getDateStringWithOffset(offsetDays: number): string {
+    const date = new Date();
+    date.setDate(date.getDate() + offsetDays);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private getDateFromTimeString(timeStr: string): string {

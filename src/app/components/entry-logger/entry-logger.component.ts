@@ -9,11 +9,12 @@ import { AndroidLogoffNotificationService } from '../../services/android-logoff-
 import { EntryLog } from '../../models/entry-log.model';
 import { TodoListComponent } from '../todo-list/todo-list.component';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
+import { ConfirmationPopupComponent } from '../confirmation-popup/confirmation-popup.component';
 import { environment as env } from '../../../environments/environment';
 
 @Component({
   selector: 'app-entry-logger',
-  imports: [CommonModule, FormsModule, TodoListComponent, GoogleFormDialogComponent],
+  imports: [CommonModule, FormsModule, TodoListComponent, GoogleFormDialogComponent, ConfirmationPopupComponent],
   templateUrl: './entry-logger.component.html',
   styleUrls: ['./entry-logger.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +44,9 @@ export class EntryLoggerComponent implements OnInit {
   showTodoList = signal<boolean>(true);
   isSubmitting = signal<boolean>(false);
   selectedExitStatus = signal<string>('Office');
+  exitEntryDateTime = signal<string>('');
+  exitExitDateTime = signal<string>('');
+  showLeaveConfirmation = signal<boolean>(false);
 
   private readonly googleFormEntryIds = {
     entryTime: 'entry.160031710',
@@ -394,39 +398,51 @@ export class EntryLoggerComponent implements OnInit {
     this.showEntryDialog.set(false);
   }
 
-  applyLeave(): void {
+  openLeaveConfirmation(event?: Event): void {
+    const checkbox = event?.target as HTMLInputElement | null;
+    if (checkbox) {
+      checkbox.checked = false;
+    }
+
     if (this.isSubmittedToday() || this.hasEnteredToday()) {
+      this.snackbarService.error('You have already marked attendance for today.');
+      return;
+    }
+
+    this.showLeaveConfirmation.set(true);
+  }
+
+  closeLeaveConfirmation(): void {
+    if (this.isSubmitting()) return;
+    this.showLeaveConfirmation.set(false);
+  }
+
+  async confirmApplyLeave(): Promise<void> {
+    if (this.isSubmitting()) return;
+
+    if (this.isSubmittedToday() || this.hasEnteredToday()) {
+      this.showLeaveConfirmation.set(false);
       this.snackbarService.error('You have already marked attendance for today.');
       return;
     }
 
     const currentTime = new Date();
 
-    // Create a log entry with current time for both entry and exit
     const log: EntryLog = {
       entryTime: currentTime.toISOString(),
       exitTime: currentTime.toISOString(),
-      date: this.getTodayDateString(),
+      date: this.getISTDateStringFromDate(currentTime),
     };
 
-    this.storageService.saveEntryLog(log);
-    this.entryLog.set(log);
-
-    // Notify attendance state service to trigger reactivity
-    this.attendanceState.notifyLocalStorageChanged();
-
-    // Set pending form data with Day Off status
-    this.pendingFormData.set({
-      log,
-      formData: {
-        companyName: '',
-        comment: 'Day Off - Leave Applied',
-        status: 'Day Off',
-      },
+    const submitted = await this.submitAttendance(log, {
+      companyName: '',
+      comment: 'Day Off - Leave Applied',
+      status: 'Day Off',
     });
 
-    // Show submission dialog
-    this.showSubmissionDialog.set(true);
+    if (submitted) {
+      this.showLeaveConfirmation.set(false);
+    }
   }
 
   handleEntrySubmit(useCustomTime: boolean, customDateTimeValue?: string): void {
@@ -480,7 +496,10 @@ export class EntryLoggerComponent implements OnInit {
       return;
     }
 
+    const now = new Date();
     this.selectedExitStatus.set('Office');
+    this.exitEntryDateTime.set(this.formatForDateTimeLocal(new Date(log?.entryTime || now)));
+    this.exitExitDateTime.set(this.formatForDateTimeLocal(now));
     this.showExitDialog.set(true);
   }
 
@@ -489,19 +508,50 @@ export class EntryLoggerComponent implements OnInit {
     this.showExitDialog.set(false);
   }
 
-  async handleExitSubmit(formData: { companyName: string; comment: string; status: string }): Promise<void> {
+  async handleExitSubmit(formData: {
+    entryDateTime: string;
+    exitDateTime: string;
+    companyName: string;
+    comment: string;
+    status: string;
+  }): Promise<void> {
     if (this.isSubmitting()) return;
 
     const log = this.entryLog();
     if (!log) return;
 
+    const entryTime = new Date(formData.entryDateTime);
+    const exitTime = new Date(formData.exitDateTime);
+    if (isNaN(entryTime.getTime()) || isNaN(exitTime.getTime())) {
+      this.snackbarService.error('Please enter valid entry and exit times.');
+      return;
+    }
+
+    if (exitTime < entryTime) {
+      this.snackbarService.error('Exit time cannot be before entry time.');
+      return;
+    }
+
     const submittedLog: EntryLog = {
       ...log,
-      exitTime: new Date().toISOString(),
+      entryTime: entryTime.toISOString(),
+      exitTime: exitTime.toISOString(),
+      date: this.getISTDateStringFromDate(entryTime),
     };
 
+    await this.submitAttendance(submittedLog, {
+      companyName: formData.companyName,
+      comment: formData.comment,
+      status: formData.status,
+    });
+  }
+
+  private async submitAttendance(
+    submittedLog: EntryLog,
+    formData: { companyName: string; comment: string; status: string },
+  ): Promise<boolean> {
     this.isSubmitting.set(true);
-    this.snackbarService.info('Submitting attendance to Google Sheet...', 5000);
+    this.snackbarService.info('Submitting attendance...', 5000);
 
     try {
       await this.submitToGoogleForms(submittedLog, formData);
@@ -515,9 +565,11 @@ export class EntryLoggerComponent implements OnInit {
       this.showExitDialog.set(false);
       this.snackbarService.success('Attendance submitted successfully.');
       this.attendanceState.fetchAttendanceData();
+      return true;
     } catch (error) {
       console.error('Attendance submission error:', error);
       this.snackbarService.error('Failed to submit attendance. Please try again.');
+      return false;
     } finally {
       this.isSubmitting.set(false);
     }
@@ -675,9 +727,21 @@ export class EntryLoggerComponent implements OnInit {
     this.storageService.saveSettings(settings);
   }
 
-  private getTodayDateString(): string {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+  private getISTDateStringFromDate(date: Date): string {
+    const istDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const year = istDate.getFullYear();
+    const month = String(istDate.getMonth() + 1).padStart(2, '0');
+    const day = String(istDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatForDateTimeLocal(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
   private formatTo12Hour(date: Date): string {

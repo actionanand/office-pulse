@@ -41,6 +41,16 @@ export class EntryLoggerComponent implements OnInit {
   showPastActionDialog = signal<boolean>(false);
   selectedPastDate = signal<string>('');
   showTodoList = signal<boolean>(true);
+  isSubmitting = signal<boolean>(false);
+  selectedExitStatus = signal<string>('Office');
+
+  private readonly googleFormEntryIds = {
+    entryTime: 'entry.160031710',
+    exitTime: 'entry.1057727999',
+    companyName: 'entry.302638121',
+    comment: 'entry.1773816160',
+    status: 'entry.1264867401',
+  };
 
   maxDate = computed(() => {
     // Use IST for yesterday
@@ -470,32 +480,47 @@ export class EntryLoggerComponent implements OnInit {
       return;
     }
 
+    this.selectedExitStatus.set('Office');
     this.showExitDialog.set(true);
   }
 
   closeExitDialog(): void {
+    if (this.isSubmitting()) return;
     this.showExitDialog.set(false);
   }
 
-  handleExitSubmit(formData: { companyName: string; comment: string; status: string }): void {
+  async handleExitSubmit(formData: { companyName: string; comment: string; status: string }): Promise<void> {
+    if (this.isSubmitting()) return;
+
     const log = this.entryLog();
     if (!log) return;
 
-    const exitTime = new Date();
-    log.exitTime = exitTime.toISOString();
+    const submittedLog: EntryLog = {
+      ...log,
+      exitTime: new Date().toISOString(),
+    };
 
-    // Update storage with exit time
-    this.storageService.saveEntryLog(log);
-    this.entryLog.set(log);
+    this.isSubmitting.set(true);
+    this.snackbarService.info('Submitting attendance to Google Sheet...', 5000);
 
-    // Notify attendance state service to trigger reactivity
-    this.attendanceState.notifyLocalStorageChanged();
+    try {
+      await this.submitToGoogleForms(submittedLog, formData);
 
-    // Store pending form data and open the Google Form submission dialog.
-    this.pendingFormData.set({ log, formData });
-    this.closeExitDialog();
-    // this.showSubmissionDialog.set(true);
-    this.confirmSubmission();
+      submittedLog.isSubmitted = true;
+      this.storageService.saveEntryLog(submittedLog);
+      this.entryLog.set({ ...submittedLog });
+      this.attendanceState.notifyLocalStorageChanged();
+
+      this.pendingFormData.set(null);
+      this.showExitDialog.set(false);
+      this.snackbarService.success('Attendance submitted successfully.');
+      this.attendanceState.fetchAttendanceData();
+    } catch (error) {
+      console.error('Attendance submission error:', error);
+      this.snackbarService.error('Failed to submit attendance. Please try again.');
+    } finally {
+      this.isSubmitting.set(false);
+    }
   }
 
   confirmSubmission(): void {
@@ -572,15 +597,49 @@ export class EntryLoggerComponent implements OnInit {
     // Build query parameters with actual field IDs
     const params = new URLSearchParams({
       usp: 'pp_url',
-      'entry.160031710': entryTime, // Entry Time (required)
-      'entry.1057727999': exitTime, // Exit Time (required)
-      'entry.302638121': formData.companyName || '', // Company Name (optional)
-      'entry.1773816160': formData.comment || '', // Comments (optional)
-      'entry.1264867401': formData.status || 'Office', // Status (radio button)
+      [this.googleFormEntryIds.entryTime]: entryTime, // Entry Time (required)
+      [this.googleFormEntryIds.exitTime]: exitTime, // Exit Time (required)
+      [this.googleFormEntryIds.companyName]: formData.companyName || '', // Company Name (optional)
+      [this.googleFormEntryIds.comment]: formData.comment || '', // Comments (optional)
+      [this.googleFormEntryIds.status]: formData.status || 'Office', // Status (radio button)
       embedded: 'true',
     });
 
     return `${baseUrl}?${params.toString()}`;
+  }
+
+  private async submitToGoogleForms(
+    log: EntryLog,
+    formData: { companyName: string; comment: string; status: string },
+  ): Promise<void> {
+    const formUrl = `https://docs.google.com/forms/d/e/${env.YOUR_FORM_ID}/formResponse`;
+    const formBody = this.buildGoogleFormBody(log, formData);
+
+    await fetch(formUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formBody,
+    });
+  }
+
+  private buildGoogleFormBody(
+    log: EntryLog,
+    formData: { companyName: string; comment: string; status: string },
+  ): string {
+    const entryTime = this.formatForGoogleForm(new Date(log.entryTime));
+    const exitTime = this.formatForGoogleForm(new Date(log.exitTime!));
+
+    const formBody = new URLSearchParams();
+    formBody.append(this.googleFormEntryIds.entryTime, entryTime);
+    formBody.append(this.googleFormEntryIds.exitTime, exitTime);
+    formBody.append(this.googleFormEntryIds.companyName, formData.companyName || '');
+    formBody.append(this.googleFormEntryIds.comment, formData.comment || '');
+    formBody.append(this.googleFormEntryIds.status, formData.status || 'Office');
+
+    return formBody.toString();
   }
 
   cancelSubmission(): void {

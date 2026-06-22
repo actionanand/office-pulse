@@ -243,7 +243,7 @@
           <form
             #exitForm="ngForm"
             (ngSubmit)="
-              handleExitSubmit({ companyName: companyName.value, comment: comment.value, status: statusField.value })
+              handleExitSubmit({ companyName: companyName.value, comment: comment.value, status: selectedExitStatus() })
             ">
             <div class="form-group">
               <label for="entryTimeDisplay">Entry Time:</label>
@@ -270,23 +270,48 @@
                 <legend>Status:</legend>
                 <div class="radio-group">
                   <label class="radio-option">
-                    <input type="radio" name="status" value="Office" #statusField checked />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Office"
+                      [checked]="selectedExitStatus() === 'Office'"
+                      (change)="selectedExitStatus.set('Office')" />
                     <span>Office</span>
                   </label>
                   <label class="radio-option">
-                    <input type="radio" name="status" value="WFH" />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="WFH"
+                      [checked]="selectedExitStatus() === 'WFH'"
+                      (change)="selectedExitStatus.set('WFH')" />
                     <span>WFH</span>
                   </label>
                   <label class="radio-option">
-                    <input type="radio" name="status" value="First Half Off" />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="First Half Off"
+                      [checked]="selectedExitStatus() === 'First Half Off'"
+                      (change)="selectedExitStatus.set('First Half Off')" />
                     <span>First Half Off</span>
                   </label>
                   <label class="radio-option">
-                    <input type="radio" name="status" value="Second Half Off" />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Second Half Off"
+                      [checked]="selectedExitStatus() === 'Second Half Off'"
+                      (change)="selectedExitStatus.set('Second Half Off')" />
                     <span>Second Half Off</span>
                   </label>
                   <label class="radio-option">
-                    <input type="radio" name="status" value="Day Off" />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Day Off"
+                      [checked]="selectedExitStatus() === 'Day Off'"
+                      (change)="selectedExitStatus.set('Day Off')" />
                     <span>Day Off</span>
                   </label>
                 </div>
@@ -294,8 +319,16 @@
             </div>
 
             <div class="dialog-actions">
-              <button type="button" class="btn btn-cancel" (click)="closeExitDialog()">Cancel</button>
-              <button type="submit" class="btn btn-primary">Submit</button>
+              <button type="button" class="btn btn-cancel" (click)="closeExitDialog()" [disabled]="isSubmitting()">
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+                @if (isSubmitting()) {
+                  Submitting...
+                } @else {
+                  Submit
+                }
+              </button>
             </div>
           </form>
         </div>

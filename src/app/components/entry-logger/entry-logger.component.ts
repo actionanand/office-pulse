@@ -44,7 +44,7 @@ export class EntryLoggerComponent implements OnInit {
   showTodoList = signal<boolean>(true);
   isSubmitting = signal<boolean>(false);
   selectedExitStatus = signal<string>('Office');
-  attendanceDialogMode = signal<'current-exit' | 'past-entry'>('current-exit');
+  attendanceDialogMode = signal<'current-exit' | 'past-entry' | 'offline-entry'>('current-exit');
   exitEntryDate = signal<string>('');
   exitEntryTime = signal<string>('');
   exitExitDate = signal<string>('');
@@ -121,15 +121,15 @@ export class EntryLoggerComponent implements OnInit {
     return !this.hasEnteredToday() && !this.isSubmittedToday();
   });
 
-  // Show button when: no API data for today AND localStorage has isSubmitted=true AND entryTime+exitTime for today
+  // Show button when: no API data for today AND localStorage has entryTime+exitTime for today
   canLoadOfflineEntry = computed(() => {
     // Only show if there is no API data for today
     const apiEntry = this.todayApiEntry();
     if (apiEntry) return false;
 
-    // Check localStorage for a submitted entry for today with both entry and exit time
+    // Check localStorage for an entry for today with both entry and exit time
     const storedLog = this.storageService.getEntryLog();
-    if (!storedLog?.isSubmitted || !storedLog.entryTime || !storedLog.exitTime) return false;
+    if (!storedLog?.entryTime || !storedLog.exitTime) return false;
 
     // Get IST date for entryTime and exitTime
     const getISTDate = (iso: string) => {
@@ -357,7 +357,7 @@ export class EntryLoggerComponent implements OnInit {
 
   loadOfflineEntry(): void {
     const storedLog = this.storageService.getEntryLog();
-    if (!storedLog || !storedLog.isSubmitted || !storedLog.entryTime || !storedLog.exitTime) {
+    if (!storedLog || !storedLog.entryTime || !storedLog.exitTime) {
       this.snackbarService.error('No complete offline entry found for today');
       return;
     }
@@ -376,16 +376,13 @@ export class EntryLoggerComponent implements OnInit {
       this.snackbarService.error('Offline entry is not for today');
       return;
     }
-    // Do NOT modify localStorage!
+
     this.entryLog.set(storedLog);
     this.attendanceState.notifyLocalStorageChanged();
-    const formData = {
-      companyName: '',
-      comment: '',
-      status: 'Office',
-    };
-    this.pendingFormData.set({ log: storedLog, formData });
-    this.showSubmissionDialog.set(true);
+    this.selectedExitStatus.set('Office');
+    this.attendanceDialogMode.set('offline-entry');
+    this.setAttendanceDialogTimes(new Date(storedLog.entryTime), new Date(storedLog.exitTime));
+    this.showExitDialog.set(true);
   }
 
   openEntryDialog(): void {
@@ -439,7 +436,10 @@ export class EntryLoggerComponent implements OnInit {
       return;
     }
 
-    if (leaveDate === this.getISTDateStringFromDate(new Date()) && (this.isSubmittedToday() || this.hasEnteredToday())) {
+    if (
+      leaveDate === this.getISTDateStringFromDate(new Date()) &&
+      (this.isSubmittedToday() || this.hasEnteredToday())
+    ) {
       this.showLeaveConfirmation.set(false);
       this.snackbarService.error('You have already marked attendance for today.');
       return;
@@ -928,9 +928,11 @@ export class EntryLoggerComponent implements OnInit {
 
     this.selectedExitStatus.set('Office');
     this.attendanceDialogMode.set('past-entry');
-    this.setAttendanceDialogTimes(this.createLocalDateTime(dateStr, '09:00'), this.createLocalDateTime(dateStr, '18:00'));
+    this.setAttendanceDialogTimes(
+      this.createLocalDateTime(dateStr, '09:00'),
+      this.createLocalDateTime(dateStr, '18:00'),
+    );
     this.showPastActionDialog.set(false);
     this.showExitDialog.set(true);
   }
-
 }

@@ -250,11 +250,11 @@
                 exitTime: exitExitTime(),
                 companyName: companyName.value,
                 comment: comment.value,
-                status: selectedExitStatus()
+                status: selectedExitStatus(),
               })
             ">
             <div class="form-group">
-              <label>Entry Time:</label>
+              <label for="exitEntryDate">Entry Time:</label>
               <div class="datetime-pair">
                 <label class="datetime-input" for="exitEntryDate">
                   <span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>
@@ -279,7 +279,7 @@
             </div>
 
             <div class="form-group">
-              <label>Exit Time:</label>
+              <label for="exitExitDate">Exit Time:</label>
               <div class="datetime-pair">
                 <label class="datetime-input" for="exitExitDate">
                   <span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>
@@ -288,6 +288,7 @@
                     id="exitExitDate"
                     [value]="exitExitDate()"
                     (input)="exitExitDate.set($any($event.target).value)"
+                    [disabled]="attendanceDialogMode() === 'offline-entry'"
                     required />
                 </label>
                 <label class="datetime-input" for="exitExitTime">

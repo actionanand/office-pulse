@@ -491,10 +491,11 @@ export class EntryLoggerComponent implements OnInit {
     // Notify attendance state service to trigger reactivity
     this.attendanceState.notifyLocalStorageChanged();
 
-    // Store pending form data and show confirmation dialog
+    // Store pending form data and open the Google Form submission dialog.
     this.pendingFormData.set({ log, formData });
     this.closeExitDialog();
-    this.showSubmissionDialog.set(true);
+    // this.showSubmissionDialog.set(true);
+    this.confirmSubmission();
   }
 
   confirmSubmission(): void {

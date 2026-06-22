@@ -186,6 +186,22 @@ export class AttendanceStateService {
     }
   }
 
+  hasEntryForDate(dateStr: string): boolean {
+    if (!dateStr) return false;
+
+    const apiHasEntry = this.allEntries().some(entry => {
+      if (!entry.entryTime) return false;
+      const entryDate = entry.date || this.getDateFromTimeString(entry.entryTime);
+      return entryDate === dateStr;
+    });
+    if (apiHasEntry) return true;
+
+    const localEntry = this.storageService.getEntryLog();
+    if (!localEntry?.entryTime) return false;
+
+    return this.getDateFromTimeString(localEntry.entryTime) === dateStr;
+  }
+
   private getTodayDateString(): string {
     const today = new Date();
     const year = today.getFullYear();

@@ -244,31 +244,63 @@
             #exitForm="ngForm"
             (ngSubmit)="
               handleExitSubmit({
-                entryDateTime: exitEntryDateTime(),
-                exitDateTime: exitExitDateTime(),
+                entryDate: exitEntryDate(),
+                entryTime: exitEntryTime(),
+                exitDate: exitExitDate(),
+                exitTime: exitExitTime(),
                 companyName: companyName.value,
                 comment: comment.value,
                 status: selectedExitStatus(),
               })
             ">
             <div class="form-group">
-              <label for="exitEntryDateTime">Entry Time:</label>
-              <input
-                type="datetime-local"
-                id="exitEntryDateTime"
-                [value]="exitEntryDateTime()"
-                (input)="exitEntryDateTime.set($any($event.target).value)"
-                required />
+              <label>Entry Time:</label>
+              <div class="datetime-pair">
+                <label class="datetime-input" for="exitEntryDate">
+                  <span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>
+                  <input
+                    type="date"
+                    id="exitEntryDate"
+                    [value]="exitEntryDate()"
+                    (input)="exitEntryDate.set($any($event.target).value)"
+                    [disabled]="attendanceDialogMode() === 'past-entry'"
+                    required />
+                </label>
+                <label class="datetime-input" for="exitEntryTime">
+                  <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+                  <input
+                    type="time"
+                    id="exitEntryTime"
+                    [value]="exitEntryTime()"
+                    (input)="exitEntryTime.set($any($event.target).value)"
+                    required />
+                </label>
+              </div>
             </div>
 
             <div class="form-group">
-              <label for="exitExitDateTime">Exit Time:</label>
-              <input
-                type="datetime-local"
-                id="exitExitDateTime"
-                [value]="exitExitDateTime()"
-                (input)="exitExitDateTime.set($any($event.target).value)"
-                required />
+              <label>Exit Time:</label>
+              <div class="datetime-pair">
+                <label class="datetime-input" for="exitExitDate">
+                  <span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>
+                  <input
+                    type="date"
+                    id="exitExitDate"
+                    [value]="exitExitDate()"
+                    (input)="exitExitDate.set($any($event.target).value)"
+                    [disabled]="attendanceDialogMode() === 'past-entry'"
+                    required />
+                </label>
+                <label class="datetime-input" for="exitExitTime">
+                  <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+                  <input
+                    type="time"
+                    id="exitExitTime"
+                    [value]="exitExitTime()"
+                    (input)="exitExitTime.set($any($event.target).value)"
+                    required />
+                </label>
+              </div>
             </div>
 
             <div class="form-group">
@@ -470,7 +502,7 @@
   @if (showLeaveConfirmation()) {
     <app-confirmation-popup
       title="Apply Day Off?"
-      message="This will submit today's attendance as Day Off."
+      [message]="leaveConfirmationMessage()"
       confirmLabel="Apply Day Off"
       (cancelled)="closeLeaveConfirmation()"
       (confirmed)="confirmApplyLeave()" />

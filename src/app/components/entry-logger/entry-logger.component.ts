@@ -44,9 +44,21 @@ export class EntryLoggerComponent implements OnInit {
   showTodoList = signal<boolean>(true);
   isSubmitting = signal<boolean>(false);
   selectedExitStatus = signal<string>('Office');
-  exitEntryDateTime = signal<string>('');
-  exitExitDateTime = signal<string>('');
+  attendanceDialogMode = signal<'current-exit' | 'past-entry'>('current-exit');
+  exitEntryDate = signal<string>('');
+  exitEntryTime = signal<string>('');
+  exitExitDate = signal<string>('');
+  exitExitTime = signal<string>('');
   showLeaveConfirmation = signal<boolean>(false);
+  leaveConfirmationDate = signal<string>('');
+
+  leaveConfirmationMessage = computed(() => {
+    const date = this.leaveConfirmationDate();
+    const today = this.getISTDateStringFromDate(new Date());
+    return date && date !== today
+      ? `This will submit attendance for ${date} as Day Off.`
+      : "This will submit today's attendance as Day Off.";
+  });
 
   private readonly googleFormEntryIds = {
     entryTime: 'entry.160031710',
@@ -409,6 +421,7 @@ export class EntryLoggerComponent implements OnInit {
       return;
     }
 
+    this.leaveConfirmationDate.set(this.getISTDateStringFromDate(new Date()));
     this.showLeaveConfirmation.set(true);
   }
 
@@ -420,18 +433,34 @@ export class EntryLoggerComponent implements OnInit {
   async confirmApplyLeave(): Promise<void> {
     if (this.isSubmitting()) return;
 
-    if (this.isSubmittedToday() || this.hasEnteredToday()) {
+    const leaveDate = this.leaveConfirmationDate();
+    if (!leaveDate) {
+      this.showLeaveConfirmation.set(false);
+      return;
+    }
+
+    if (
+      leaveDate === this.getISTDateStringFromDate(new Date()) &&
+      (this.isSubmittedToday() || this.hasEnteredToday())
+    ) {
       this.showLeaveConfirmation.set(false);
       this.snackbarService.error('You have already marked attendance for today.');
       return;
     }
 
-    const currentTime = new Date();
+    await this.attendanceState.fetchAttendanceData();
+    if (this.attendanceState.hasEntryForDate(leaveDate)) {
+      this.showLeaveConfirmation.set(false);
+      this.closePastActionDialog();
+      this.snackbarService.error('Attendance already exists for the selected date.');
+      return;
+    }
 
+    const leaveTime = this.createLocalDateTime(leaveDate, '12:00');
     const log: EntryLog = {
-      entryTime: currentTime.toISOString(),
-      exitTime: currentTime.toISOString(),
-      date: this.getISTDateStringFromDate(currentTime),
+      entryTime: leaveTime.toISOString(),
+      exitTime: leaveTime.toISOString(),
+      date: leaveDate,
     };
 
     const submitted = await this.submitAttendance(log, {
@@ -442,6 +471,7 @@ export class EntryLoggerComponent implements OnInit {
 
     if (submitted) {
       this.showLeaveConfirmation.set(false);
+      this.closePastActionDialog();
     }
   }
 
@@ -497,9 +527,10 @@ export class EntryLoggerComponent implements OnInit {
     }
 
     const now = new Date();
+    const entryDate = new Date(log?.entryTime || now);
     this.selectedExitStatus.set('Office');
-    this.exitEntryDateTime.set(this.formatForDateTimeLocal(new Date(log?.entryTime || now)));
-    this.exitExitDateTime.set(this.formatForDateTimeLocal(now));
+    this.attendanceDialogMode.set('current-exit');
+    this.setAttendanceDialogTimes(entryDate, now);
     this.showExitDialog.set(true);
   }
 
@@ -509,19 +540,18 @@ export class EntryLoggerComponent implements OnInit {
   }
 
   async handleExitSubmit(formData: {
-    entryDateTime: string;
-    exitDateTime: string;
+    entryDate: string;
+    entryTime: string;
+    exitDate: string;
+    exitTime: string;
     companyName: string;
     comment: string;
     status: string;
   }): Promise<void> {
     if (this.isSubmitting()) return;
 
-    const log = this.entryLog();
-    if (!log) return;
-
-    const entryTime = new Date(formData.entryDateTime);
-    const exitTime = new Date(formData.exitDateTime);
+    const entryTime = this.createLocalDateTime(formData.entryDate, formData.entryTime);
+    const exitTime = this.createLocalDateTime(formData.exitDate, formData.exitTime);
     if (isNaN(entryTime.getTime()) || isNaN(exitTime.getTime())) {
       this.snackbarService.error('Please enter valid entry and exit times.');
       return;
@@ -532,18 +562,40 @@ export class EntryLoggerComponent implements OnInit {
       return;
     }
 
+    const entryDate = this.getISTDateStringFromDate(entryTime);
+    if (this.attendanceDialogMode() === 'past-entry') {
+      const selectedDate = this.selectedPastDate();
+      if (entryDate !== selectedDate || this.getISTDateStringFromDate(exitTime) !== selectedDate) {
+        this.snackbarService.error('Past attendance must use the selected date.');
+        return;
+      }
+
+      await this.attendanceState.fetchAttendanceData();
+      if (this.attendanceState.hasEntryForDate(entryDate)) {
+        this.showExitDialog.set(false);
+        this.closePastActionDialog();
+        this.snackbarService.error('Attendance already exists for the selected date.');
+        return;
+      }
+    }
+
+    const log = this.entryLog();
     const submittedLog: EntryLog = {
-      ...log,
+      ...(log && this.attendanceDialogMode() === 'current-exit' ? log : {}),
       entryTime: entryTime.toISOString(),
       exitTime: exitTime.toISOString(),
-      date: this.getISTDateStringFromDate(entryTime),
+      date: entryDate,
     };
 
-    await this.submitAttendance(submittedLog, {
+    const submitted = await this.submitAttendance(submittedLog, {
       companyName: formData.companyName,
       comment: formData.comment,
       status: formData.status,
     });
+
+    if (submitted && this.attendanceDialogMode() === 'past-entry') {
+      this.closePastActionDialog();
+    }
   }
 
   private async submitAttendance(
@@ -557,9 +609,11 @@ export class EntryLoggerComponent implements OnInit {
       await this.submitToGoogleForms(submittedLog, formData);
 
       submittedLog.isSubmitted = true;
-      this.storageService.saveEntryLog(submittedLog);
-      this.entryLog.set({ ...submittedLog });
-      this.attendanceState.notifyLocalStorageChanged();
+      if (submittedLog.date === this.getISTDateStringFromDate(new Date())) {
+        this.storageService.saveEntryLog(submittedLog);
+        this.entryLog.set({ ...submittedLog });
+        this.attendanceState.notifyLocalStorageChanged();
+      }
 
       this.pendingFormData.set(null);
       this.showExitDialog.set(false);
@@ -735,13 +789,29 @@ export class EntryLoggerComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  private formatForDateTimeLocal(date: Date): string {
+  private setAttendanceDialogTimes(entryTime: Date, exitTime: Date): void {
+    this.exitEntryDate.set(this.formatDateForInput(entryTime));
+    this.exitEntryTime.set(this.formatTimeForInput(entryTime));
+    this.exitExitDate.set(this.formatDateForInput(exitTime));
+    this.exitExitTime.set(this.formatTimeForInput(exitTime));
+  }
+
+  private createLocalDateTime(date: string, time: string): Date {
+    if (!date || !time) return new Date(Number.NaN);
+    return new Date(`${date}T${time}`);
+  }
+
+  private formatDateForInput(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatTimeForInput(date: Date): string {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${hours}:${minutes}`;
   }
 
   private formatTo12Hour(date: Date): string {
@@ -843,69 +913,28 @@ export class EntryLoggerComponent implements OnInit {
     const dateStr = this.selectedPastDate();
     if (!dateStr) return;
 
-    // Parse the selected date
-    const dateObj = new Date(dateStr + 'T00:00:00');
-
-    // Set entry and exit time to noon of that day
-    const entryTime = new Date(dateObj);
-    entryTime.setHours(12, 0, 0, 0);
-
-    const exitTime = new Date(dateObj);
-    exitTime.setHours(12, 0, 0, 0);
-
-    // Build Google Form URL with Day Off data
-    const formUrl = this.buildGoogleFormUrlForPastDate(entryTime, exitTime, '', 'Day Off - Leave Applied', 'Day Off');
-    this.googleFormUrl.set(formUrl);
-
-    this.closePastActionDialog();
-    this.showGoogleFormDialog.set(true);
+    this.leaveConfirmationDate.set(dateStr);
+    this.showLeaveConfirmation.set(true);
   }
 
-  addEntryForPastDate(): void {
+  async addEntryForPastDate(): Promise<void> {
     const dateStr = this.selectedPastDate();
     if (!dateStr) return;
 
-    // Parse the selected date
-    const dateObj = new Date(dateStr + 'T00:00:00');
+    await this.attendanceState.fetchAttendanceData();
+    if (this.attendanceState.hasEntryForDate(dateStr)) {
+      this.closePastActionDialog();
+      this.snackbarService.error('Attendance already exists for the selected date.');
+      return;
+    }
 
-    // Set entry time to 9 AM and exit time to 6 PM of that day
-    const entryTime = new Date(dateObj);
-    entryTime.setHours(9, 0, 0, 0);
-
-    const exitTime = new Date(dateObj);
-    exitTime.setHours(18, 0, 0, 0);
-
-    // Build Google Form URL with default entry/exit times
-    const formUrl = this.buildGoogleFormUrlForPastDate(entryTime, exitTime, '', '', 'Office');
-    this.googleFormUrl.set(formUrl);
-
-    this.closePastActionDialog();
-    this.showGoogleFormDialog.set(true);
-  }
-
-  private buildGoogleFormUrlForPastDate(
-    entryTime: Date,
-    exitTime: Date,
-    companyName: string,
-    comment: string,
-    status: string,
-  ): string {
-    const formId = env.YOUR_FORM_ID;
-    const baseUrl = `https://docs.google.com/forms/d/e/${formId}/viewform`;
-
-    const formattedEntry = this.formatForGoogleForm(entryTime);
-    const formattedExit = this.formatForGoogleForm(exitTime);
-
-    const params = new URLSearchParams({
-      usp: 'pp_url',
-      'entry.160031710': formattedEntry, // Entry Time
-      'entry.1057727999': formattedExit, // Exit Time
-      'entry.302638121': companyName, // Company Name
-      'entry.1773816160': comment, // Comments
-      'entry.1264867401': status, // Status
-      embedded: 'true',
-    });
-
-    return `${baseUrl}?${params.toString()}`;
+    this.selectedExitStatus.set('Office');
+    this.attendanceDialogMode.set('past-entry');
+    this.setAttendanceDialogTimes(
+      this.createLocalDateTime(dateStr, '09:00'),
+      this.createLocalDateTime(dateStr, '18:00'),
+    );
+    this.showPastActionDialog.set(false);
+    this.showExitDialog.set(true);
   }
 }

@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 import { getISTDateString, getISTDateStringWithOffset } from '../utils/date-utils';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class TodoService {
   private readonly TODO_ITEMS_KEY = 'office_todo_items';
@@ -18,7 +18,7 @@ export class TodoService {
   getTodoItems(): TodoItem[] {
     const data = localStorage.getItem(this.TODO_ITEMS_KEY);
     const todos = data ? JSON.parse(data) : this.getDefaultTodos();
-
+    
     // Update completion status based on recurrence
     return this.updateTodosForToday(todos);
   }
@@ -38,81 +38,79 @@ export class TodoService {
   // Update todos to show correct completion status for today
   private updateTodosForToday(todos: TodoItem[]): TodoItem[] {
     const today = getISTDateString();
-
-    return todos
-      .map(todo => {
-        // For once-only todos, completion is permanent
-        if (todo.recurrenceType === 'once') {
-          return todo;
-        }
-
-        // For recurring todos, check if it should show today
-        const shouldShow = this.shouldShowToday(todo, today);
-
-        if (!shouldShow) {
-          // Todo doesn't occur today, skip it (could filter out later if needed)
-          return { ...todo, completed: false };
-        }
-
-        // Check if completed today
-        const completedToday = todo.completedDates?.includes(today) || false;
-
-        return {
-          ...todo,
-          completed: completedToday,
-        };
-      })
-      .filter(todo => {
-        // Filter out todos that don't occur today (optional - keep all for now)
-        if (todo.recurrenceType === 'once') return true;
-        return this.shouldShowToday(todo, today);
-      });
+    
+    return todos.map(todo => {
+      // For once-only todos, completion is permanent
+      if (todo.recurrenceType === 'once') {
+        return todo;
+      }
+      
+      // For recurring todos, check if it should show today
+      const shouldShow = this.shouldShowToday(todo, today);
+      
+      if (!shouldShow) {
+        // Todo doesn't occur today, skip it (could filter out later if needed)
+        return { ...todo, completed: false };
+      }
+      
+      // Check if completed today
+      const completedToday = todo.completedDates?.includes(today) || false;
+      
+      return {
+        ...todo,
+        completed: completedToday
+      };
+    }).filter(todo => {
+      // Filter out todos that don't occur today (optional - keep all for now)
+      if (todo.recurrenceType === 'once') return true;
+      return this.shouldShowToday(todo, today);
+    });
   }
 
   // Check if a todo should appear today based on its recurrence pattern
   private shouldShowToday(todo: TodoItem, today: string): boolean {
     const todayDate = new Date(today);
     const startDate = new Date(todo.startDate);
-
+    
     // Check if today is before start date
     if (todayDate < startDate) return false;
-
+    
     // Check if today is after end date
     if (todo.endDate) {
       const endDate = new Date(todo.endDate);
       if (todayDate > endDate) return false;
     }
-
+    
     switch (todo.recurrenceType) {
       case 'once':
         return today === todo.startDate;
-
+        
       case 'daily':
         return true; // Show every day
-
+        
       case 'weekly':
         if (!todo.daysOfWeek || todo.daysOfWeek.length === 0) return true;
         return this.isDayOfWeek(todayDate, todo.daysOfWeek);
-
+        
       case 'biweekly': {
         if (!todo.daysOfWeek || todo.daysOfWeek.length === 0) return false;
         const weeksSinceStart = Math.floor((todayDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
         const isCorrectWeek = weeksSinceStart % 2 === (todo.biweeklyOffset || 0);
         return isCorrectWeek && this.isDayOfWeek(todayDate, todo.daysOfWeek);
       }
-
+        
       case 'monthly':
         if (!todo.dayOfMonth) return false;
         return todayDate.getDate() === todo.dayOfMonth;
-
+        
       case 'yearly':
         if (!todo.monthOfYear || !todo.dayOfMonth) return false;
         return todayDate.getMonth() + 1 === todo.monthOfYear && todayDate.getDate() === todo.dayOfMonth;
-
+        
       case 'custom':
         if (!todo.daysOfWeek || todo.daysOfWeek.length === 0) return false;
         return this.isDayOfWeek(todayDate, todo.daysOfWeek);
-
+        
       default:
         return false;
     }
@@ -127,9 +125,9 @@ export class TodoService {
       3: 'wednesday',
       4: 'thursday',
       5: 'friday',
-      6: 'saturday',
+      6: 'saturday'
     };
-
+    
     const dayName = dayMap[date.getDay()];
     return daysOfWeek.includes(dayName);
   }
@@ -138,18 +136,18 @@ export class TodoService {
   // Remove completed dates older than 7 days - no need to maintain past history
   private cleanupOldCompletedDates(todos: TodoItem[]): TodoItem[] {
     const cutoffDate = getISTDateStringWithOffset(-7);
-
+    
     return todos.map(todo => {
       if (!todo.completedDates || todo.completedDates.length === 0) {
         return todo;
       }
-
+      
       // Filter out dates older than 10 days
       const recentDates = todo.completedDates.filter(date => date >= cutoffDate);
-
+      
       return {
         ...todo,
-        completedDates: recentDates,
+        completedDates: recentDates
       };
     });
   }
@@ -165,7 +163,7 @@ export class TodoService {
         createdAt: new Date().toISOString(),
         startDate: today,
         recurrenceType: 'daily',
-        isDefaultTodo: true,
+        isDefaultTodo: true
       },
       {
         id: 'app-default-2',
@@ -175,7 +173,7 @@ export class TodoService {
         createdAt: new Date().toISOString(),
         startDate: today,
         recurrenceType: 'daily',
-        isDefaultTodo: true,
+        isDefaultTodo: true
       },
       {
         id: 'app-default-3',
@@ -185,7 +183,7 @@ export class TodoService {
         createdAt: new Date().toISOString(),
         startDate: today,
         recurrenceType: 'daily',
-        isDefaultTodo: true,
+        isDefaultTodo: true
       },
       {
         id: 'app-default-4',
@@ -196,7 +194,7 @@ export class TodoService {
         startDate: today,
         recurrenceType: 'custom',
         daysOfWeek: ['monday', 'thursday'],
-        isDefaultTodo: true,
+        isDefaultTodo: true
       },
       {
         id: 'app-default-5',
@@ -207,7 +205,7 @@ export class TodoService {
         startDate: today,
         recurrenceType: 'custom',
         daysOfWeek: ['tuesday', 'friday'],
-        isDefaultTodo: true,
+        isDefaultTodo: true
       },
       {
         id: 'app-default-6',
@@ -218,7 +216,7 @@ export class TodoService {
         startDate: today,
         recurrenceType: 'weekly',
         daysOfWeek: ['friday'],
-        isDefaultTodo: true,
+        isDefaultTodo: true
       },
       {
         id: 'app-default-7',
@@ -228,15 +226,15 @@ export class TodoService {
         createdAt: new Date().toISOString(),
         startDate: today,
         recurrenceType: 'daily',
-        isDefaultTodo: true,
-      },
+        isDefaultTodo: true
+      }
     ];
   }
 
   // Google Sheets Methods
   fetchTodosFromGoogleSheets(): Observable<TodoItem[]> {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${this.GOOGLE_SHEET_ID}/export?format=csv&gid=${this.TODO_SHEET_GID}`;
-
+    
     return this.http.get(csvUrl, { responseType: 'text' }).pipe(
       map(csvData => {
         const todos = this.parseCSVToTodos(csvData);
@@ -245,7 +243,7 @@ export class TodoService {
       catchError(error => {
         console.error('Error fetching todos from Google Sheets:', error);
         return of([]);
-      }),
+      })
     );
   }
 
@@ -254,7 +252,7 @@ export class TodoService {
     if (lines.length < 2) return [];
 
     const todos: TodoItem[] = [];
-
+    
     // Skip header row, start from index 1
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -277,7 +275,7 @@ export class TodoService {
         biweeklyOffset: row[10] ? parseInt(row[10]) : undefined,
         dayOfMonth: row[11] ? parseInt(row[11]) : undefined,
         monthOfYear: row[12] ? parseInt(row[12]) : undefined,
-        completedDates: row[13] ? row[13].split(',').filter(d => d.trim()) : [],
+        completedDates: row[13] ? row[13].split(',').filter(d => d.trim()) : []
       };
 
       if (todo.description) {
@@ -295,7 +293,7 @@ export class TodoService {
 
     for (let i = 0; i < row.length; i++) {
       const char = row[i];
-
+      
       if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === ',' && !inQuotes) {
@@ -305,7 +303,7 @@ export class TodoService {
         current += char;
       }
     }
-
+    
     result.push(current.trim());
     return result;
   }
@@ -322,14 +320,14 @@ export class TodoService {
   // Merge Google Sheets todos with local todos
   mergeTodosWithLocal(sheetTodos: TodoItem[]): void {
     const localTodos = this.getTodoItems();
-
+    
     // Create a map of local todos by ID for quick lookup
     const localTodoMap = new Map<string, TodoItem>();
     localTodos.forEach(todo => localTodoMap.set(todo.id, todo));
-
+    
     // Create a set of sheet todo IDs for quick lookup
     const sheetTodoIds = new Set(sheetTodos.map(t => t.id));
-
+    
     // Update sheet todos with local completion state if they exist locally
     const updatedSheetTodos = sheetTodos.map(sheetTodo => {
       const localTodo = localTodoMap.get(sheetTodo.id);
@@ -338,21 +336,25 @@ export class TodoService {
         return {
           ...sheetTodo,
           completed: localTodo.completed,
-          completedDates: localTodo.completedDates || [],
+          completedDates: localTodo.completedDates || []
         };
       }
       return sheetTodo;
     });
-
+    
     // Get app default todos that are not in the sheet (preserve app defaults)
-    const appDefaultTodos = localTodos.filter(todo => todo.isDefaultTodo && !sheetTodoIds.has(todo.id));
-
+    const appDefaultTodos = localTodos.filter(todo => 
+      todo.isDefaultTodo && !sheetTodoIds.has(todo.id)
+    );
+    
     // Get user-created todos that are not in the sheet
-    const userCreatedTodos = localTodos.filter(todo => !todo.isDefaultTodo && !sheetTodoIds.has(todo.id));
-
+    const userCreatedTodos = localTodos.filter(todo => 
+      !todo.isDefaultTodo && !sheetTodoIds.has(todo.id)
+    );
+    
     // Merge: Sheet todos + app default todos + user-created todos
     const mergedTodos = [...updatedSheetTodos, ...appDefaultTodos, ...userCreatedTodos];
-
+    
     this.saveTodoItems(mergedTodos);
   }
 
@@ -370,7 +372,7 @@ export class TodoService {
           return this.getTodoItems();
         }
         return this.getTodoItems();
-      }),
+      })
     );
   }
 

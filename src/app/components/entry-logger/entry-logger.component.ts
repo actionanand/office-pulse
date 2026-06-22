@@ -439,10 +439,7 @@ export class EntryLoggerComponent implements OnInit {
       return;
     }
 
-    if (
-      leaveDate === this.getISTDateStringFromDate(new Date()) &&
-      (this.isSubmittedToday() || this.hasEnteredToday())
-    ) {
+    if (leaveDate === this.getISTDateStringFromDate(new Date()) && (this.isSubmittedToday() || this.hasEnteredToday())) {
       this.showLeaveConfirmation.set(false);
       this.snackbarService.error('You have already marked attendance for today.');
       return;
@@ -565,8 +562,8 @@ export class EntryLoggerComponent implements OnInit {
     const entryDate = this.getISTDateStringFromDate(entryTime);
     if (this.attendanceDialogMode() === 'past-entry') {
       const selectedDate = this.selectedPastDate();
-      if (entryDate !== selectedDate || this.getISTDateStringFromDate(exitTime) !== selectedDate) {
-        this.snackbarService.error('Past attendance must use the selected date.');
+      if (entryDate !== selectedDate) {
+        this.snackbarService.error('Entry date must use the selected date.');
         return;
       }
 
@@ -913,6 +910,7 @@ export class EntryLoggerComponent implements OnInit {
     const dateStr = this.selectedPastDate();
     if (!dateStr) return;
 
+    this.showPastActionDialog.set(false);
     this.leaveConfirmationDate.set(dateStr);
     this.showLeaveConfirmation.set(true);
   }
@@ -930,11 +928,9 @@ export class EntryLoggerComponent implements OnInit {
 
     this.selectedExitStatus.set('Office');
     this.attendanceDialogMode.set('past-entry');
-    this.setAttendanceDialogTimes(
-      this.createLocalDateTime(dateStr, '09:00'),
-      this.createLocalDateTime(dateStr, '18:00'),
-    );
+    this.setAttendanceDialogTimes(this.createLocalDateTime(dateStr, '09:00'), this.createLocalDateTime(dateStr, '18:00'));
     this.showPastActionDialog.set(false);
     this.showExitDialog.set(true);
   }
+
 }

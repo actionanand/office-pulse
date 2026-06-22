@@ -250,7 +250,7 @@
                 exitTime: exitExitTime(),
                 companyName: companyName.value,
                 comment: comment.value,
-                status: selectedExitStatus(),
+                status: selectedExitStatus()
               })
             ">
             <div class="form-group">
@@ -263,7 +263,7 @@
                     id="exitEntryDate"
                     [value]="exitEntryDate()"
                     (input)="exitEntryDate.set($any($event.target).value)"
-                    [disabled]="attendanceDialogMode() === 'past-entry'"
+                    disabled
                     required />
                 </label>
                 <label class="datetime-input" for="exitEntryTime">
@@ -288,7 +288,6 @@
                     id="exitExitDate"
                     [value]="exitExitDate()"
                     (input)="exitExitDate.set($any($event.target).value)"
-                    [disabled]="attendanceDialogMode() === 'past-entry'"
                     required />
                 </label>
                 <label class="datetime-input" for="exitExitTime">

@@ -30,7 +30,13 @@
       </div>
 
       <div class="card-actions">
-        <button class="btn btn-primary" (click)="submitCopy()">📤 Send</button>
+        <button class="btn btn-primary" (click)="submitCopy()" [disabled]="isCopySubmitting()">
+          @if (isCopySubmitting()) {
+            Sending...
+          } @else {
+            📤 Send
+          }
+        </button>
         <button class="btn btn-secondary" (click)="openEmptyCopyForm()">📝 Open Form</button>
       </div>
 

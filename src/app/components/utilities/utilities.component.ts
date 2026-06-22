@@ -30,6 +30,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
   readonly copiedItems = signal<CopyItem[]>([]);
   readonly showCopiedItems = signal(false);
   readonly isCopyLoading = signal(false);
+  readonly isCopySubmitting = signal(false);
   readonly showGoogleFormDialog = signal(false);
   readonly googleFormUrl = signal('');
 
@@ -69,16 +70,32 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
     this.copyFormData.update(data => ({ ...data, [field]: value }));
   }
 
-  submitCopy(): void {
+  async submitCopy(): Promise<void> {
+    if (this.isCopySubmitting()) return;
+
     const data = this.copyFormData();
     if (!data.link?.trim() && !data.comment?.trim()) {
       this.snackbarService.error('Please enter at least a link or comment!');
       return;
     }
 
-    const formUrl = this.copyService.generateFormUrl(data, true);
-    this.googleFormUrl.set(formUrl);
-    this.showGoogleFormDialog.set(true);
+    this.isCopySubmitting.set(true);
+    this.snackbarService.info('Sending copy item...', 5000);
+
+    try {
+      await this.copyService.submitCopy(data);
+      this.snackbarService.success('Copy item sent successfully.');
+      this.copyFormData.set({ link: '', comment: '' });
+
+      if (this.showCopiedItems()) {
+        setTimeout(() => this.loadCopiedItems(), 2000);
+      }
+    } catch (error) {
+      console.error('Copy submission error:', error);
+      this.snackbarService.error('Failed to send copy item. Please try again.');
+    } finally {
+      this.isCopySubmitting.set(false);
+    }
   }
 
   openEmptyCopyForm(): void {

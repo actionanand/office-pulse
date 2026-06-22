@@ -33,6 +33,7 @@ export class AchievementsComponent implements OnInit {
   // Google Form Dialog signals
   readonly showGoogleFormDialog = signal(false);
   readonly googleFormUrl = signal('');
+  readonly isSubmitting = signal(false);
 
   // UI state
   readonly expandedYears = signal<Set<number>>(new Set());
@@ -95,17 +96,33 @@ export class AchievementsComponent implements OnInit {
     }));
   }
 
-  submitForm(): void {
+  async submitForm(): Promise<void> {
+    if (this.isSubmitting()) return;
+
     const data = this.formData();
     if (!data.title.trim()) {
       this.snackbarService.error('Title is required!');
       return;
     }
 
-    // Generate form URL with embedded=true for iframe
-    const formUrl = this.achievementService.generateFormUrl(data, true);
-    this.googleFormUrl.set(formUrl);
-    this.showGoogleFormDialog.set(true);
+    this.isSubmitting.set(true);
+    this.snackbarService.info('Submitting achievement...', 5000);
+
+    try {
+      await this.achievementService.submitAchievement(data);
+      this.snackbarService.success('Achievement submitted successfully.');
+      this.showForm.set(false);
+      this.resetForm();
+
+      setTimeout(() => {
+        this.refreshData();
+      }, 2000);
+    } catch (error) {
+      console.error('Achievement submission error:', error);
+      this.snackbarService.error('Failed to submit achievement. Please try again.');
+    } finally {
+      this.isSubmitting.set(false);
+    }
   }
 
   openEmptyForm(): void {

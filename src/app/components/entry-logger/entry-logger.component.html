@@ -143,7 +143,7 @@
           <div class="toggle-container">
             <span class="toggle-label">Apply Leave (Day Off)</span>
             <label class="toggle-switch">
-              <input type="checkbox" (change)="applyLeave()" [checked]="false" />
+              <input type="checkbox" (change)="openLeaveConfirmation($event)" [checked]="false" />
               <span class="toggle-slider"></span>
             </label>
           </div>
@@ -238,21 +238,69 @@
         (keyup)="$event.stopPropagation()"
         role="dialog"
         aria-modal="true">
-        <h2>Mark Exit & Submit to Google Form</h2>
+        <h2>Confirm Attendance</h2>
         <div class="dialog-body">
           <form
             #exitForm="ngForm"
             (ngSubmit)="
-              handleExitSubmit({ companyName: companyName.value, comment: comment.value, status: statusField.value })
+              handleExitSubmit({
+                entryDate: exitEntryDate(),
+                entryTime: exitEntryTime(),
+                exitDate: exitExitDate(),
+                exitTime: exitExitTime(),
+                companyName: companyName.value,
+                comment: comment.value,
+                status: selectedExitStatus(),
+              })
             ">
             <div class="form-group">
-              <label for="entryTimeDisplay">Entry Time:</label>
-              <input type="text" id="entryTimeDisplay" [value]="entryTimeDisplay()" readonly />
+              <label for="exitEntryDate">Entry Time:</label>
+              <div class="datetime-pair">
+                <label class="datetime-input" for="exitEntryDate">
+                  <span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>
+                  <input
+                    type="date"
+                    id="exitEntryDate"
+                    [value]="exitEntryDate()"
+                    (input)="exitEntryDate.set($any($event.target).value)"
+                    disabled
+                    required />
+                </label>
+                <label class="datetime-input" for="exitEntryTime">
+                  <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+                  <input
+                    type="time"
+                    id="exitEntryTime"
+                    [value]="exitEntryTime()"
+                    (input)="exitEntryTime.set($any($event.target).value)"
+                    required />
+                </label>
+              </div>
             </div>
 
             <div class="form-group">
-              <label for="exitTimeDisplay">Exit Time:</label>
-              <input type="text" id="exitTimeDisplay" [value]="currentTime()" readonly />
+              <label for="exitExitDate">Exit Time:</label>
+              <div class="datetime-pair">
+                <label class="datetime-input" for="exitExitDate">
+                  <span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>
+                  <input
+                    type="date"
+                    id="exitExitDate"
+                    [value]="exitExitDate()"
+                    (input)="exitExitDate.set($any($event.target).value)"
+                    [disabled]="attendanceDialogMode() === 'offline-entry'"
+                    required />
+                </label>
+                <label class="datetime-input" for="exitExitTime">
+                  <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+                  <input
+                    type="time"
+                    id="exitExitTime"
+                    [value]="exitExitTime()"
+                    (input)="exitExitTime.set($any($event.target).value)"
+                    required />
+                </label>
+              </div>
             </div>
 
             <div class="form-group">
@@ -270,23 +318,48 @@
                 <legend>Status:</legend>
                 <div class="radio-group">
                   <label class="radio-option">
-                    <input type="radio" name="status" value="Office" #statusField checked />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Office"
+                      [checked]="selectedExitStatus() === 'Office'"
+                      (change)="selectedExitStatus.set('Office')" />
                     <span>Office</span>
                   </label>
                   <label class="radio-option">
-                    <input type="radio" name="status" value="WFH" />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="WFH"
+                      [checked]="selectedExitStatus() === 'WFH'"
+                      (change)="selectedExitStatus.set('WFH')" />
                     <span>WFH</span>
                   </label>
                   <label class="radio-option">
-                    <input type="radio" name="status" value="First Half Off" />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="First Half Off"
+                      [checked]="selectedExitStatus() === 'First Half Off'"
+                      (change)="selectedExitStatus.set('First Half Off')" />
                     <span>First Half Off</span>
                   </label>
                   <label class="radio-option">
-                    <input type="radio" name="status" value="Second Half Off" />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Second Half Off"
+                      [checked]="selectedExitStatus() === 'Second Half Off'"
+                      (change)="selectedExitStatus.set('Second Half Off')" />
                     <span>Second Half Off</span>
                   </label>
                   <label class="radio-option">
-                    <input type="radio" name="status" value="Day Off" />
+                    <input
+                      type="radio"
+                      name="status"
+                      value="Day Off"
+                      [checked]="selectedExitStatus() === 'Day Off'"
+                      (change)="selectedExitStatus.set('Day Off')" />
                     <span>Day Off</span>
                   </label>
                 </div>
@@ -294,8 +367,16 @@
             </div>
 
             <div class="dialog-actions">
-              <button type="button" class="btn btn-cancel" (click)="closeExitDialog()">Cancel</button>
-              <button type="submit" class="btn btn-primary">Continue</button>
+              <button type="button" class="btn btn-cancel" (click)="closeExitDialog()" [disabled]="isSubmitting()">
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+                @if (isSubmitting()) {
+                  Submitting...
+                } @else {
+                  Submit
+                }
+              </button>
             </div>
           </form>
         </div>
@@ -417,4 +498,13 @@
     [formUrl]="googleFormUrl()"
     (closeDialog)="onGoogleFormClose()"
     (formSubmitted)="onGoogleFormSubmitted()" />
+
+  @if (showLeaveConfirmation()) {
+    <app-confirmation-popup
+      title="Apply Day Off?"
+      [message]="leaveConfirmationMessage()"
+      confirmLabel="Apply Day Off"
+      (cancelled)="closeLeaveConfirmation()"
+      (confirmed)="confirmApplyLeave()" />
+  }
 </div>

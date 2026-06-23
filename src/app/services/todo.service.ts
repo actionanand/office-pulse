@@ -24,7 +24,7 @@ export class TodoService {
   }
 
   saveTodoItems(items: TodoItem[]): void {
-    // Clean up old completed dates to save space (keep only last 10 days)
+    // Clean up old completed dates to save space (keep only last 7 days)
     const cleanedItems = this.cleanupOldCompletedDates(items);
     localStorage.setItem(this.TODO_ITEMS_KEY, JSON.stringify(cleanedItems));
   }
@@ -133,9 +133,9 @@ export class TodoService {
   }
 
   // Clean up old completed dates to save localStorage space
-  // Remove completed dates older than 10 days - no need to maintain past history
+  // Remove completed dates older than 7 days - no need to maintain past history
   private cleanupOldCompletedDates(todos: TodoItem[]): TodoItem[] {
-    const cutoffDate = getISTDateStringWithOffset(-10);
+    const cutoffDate = getISTDateStringWithOffset(-7);
     
     return todos.map(todo => {
       if (!todo.completedDates || todo.completedDates.length === 0) {

@@ -239,6 +239,25 @@ export class AchievementService {
     return `${baseUrl}?${params.toString()}`;
   }
 
+  async submitAchievement(data: AchievementFormData): Promise<void> {
+    const formUrl = `https://docs.google.com/forms/d/e/${this.ACHIEVEMENT_FORM_ID}/formResponse`;
+    const formBody = new URLSearchParams();
+
+    formBody.append(this.FORM_FIELDS.title, data.title || '');
+    formBody.append(this.FORM_FIELDS.link, data.link || '');
+    formBody.append(this.FORM_FIELDS.date, data.date || '');
+    formBody.append(this.FORM_FIELDS.comments, data.comments || '');
+
+    await fetch(formUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formBody.toString(),
+    });
+  }
+
   /**
    * Clear cached data to force refresh
    */

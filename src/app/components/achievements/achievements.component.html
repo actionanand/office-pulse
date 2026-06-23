@@ -78,11 +78,17 @@
       <div class="form-actions">
         <button class="btn btn-secondary" (click)="resetForm()">🔄 Reset</button>
         <button class="btn btn-secondary" (click)="openEmptyForm()">📋 Open Empty Form</button>
-        <button class="btn btn-primary" (click)="submitForm()">🚀 Submit Achievement</button>
+        <button class="btn btn-primary" (click)="submitForm()" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            Submitting...
+          } @else {
+            🚀 Submit Achievement
+          }
+        </button>
       </div>
       
       <p class="form-note">
-        💡 This will open an embedded Google Form with pre-filled data. Complete and submit the form to save your achievement.
+        💡 Submit Achievement saves directly. Use Open Empty Form if you want to open the embedded form manually.
       </p>
     </div>
   }

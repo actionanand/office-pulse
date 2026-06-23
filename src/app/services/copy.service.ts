@@ -168,6 +168,23 @@ export class CopyService {
     return `${baseUrl}?${params.toString()}`;
   }
 
+  async submitCopy(data: CopyFormData): Promise<void> {
+    const formUrl = `https://docs.google.com/forms/d/e/${this.COPY_FORM_ID}/formResponse`;
+    const formBody = new URLSearchParams();
+
+    formBody.append(this.FORM_FIELDS.link, data.link || '');
+    formBody.append(this.FORM_FIELDS.comment, data.comment || '');
+
+    await fetch(formUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formBody.toString(),
+    });
+  }
+
   /**
    * Clear cached data to force refresh
    */

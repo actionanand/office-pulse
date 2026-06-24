@@ -7,6 +7,8 @@ const mainActivityPath = join(javaDir, 'MainActivity.java');
 const reminderPluginPath = join(javaDir, 'OfficePulseReminderPlugin.java');
 const reminderReceiverPath = join(javaDir, 'OfficePulseReminderReceiver.java');
 const manifestPath = join('android', 'app', 'src', 'main', 'AndroidManifest.xml');
+const drawableDir = join('android', 'app', 'src', 'main', 'res', 'drawable');
+const notificationSmallIconPath = join(drawableDir, 'ic_stat_office_pulse.xml');
 const valuesDir = join('android', 'app', 'src', 'main', 'res', 'values');
 const colorsPath = join(valuesDir, 'colors.xml');
 const stylesPath = join(valuesDir, 'styles.xml');
@@ -15,7 +17,23 @@ const darkShellColor = '#111827';
 const headerStartColor = '#667EEA';
 
 mkdirSync(javaDir, { recursive: true });
+mkdirSync(drawableDir, { recursive: true });
 mkdirSync(valuesDir, { recursive: true });
+
+writeFileSync(
+  notificationSmallIconPath,
+  `<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M4,20h16v2H4zM5,13h4v6H5zM10,8h4v11h-4zM15,4h4v15h-4z" />
+</vector>
+`,
+);
 
 writeFileSync(
   reminderReceiverPath,
@@ -28,6 +46,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 
@@ -94,7 +113,8 @@ public class OfficePulseReminderReceiver extends BroadcastReceiver {
       : new Notification.Builder(context);
 
     builder
-      .setSmallIcon(context.getApplicationInfo().icon)
+      .setSmallIcon(R.drawable.ic_stat_office_pulse)
+      .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), context.getApplicationInfo().icon))
       .setContentTitle(title)
       .setContentText(body)
       .setStyle(new Notification.BigTextStyle().bigText(body))

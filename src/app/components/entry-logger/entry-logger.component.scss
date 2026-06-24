@@ -722,6 +722,15 @@
   }
 }
 
+.btn-remove {
+  background: #d35400;
+  color: white;
+
+  &:not(:disabled):hover {
+    background: #ba4a00;
+  }
+}
+
 .btn-exit {
   background: #e74c3c;
   color: white;
@@ -957,6 +966,28 @@
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 1.5rem;
+}
+
+.dialog-actions-split {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dialog-actions-right {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 520px) {
+  .dialog-actions-split {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dialog-actions-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .confirmation-dialog {

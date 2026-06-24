@@ -12,6 +12,16 @@ import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dia
 import { ConfirmationPopupComponent } from '../confirmation-popup/confirmation-popup.component';
 import { environment as env } from '../../../environments/environment';
 
+interface AttendanceFormData {
+  entryDate: string;
+  entryTime: string;
+  exitDate: string;
+  exitTime: string;
+  companyName: string;
+  comment: string;
+  status: string;
+}
+
 @Component({
   selector: 'app-entry-logger',
   imports: [CommonModule, FormsModule, TodoListComponent, GoogleFormDialogComponent, ConfirmationPopupComponent],
@@ -30,6 +40,7 @@ export class EntryLoggerComponent implements OnInit {
   workHours = signal<number>(6);
   showEntryDialog = signal<boolean>(false);
   showExitDialog = signal<boolean>(false);
+  showRemoveEntryConfirmation = signal<boolean>(false);
   showSubmissionDialog = signal<boolean>(false);
   showGoogleFormDialog = signal<boolean>(false);
   googleFormUrl = signal<string>('');
@@ -43,6 +54,7 @@ export class EntryLoggerComponent implements OnInit {
   selectedPastDate = signal<string>('');
   showTodoList = signal<boolean>(true);
   isSubmitting = signal<boolean>(false);
+  canSaveOffline = signal<boolean>(false);
   selectedExitStatus = signal<string>('Office');
   attendanceDialogMode = signal<'current-exit' | 'past-entry' | 'offline-entry'>('current-exit');
   exitEntryDate = signal<string>('');
@@ -128,7 +140,7 @@ export class EntryLoggerComponent implements OnInit {
     if (apiEntry) return false;
 
     // Check localStorage for an entry for today with both entry and exit time
-    const storedLog = this.storageService.getEntryLog();
+    const storedLog = this.entryLog() || this.storageService.getEntryLog();
     if (!storedLog?.entryTime || !storedLog.exitTime) return false;
 
     // Get IST date for entryTime and exitTime
@@ -143,6 +155,15 @@ export class EntryLoggerComponent implements OnInit {
     const exitIST = getISTDate(storedLog.exitTime);
     const todayIST = getISTDate(new Date().toISOString());
     return exitIST === todayIST;
+  });
+
+  canRemoveLocalEntry = computed(() => {
+    if (this.todayApiEntry()) return false;
+
+    const log = this.entryLog();
+    if (!log?.entryTime || log.exitTime || log.isSubmitted) return false;
+
+    return this.getISTDateStringFromDate(new Date(log.entryTime)) === this.getISTDateStringFromDate(new Date());
   });
 
   entryTimeDisplay = computed(() => {
@@ -379,6 +400,7 @@ export class EntryLoggerComponent implements OnInit {
 
     this.entryLog.set(storedLog);
     this.attendanceState.notifyLocalStorageChanged();
+    this.canSaveOffline.set(false);
     this.selectedExitStatus.set('Office');
     this.attendanceDialogMode.set('offline-entry');
     this.setAttendanceDialogTimes(new Date(storedLog.entryTime), new Date(storedLog.exitTime));
@@ -405,6 +427,28 @@ export class EntryLoggerComponent implements OnInit {
 
   closeEntryDialog(): void {
     this.showEntryDialog.set(false);
+  }
+
+  openRemoveEntryConfirmation(): void {
+    if (!this.canRemoveLocalEntry()) {
+      this.snackbarService.error('No local entry is available to remove.');
+      return;
+    }
+
+    this.showRemoveEntryConfirmation.set(true);
+  }
+
+  closeRemoveEntryConfirmation(): void {
+    this.showRemoveEntryConfirmation.set(false);
+  }
+
+  confirmRemoveEntry(): void {
+    this.storageService.clearEntryLog();
+    this.entryLog.set(null);
+    this.canSaveOffline.set(false);
+    this.showRemoveEntryConfirmation.set(false);
+    this.attendanceState.notifyLocalStorageChanged();
+    this.snackbarService.success('Entry removed from the App.');
   }
 
   openLeaveConfirmation(event?: Event): void {
@@ -525,6 +569,7 @@ export class EntryLoggerComponent implements OnInit {
 
     const now = new Date();
     const entryDate = new Date(log?.entryTime || now);
+    this.canSaveOffline.set(false);
     this.selectedExitStatus.set('Office');
     this.attendanceDialogMode.set('current-exit');
     this.setAttendanceDialogTimes(entryDate, now);
@@ -536,30 +581,13 @@ export class EntryLoggerComponent implements OnInit {
     this.showExitDialog.set(false);
   }
 
-  async handleExitSubmit(formData: {
-    entryDate: string;
-    entryTime: string;
-    exitDate: string;
-    exitTime: string;
-    companyName: string;
-    comment: string;
-    status: string;
-  }): Promise<void> {
+  async handleExitSubmit(formData: AttendanceFormData): Promise<void> {
     if (this.isSubmitting()) return;
 
-    const entryTime = this.createLocalDateTime(formData.entryDate, formData.entryTime);
-    const exitTime = this.createLocalDateTime(formData.exitDate, formData.exitTime);
-    if (isNaN(entryTime.getTime()) || isNaN(exitTime.getTime())) {
-      this.snackbarService.error('Please enter valid entry and exit times.');
-      return;
-    }
+    const submittedLog = this.buildAttendanceLogFromForm(formData);
+    if (!submittedLog) return;
 
-    if (exitTime < entryTime) {
-      this.snackbarService.error('Exit time cannot be before entry time.');
-      return;
-    }
-
-    const entryDate = this.getISTDateStringFromDate(entryTime);
+    const entryDate = submittedLog.date;
     if (this.attendanceDialogMode() === 'past-entry') {
       const selectedDate = this.selectedPastDate();
       if (entryDate !== selectedDate) {
@@ -576,30 +604,50 @@ export class EntryLoggerComponent implements OnInit {
       }
     }
 
-    const log = this.entryLog();
-    const submittedLog: EntryLog = {
-      ...(log && this.attendanceDialogMode() === 'current-exit' ? log : {}),
-      entryTime: entryTime.toISOString(),
-      exitTime: exitTime.toISOString(),
-      date: entryDate,
-    };
-
-    const submitted = await this.submitAttendance(submittedLog, {
-      companyName: formData.companyName,
-      comment: formData.comment,
-      status: formData.status,
-    });
+    const submitted = await this.submitAttendance(
+      submittedLog,
+      {
+        companyName: formData.companyName,
+        comment: formData.comment,
+        status: formData.status,
+      },
+      { enableOfflineSave: true },
+    );
 
     if (submitted && this.attendanceDialogMode() === 'past-entry') {
       this.closePastActionDialog();
     }
   }
 
+  saveAttendanceOffline(formData: AttendanceFormData): void {
+    if (!this.canSaveOffline() || this.isSubmitting()) return;
+
+    const offlineLog = this.buildAttendanceLogFromForm(formData);
+    if (!offlineLog) return;
+
+    const today = this.getISTDateStringFromDate(new Date());
+    if (offlineLog.date !== today) {
+      this.snackbarService.error("Offline save is available for today's attendance only.");
+      return;
+    }
+
+    offlineLog.isSubmitted = undefined;
+    this.storageService.saveEntryLog(offlineLog);
+    this.entryLog.set({ ...offlineLog });
+    this.pendingFormData.set(null);
+    this.canSaveOffline.set(false);
+    this.showExitDialog.set(false);
+    this.attendanceState.notifyLocalStorageChanged();
+    this.snackbarService.success('Attendance saved offline. Use Load Offline Entry when network is back.');
+  }
+
   private async submitAttendance(
     submittedLog: EntryLog,
     formData: { companyName: string; comment: string; status: string },
+    options: { enableOfflineSave?: boolean } = {},
   ): Promise<boolean> {
     this.isSubmitting.set(true);
+    this.canSaveOffline.set(false);
     this.snackbarService.info('Submitting attendance...', 5000);
 
     try {
@@ -619,7 +667,14 @@ export class EntryLoggerComponent implements OnInit {
       return true;
     } catch (error) {
       console.error('Attendance submission error:', error);
-      this.snackbarService.error('Failed to submit attendance. Please try again.');
+      const canSaveOffline =
+        options.enableOfflineSave === true && submittedLog.date === this.getISTDateStringFromDate(new Date());
+      this.canSaveOffline.set(canSaveOffline);
+      this.snackbarService.error(
+        canSaveOffline
+          ? 'Failed to submit attendance. You can retry or save offline.'
+          : 'Failed to submit attendance. Please try again.',
+      );
       return false;
     } finally {
       this.isSubmitting.set(false);
@@ -798,6 +853,28 @@ export class EntryLoggerComponent implements OnInit {
     return new Date(`${date}T${time}`);
   }
 
+  private buildAttendanceLogFromForm(formData: AttendanceFormData): EntryLog | null {
+    const entryTime = this.createLocalDateTime(formData.entryDate, formData.entryTime);
+    const exitTime = this.createLocalDateTime(formData.exitDate, formData.exitTime);
+    if (isNaN(entryTime.getTime()) || isNaN(exitTime.getTime())) {
+      this.snackbarService.error('Please enter valid entry and exit times.');
+      return null;
+    }
+
+    if (exitTime < entryTime) {
+      this.snackbarService.error('Exit time cannot be before entry time.');
+      return null;
+    }
+
+    const log = this.entryLog();
+    return {
+      ...(log && this.attendanceDialogMode() === 'current-exit' ? log : {}),
+      entryTime: entryTime.toISOString(),
+      exitTime: exitTime.toISOString(),
+      date: this.getISTDateStringFromDate(entryTime),
+    };
+  }
+
   private formatDateForInput(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -927,6 +1004,7 @@ export class EntryLoggerComponent implements OnInit {
     }
 
     this.selectedExitStatus.set('Office');
+    this.canSaveOffline.set(false);
     this.attendanceDialogMode.set('past-entry');
     this.setAttendanceDialogTimes(
       this.createLocalDateTime(dateStr, '09:00'),

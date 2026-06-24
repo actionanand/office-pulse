@@ -430,7 +430,7 @@ export class EntryLoggerComponent implements OnInit {
   }
 
   openRemoveEntryConfirmation(): void {
-    if (!this.canRemoveLocalEntry()) {
+    if (!this.canRemoveLocalEntry() && !this.canLoadOfflineEntry()) {
       this.snackbarService.error('No local entry is available to remove.');
       return;
     }

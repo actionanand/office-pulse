@@ -177,12 +177,15 @@
     </button>
 
     @if (canLoadOfflineEntry()) {
-      <button
-        class="btn btn-load-offline"
-        (click)="loadOfflineEntry()"
-        title="Load previously submitted entry from offline storage">
-        💾 Load Offline Entry
-      </button>
+      <div class="offline-entry-actions">
+        <button class="btn btn-remove btn-remove-offline" (click)="openRemoveEntryConfirmation()">Remove Entry</button>
+        <button
+          class="btn btn-load-offline"
+          (click)="loadOfflineEntry()"
+          title="Load previously submitted entry from offline storage">
+          💾 Load Offline Entry
+        </button>
+      </div>
     }
   </div>
 
@@ -373,7 +376,7 @@
             <div class="dialog-actions dialog-actions-split">
               <button
                 type="button"
-                class="btn btn-secondary"
+                class="btn btn-save-offline"
                 (click)="
                   saveAttendanceOffline({
                     entryDate: exitEntryDate(),

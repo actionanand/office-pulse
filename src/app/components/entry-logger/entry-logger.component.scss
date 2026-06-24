@@ -562,6 +562,12 @@
   margin-bottom: 2rem;
 }
 
+.offline-entry-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
 .past-entry-section {
   display: flex;
   justify-content: center;
@@ -746,6 +752,22 @@
 
   &:hover {
     background: linear-gradient(135deg, #e580f0 0%, #e04255 100%);
+  }
+}
+
+.btn-save-offline {
+  background: #dff7ec;
+  border: 1px solid #9edfc1;
+  color: #17643b;
+
+  &:not(:disabled):hover {
+    background: #c9f0df;
+  }
+
+  &:disabled {
+    background: #d1d5db;
+    border-color: #c3c8cf;
+    color: #6b7280;
   }
 }
 

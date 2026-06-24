@@ -6,6 +6,8 @@ interface CapacitorLocalNotification {
   title: string;
   body: string;
   channelId?: string;
+  smallIcon?: string;
+  largeIcon?: string;
   autoCancel?: boolean;
   schedule: {
     at: Date;
@@ -311,6 +313,8 @@ export class AndroidLogoffNotificationService {
       title,
       body,
       channelId: this.channelId,
+      smallIcon: 'ic_stat_office_pulse',
+      largeIcon: 'ic_launcher',
       autoCancel: true,
       schedule: {
         at: notifyAt,

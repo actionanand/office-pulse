@@ -562,6 +562,12 @@
   margin-bottom: 2rem;
 }
 
+.offline-entry-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
 .past-entry-section {
   display: flex;
   justify-content: center;
@@ -722,6 +728,15 @@
   }
 }
 
+.btn-remove {
+  background: #d35400;
+  color: white;
+
+  &:not(:disabled):hover {
+    background: #ba4a00;
+  }
+}
+
 .btn-exit {
   background: #e74c3c;
   color: white;
@@ -737,6 +752,22 @@
 
   &:hover {
     background: linear-gradient(135deg, #e580f0 0%, #e04255 100%);
+  }
+}
+
+.btn-save-offline {
+  background: #dff7ec;
+  border: 1px solid #9edfc1;
+  color: #17643b;
+
+  &:not(:disabled):hover {
+    background: #c9f0df;
+  }
+
+  &:disabled {
+    background: #d1d5db;
+    border-color: #c3c8cf;
+    color: #6b7280;
   }
 }
 
@@ -957,6 +988,28 @@
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 1.5rem;
+}
+
+.dialog-actions-split {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dialog-actions-right {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 520px) {
+  .dialog-actions-split {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dialog-actions-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .confirmation-dialog {

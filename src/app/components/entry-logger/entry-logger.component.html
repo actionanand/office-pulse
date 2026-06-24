@@ -154,12 +154,16 @@
   </div>
 
   <div class="action-buttons">
-    <button
-      class="btn btn-entry"
-      (click)="openEntryDialog()"
-      [disabled]="hasEnteredToday() || isSubmittedToday() || (entryLog()?.entryTime && !entryLog()?.exitTime)">
-      📥 Entry
-    </button>
+    @if (canRemoveLocalEntry()) {
+      <button class="btn btn-remove" (click)="openRemoveEntryConfirmation()">Remove</button>
+    } @else {
+      <button
+        class="btn btn-entry"
+        (click)="openEntryDialog()"
+        [disabled]="hasEnteredToday() || isSubmittedToday() || (entryLog()?.entryTime && !entryLog()?.exitTime)">
+        📥 Entry
+      </button>
+    }
 
     <button
       class="btn btn-exit"
@@ -173,12 +177,15 @@
     </button>
 
     @if (canLoadOfflineEntry()) {
-      <button
-        class="btn btn-load-offline"
-        (click)="loadOfflineEntry()"
-        title="Load previously submitted entry from offline storage">
-        💾 Load Offline Entry
-      </button>
+      <div class="offline-entry-actions">
+        <button class="btn btn-remove btn-remove-offline" (click)="openRemoveEntryConfirmation()">Remove Entry</button>
+        <button
+          class="btn btn-load-offline"
+          (click)="loadOfflineEntry()"
+          title="Load previously submitted entry from offline storage">
+          💾 Load Offline Entry
+        </button>
+      </div>
     }
   </div>
 
@@ -366,17 +373,36 @@
               </fieldset>
             </div>
 
-            <div class="dialog-actions">
-              <button type="button" class="btn btn-cancel" (click)="closeExitDialog()" [disabled]="isSubmitting()">
-                Cancel
+            <div class="dialog-actions dialog-actions-split">
+              <button
+                type="button"
+                class="btn btn-save-offline"
+                (click)="
+                  saveAttendanceOffline({
+                    entryDate: exitEntryDate(),
+                    entryTime: exitEntryTime(),
+                    exitDate: exitExitDate(),
+                    exitTime: exitExitTime(),
+                    companyName: companyName.value,
+                    comment: comment.value,
+                    status: selectedExitStatus(),
+                  })
+                "
+                [disabled]="!canSaveOffline() || isSubmitting()">
+                Save
               </button>
-              <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
-                @if (isSubmitting()) {
-                  Submitting...
-                } @else {
-                  Submit
-                }
-              </button>
+              <div class="dialog-actions-right">
+                <button type="button" class="btn btn-cancel" (click)="closeExitDialog()" [disabled]="isSubmitting()">
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+                  @if (isSubmitting()) {
+                    Submitting...
+                  } @else {
+                    Submit
+                  }
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -506,5 +532,14 @@
       confirmLabel="Apply Day Off"
       (cancelled)="closeLeaveConfirmation()"
       (confirmed)="confirmApplyLeave()" />
+  }
+
+  @if (showRemoveEntryConfirmation()) {
+    <app-confirmation-popup
+      title="Remove Entry?"
+      message="This will remove the entry from the App."
+      confirmLabel="Remove"
+      (cancelled)="closeRemoveEntryConfirmation()"
+      (confirmed)="confirmRemoveEntry()" />
   }
 </div>

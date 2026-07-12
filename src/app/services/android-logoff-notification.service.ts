@@ -85,6 +85,29 @@ export class AndroidLogoffNotificationService {
   private readonly channelId = 'office-pulse-logoff-reminders';
   private readonly stateKey = 'office_pulse_logoff_reminder_state';
 
+  async shouldRequestNotificationPermission(): Promise<boolean> {
+    try {
+      const plugin = this.getPlugin();
+      if (!plugin?.requestPermissions) return false;
+
+      const status = await plugin.checkPermissions?.();
+      return status?.display !== 'granted';
+    } catch {
+      return false;
+    }
+  }
+
+  async requestNotificationPermission(): Promise<boolean> {
+    try {
+      const plugin = this.getPlugin();
+      if (!plugin) return false;
+
+      return this.ensurePermission(plugin);
+    } catch {
+      return false;
+    }
+  }
+
   async syncWithActiveTimer(log: EntryLog | null, workHours: number, now: Date = new Date()): Promise<void> {
     if (!log?.entryTime || log.exitTime || log.isSubmitted) {
       await this.cancel();

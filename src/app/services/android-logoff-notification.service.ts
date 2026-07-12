@@ -36,6 +36,8 @@ interface LocalNotificationsPlugin {
 }
 
 interface OfficePulseReminderPlugin {
+  checkNotificationPermission?: () => Promise<{ granted?: boolean; display?: string }>;
+  requestNotificationPermission?: () => Promise<{ granted?: boolean; display?: string }>;
   sendLogoffReminder: (options: {
     id: number;
     title: string;
@@ -87,6 +89,12 @@ export class AndroidLogoffNotificationService {
 
   async shouldRequestNotificationPermission(): Promise<boolean> {
     try {
+      const nativePlugin = this.getNativeReminderPlugin();
+      if (nativePlugin?.checkNotificationPermission) {
+        const status = await nativePlugin.checkNotificationPermission();
+        return status.granted !== true;
+      }
+
       const plugin = this.getPlugin();
       if (!plugin?.requestPermissions) return false;
 
@@ -99,6 +107,12 @@ export class AndroidLogoffNotificationService {
 
   async requestNotificationPermission(): Promise<boolean> {
     try {
+      const nativePlugin = this.getNativeReminderPlugin();
+      if (nativePlugin?.requestNotificationPermission) {
+        const status = await nativePlugin.requestNotificationPermission();
+        return status.granted === true || status.display === 'granted';
+      }
+
       const plugin = this.getPlugin();
       if (!plugin) return false;
 
@@ -225,7 +239,11 @@ export class AndroidLogoffNotificationService {
       const plugin = this.getPlugin();
       if (!nativePlugin && !plugin) return;
 
-      const permissionGranted = plugin ? await this.ensurePermission(plugin) : true;
+      const permissionGranted = nativePlugin
+        ? await this.hasNativeNotificationPermission(nativePlugin)
+        : plugin
+          ? await this.ensurePermission(plugin)
+          : true;
       if (!permissionGranted) return;
 
       if (plugin) {
@@ -296,7 +314,10 @@ export class AndroidLogoffNotificationService {
     const nativePlugin = this.getNativeReminderPlugin();
     const plugin = localPlugin ?? this.getPlugin();
 
-    if (plugin) {
+    if (nativePlugin) {
+      const permissionGranted = await this.hasNativeNotificationPermission(nativePlugin);
+      if (!permissionGranted) return;
+    } else if (plugin) {
       const permissionGranted = await this.ensurePermission(plugin);
       if (!permissionGranted) return;
     }
@@ -405,7 +426,22 @@ export class AndroidLogoffNotificationService {
     const isAndroidApp = capacitor?.isNativePlatform?.() === true && capacitor.getPlatform?.() === 'android';
 
     if (!isAndroidApp) return null;
-    return capacitor?.Plugins?.OfficePulseReminder ?? null;
+    return (
+      capacitor?.Plugins?.OfficePulseReminder ??
+      capacitor?.registerPlugin?.<OfficePulseReminderPlugin>('OfficePulseReminder') ??
+      null
+    );
+  }
+
+  private async hasNativeNotificationPermission(plugin: OfficePulseReminderPlugin): Promise<boolean> {
+    if (!plugin.checkNotificationPermission) return true;
+
+    try {
+      const status = await plugin.checkNotificationPermission();
+      return status.granted === true || status.display === 'granted';
+    } catch {
+      return false;
+    }
   }
 
   private async ensurePermission(plugin: LocalNotificationsPlugin): Promise<boolean> {

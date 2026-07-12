@@ -168,8 +168,10 @@ import com.getcapacitor.JSArray;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 import org.json.JSONObject;
 
@@ -183,9 +185,45 @@ public class OfficePulseReminderPlugin extends Plugin {
   private static final int[] REMINDER_IDS = {701601, 701630, 701615};
 
   @PluginMethod
+  public void checkNotificationPermission(PluginCall call) {
+    JSObject result = new JSObject();
+    result.put("granted", hasNotificationPermission());
+    result.put("display", hasNotificationPermission() ? "granted" : "prompt");
+    call.resolve(result);
+  }
+
+  @PluginMethod
+  public void requestNotificationPermission(PluginCall call) {
+    if (hasNotificationPermission()) {
+      JSObject result = new JSObject();
+      result.put("granted", true);
+      result.put("display", "granted");
+      call.resolve(result);
+      return;
+    }
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+      JSObject result = new JSObject();
+      result.put("granted", true);
+      result.put("display", "granted");
+      call.resolve(result);
+      return;
+    }
+
+    requestPermissionForAlias("notifications", call, "notificationPermissionCallback");
+  }
+
+  @PermissionCallback
+  private void notificationPermissionCallback(PluginCall call) {
+    JSObject result = new JSObject();
+    result.put("granted", hasNotificationPermission());
+    result.put("display", hasNotificationPermission() ? "granted" : "denied");
+    call.resolve(result);
+  }
+
+  @PluginMethod
   public void sendLogoffReminder(PluginCall call) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-        && getContext().checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+    if (!hasNotificationPermission()) {
       call.reject("Notification permission is not granted.");
       return;
     }
@@ -214,8 +252,7 @@ public class OfficePulseReminderPlugin extends Plugin {
 
   @PluginMethod
   public void scheduleLogoffReminders(PluginCall call) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-        && getContext().checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+    if (!hasNotificationPermission()) {
       call.reject("Notification permission is not granted.");
       return;
     }
@@ -307,6 +344,15 @@ public class OfficePulseReminderPlugin extends Plugin {
       flags |= PendingIntent.FLAG_IMMUTABLE;
     }
     return flags;
+  }
+
+  private boolean hasNotificationPermission() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+      return true;
+    }
+
+    return getPermissionState("notifications") == PermissionState.GRANTED
+        || getContext().checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
   }
 }
 `,

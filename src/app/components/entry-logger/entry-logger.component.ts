@@ -41,6 +41,7 @@ export class EntryLoggerComponent implements OnInit {
   showEntryDialog = signal<boolean>(false);
   showExitDialog = signal<boolean>(false);
   showRemoveEntryConfirmation = signal<boolean>(false);
+  showNotificationPermissionConfirmation = signal<boolean>(false);
   showSubmissionDialog = signal<boolean>(false);
   showGoogleFormDialog = signal<boolean>(false);
   googleFormUrl = signal<string>('');
@@ -552,6 +553,26 @@ export class EntryLoggerComponent implements OnInit {
     }
 
     this.closeEntryDialog();
+    void this.openNotificationPermissionConfirmationIfNeeded();
+  }
+
+  closeNotificationPermissionConfirmation(): void {
+    this.showNotificationPermissionConfirmation.set(false);
+  }
+
+  async confirmNotificationPermission(): Promise<void> {
+    this.showNotificationPermissionConfirmation.set(false);
+
+    const granted = await this.logoffNotifications.requestNotificationPermission();
+    if (!granted) {
+      this.snackbarService.error(
+        'Notification permission was not enabled. You can allow it from Android app settings.',
+      );
+      return;
+    }
+
+    this.snackbarService.success('Notifications enabled for log off reminders.');
+    void this.logoffNotifications.syncWithActiveTimer(this.entryLog(), this.workHours());
   }
 
   openExitDialog(): void {
@@ -945,6 +966,13 @@ export class EntryLoggerComponent implements OnInit {
       return `${year}-${month}-${day}`;
     } catch {
       return '';
+    }
+  }
+
+  private async openNotificationPermissionConfirmationIfNeeded(): Promise<void> {
+    const shouldAsk = await this.logoffNotifications.shouldRequestNotificationPermission();
+    if (shouldAsk) {
+      this.showNotificationPermissionConfirmation.set(true);
     }
   }
 

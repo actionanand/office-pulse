@@ -542,4 +542,13 @@
       (cancelled)="closeRemoveEntryConfirmation()"
       (confirmed)="confirmRemoveEntry()" />
   }
+
+  @if (showNotificationPermissionConfirmation()) {
+    <app-confirmation-popup
+      title="Turn On Reminders?"
+      message="Allow Office Pulse to send log off reminder notifications on this device."
+      confirmLabel="Turn On"
+      (cancelled)="closeNotificationPermissionConfirmation()"
+      (confirmed)="confirmNotificationPermission()" />
+  }
 </div>

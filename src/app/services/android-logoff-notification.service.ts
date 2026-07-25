@@ -78,11 +78,12 @@ interface ReminderState {
   providedIn: 'root',
 })
 export class AndroidLogoffNotificationService {
-  private readonly notificationIds = [701601, 701630, 701615];
+  private readonly notificationIds = [701601, 701630, 701615, 701600];
   private readonly reminderOffsets = [
     { minutes: 60, id: 701601, label: '1 hour' },
     { minutes: 30, id: 701630, label: '30 minutes' },
     { minutes: 15, id: 701615, label: '15 minutes' },
+    { minutes: 0, id: 701600, label: 'now' },
   ];
   private readonly channelId = 'office-pulse-logoff-reminders';
   private readonly stateKey = 'office_pulse_logoff_reminder_state';
@@ -139,7 +140,7 @@ export class AndroidLogoffNotificationService {
     now: Date = new Date(),
   ): Promise<void> {
     try {
-      if (!remainingText || /^time to log off/i.test(remainingText.trim())) {
+      if (!remainingText) {
         await this.cancel();
         return;
       }
@@ -153,8 +154,13 @@ export class AndroidLogoffNotificationService {
       if (Number.isNaN(entryDate.getTime())) return;
 
       const logoffAt = new Date(entryDate.getTime() + workHours * 60 * 60 * 1000);
+      if (/^time to log off/i.test(remainingText.trim())) {
+        await this.sendLogoffDueReminder(entryTime, workHours, logoffAt);
+        return;
+      }
+
       if (logoffAt.getTime() <= now.getTime()) {
-        await this.cancel();
+        await this.sendLogoffDueReminder(entryTime, workHours, logoffAt);
         return;
       }
 
@@ -196,8 +202,7 @@ export class AndroidLogoffNotificationService {
       const remainingMs = logoffAt.getTime() - now.getTime();
 
       if (remainingMs <= 0) {
-        await this.cancel();
-        this.clearState();
+        await this.sendLogoffDueReminder(entryTime, workHours, logoffAt);
         return;
       }
 
@@ -309,8 +314,8 @@ export class AndroidLogoffNotificationService {
     localPlugin: LocalNotificationsPlugin | null = null,
     useExactSchedule = false,
   ): Promise<void> {
-    const title = `Log off in ${reminder.label}`;
-    const body = `Remaining time is ${this.getRemainingDisplay(reminder.minutes)}. Target time: ${this.formatTime(logoffAt)}.`;
+    const title = this.getReminderTitle(reminder);
+    const body = this.getReminderBody(reminder, logoffAt);
     const nativePlugin = this.getNativeReminderPlugin();
     const plugin = localPlugin ?? this.getPlugin();
 
@@ -349,8 +354,8 @@ export class AndroidLogoffNotificationService {
     notifyAt: Date,
     logoffAt: Date,
     useExactSchedule: boolean,
-    title = `Log off in ${reminder.label}`,
-    body = `Remaining time is less than ${reminder.label}. Target time: ${this.formatTime(logoffAt)}.`,
+    title = this.getReminderTitle(reminder),
+    body = this.getReminderBody(reminder, logoffAt),
   ): CapacitorLocalNotification {
     return {
       id: reminder.id,
@@ -387,12 +392,45 @@ export class AndroidLogoffNotificationService {
   } {
     return {
       id: reminder.id,
-      title: `Log off in ${reminder.label}`,
-      body: `Remaining time is ${this.getRemainingDisplay(reminder.minutes)}. Target time: ${this.formatTime(logoffAt)}.`,
+      title: this.getReminderTitle(reminder),
+      body: this.getReminderBody(reminder, logoffAt),
       minutesBefore: reminder.minutes,
       logoffAt: logoffAt.toISOString(),
       atMillis: notifyAt.getTime(),
     };
+  }
+
+  private async sendLogoffDueReminder(entryTime: string, workHours: number, logoffAt: Date): Promise<void> {
+    const reminder = this.reminderOffsets.find(item => item.minutes === 0);
+    if (!reminder) return;
+
+    const sessionKey = this.getSessionKey(entryTime, workHours, logoffAt);
+    const existingState = this.readState();
+    const state: ReminderState =
+      !existingState || existingState.sessionKey !== sessionKey
+        ? { sessionKey, notifiedMinutes: [], scheduledKey: '' }
+        : existingState;
+
+    if (state.notifiedMinutes.includes(reminder.minutes)) return;
+
+    await this.cancelPendingRemindersBeforeFinalNotification();
+    await this.sendImmediateReminder(reminder, logoffAt);
+    state.notifiedMinutes = Array.from(new Set([...state.notifiedMinutes, reminder.minutes]));
+    state.scheduledKey = '';
+    this.writeState(state);
+  }
+
+  private async cancelPendingRemindersBeforeFinalNotification(): Promise<void> {
+    try {
+      await this.getNativeReminderPlugin()?.cancelLogoffReminders?.();
+
+      const plugin = this.getPlugin();
+      if (plugin) {
+        await this.cancelKnownNotifications(plugin);
+      }
+    } catch {
+      // Best-effort cleanup. The final notification should still be attempted.
+    }
   }
 
   private async cancelKnownNotifications(plugin: LocalNotificationsPlugin): Promise<void> {
@@ -499,8 +537,22 @@ export class AndroidLogoffNotificationService {
   }
 
   private getRemainingDisplay(minutes: number): string {
+    if (minutes === 0) return '0 minutes';
     if (minutes === 60) return '1 hour 0 minutes';
     return `${minutes} minutes`;
+  }
+
+  private getReminderTitle(reminder: { minutes: number; label: string }): string {
+    if (reminder.minutes === 0) return 'Time to log off';
+    return `Log off in ${reminder.label}`;
+  }
+
+  private getReminderBody(reminder: { minutes: number }, logoffAt: Date): string {
+    if (reminder.minutes === 0) {
+      return `Your target log off time has been reached: ${this.formatTime(logoffAt)}.`;
+    }
+
+    return `Remaining time is ${this.getRemainingDisplay(reminder.minutes)}. Target time: ${this.formatTime(logoffAt)}.`;
   }
 
   private getScheduledKey(

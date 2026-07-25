@@ -182,7 +182,7 @@ import org.json.JSONObject;
   }
 )
 public class OfficePulseReminderPlugin extends Plugin {
-  private static final int[] REMINDER_IDS = {701601, 701630, 701615};
+  private static final int[] REMINDER_IDS = {701601, 701630, 701615, 701600};
 
   @PluginMethod
   public void checkNotificationPermission(PluginCall call) {

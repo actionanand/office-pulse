@@ -1,184 +1,64 @@
 <nav class="navbar">
   <div class="navbar-container">
     <a routerLink="/" class="navbar-brand" aria-label="Home">
-      <span class="logo">📊</span>
+      <span class="logo">&#x1f4ca;</span>
       <h1 class="app-title">Office Pulse</h1>
     </a>
 
-    <!-- Hamburger Menu Button (Mobile) -->
     <button
+      type="button"
       class="menu-toggle"
-      (click)="toggleMenu()"
+      aria-label="Toggle navigation menu"
+      [attr.aria-expanded]="isMenuOpen()"
       [class.active]="isMenuOpen()"
-      aria-label="Toggle navigation menu">
+      (click)="toggleMenu()">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
     </button>
 
     <div class="navbar-links" [class.open]="isMenuOpen()">
-      <!-- Primary Links (Always visible) -->
       <div class="nav-group primary">
-        <a
-          routerLink="/calendar"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Calendar View"
-          (click)="closeAll()">
-          <span class="nav-icon">📅</span>
-          <span class="nav-text">Calendar</span>
-        </a>
-        <a
-          routerLink="/logger"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Entry Logger"
-          (click)="closeAll()">
-          <span class="nav-icon">📝</span>
-          <span class="nav-text">Logger</span>
-        </a>
+        @for (item of primaryNavigationItems; track item.route) {
+          <a
+            [routerLink]="'/' + item.route"
+            routerLinkActive="active"
+            class="nav-link"
+            [attr.aria-label]="item.ariaLabel"
+            (click)="closeAll()">
+            <span class="nav-icon">{{ item.icon }}</span>
+            <span class="nav-text">{{ item.navLabel }}</span>
+          </a>
+        }
       </div>
 
-      <!-- More Dropdown (Desktop Only) -->
       <div class="nav-group dropdown-wrapper desktop-only">
         <button
+          type="button"
           class="nav-link dropdown-toggle"
-          (click)="toggleDropdown()"
+          aria-label="More options"
+          [attr.aria-expanded]="isDropdownOpen()"
           [class.active]="isDropdownOpen()"
-          aria-label="More options">
-          <span class="nav-icon">☰</span>
+          (click)="toggleDropdown()">
+          <span class="nav-icon">&#x2630;</span>
           <span class="nav-text">More</span>
-          <span class="dropdown-arrow" [class.open]="isDropdownOpen()">▼</span>
+          <span class="dropdown-arrow" [class.open]="isDropdownOpen()">&#x25bc;</span>
         </button>
 
         @if (isDropdownOpen()) {
           <div class="dropdown-menu">
-            <a
-              routerLink="/bandwidth"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Sprint Bandwidth Calculator"
-              (click)="closeAll()">
-              <span class="nav-icon">⚡</span>
-              <span class="nav-text">Bandwidth</span>
-            </a>
-            <a
-              routerLink="/holidays"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Office Holidays"
-              (click)="closeAll()">
-              <span class="nav-icon">🎉</span>
-              <span class="nav-text">Holidays</span>
-            </a>
-            <a
-              routerLink="/rota"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Rota Schedule"
-              (click)="closeAll()">
-              <span class="nav-icon">🔄</span>
-              <span class="nav-text">Rota</span>
-            </a>
-            <a
-              routerLink="/achievements"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="My Achievements"
-              (click)="closeAll()">
-              <span class="nav-icon">🏆</span>
-              <span class="nav-text">Achievements</span>
-            </a>
-            <a
-              routerLink="/utilities"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Utilities"
-              (click)="closeAll()">
-              <span class="nav-icon">🛠️</span>
-              <span class="nav-text">Utilities</span>
-            </a>
-            <a
-              routerLink="/my-jira-tickets"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="My Jira Tickets"
-              (click)="closeAll()">
-              <span class="nav-icon">🎫</span>
-              <span class="nav-text">My Jira Tickets</span>
-            </a>
-            <a
-              routerLink="/ticket-tracking"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Ticket Tracking"
-              (click)="closeAll()">
-              <span class="nav-icon">🎯</span>
-              <span class="nav-text">Ticket Tracking</span>
-            </a>
-            <a
-              routerLink="/memos"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Memos"
-              (click)="closeAll()">
-              <span class="nav-icon">📝</span>
-              <span class="nav-text">Memos</span>
-            </a>
-            <a
-              routerLink="/bookmarks"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Bookmarks"
-              (click)="closeAll()">
-              <span class="nav-icon">🔖</span>
-              <span class="nav-text">Bookmarks</span>
-            </a>
-            <a
-              routerLink="/markdown"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Markdown Viewer"
-              (click)="closeAll()">
-              <span class="nav-icon">📄</span>
-              <span class="nav-text">Markdown</span>
-            </a>
-            <a
-              routerLink="/seating-chart"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Seating Chart"
-              (click)="closeAll()">
-              <span class="nav-icon">🪑</span>
-              <span class="nav-text">Seating Chart</span>
-            </a>
-            <a
-              routerLink="/irctc-vacant-seats"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="IRCTC Vacant Seats"
-              (click)="closeAll()">
-              <span class="nav-icon">🚆</span>
-              <span class="nav-text">IRCTC Seats</span>
-            </a>
-            <a
-              routerLink="/credit-card-tracker"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Credit Card Tracker"
-              (click)="closeAll()">
-              <span class="nav-icon">💳</span>
-              <span class="nav-text">CC Tracker</span>
-            </a>
-            <a
-              routerLink="/cue-card"
-              routerLinkActive="active"
-              class="dropdown-item"
-              aria-label="Cue Card"
-              (click)="closeAll()">
-              <span class="nav-icon">CC</span>
-              <span class="nav-text">Cue Card</span>
-            </a>
+            @for (item of moreNavigationItems; track item.route) {
+              <a
+                [routerLink]="'/' + item.route"
+                routerLinkActive="active"
+                class="dropdown-item"
+                [attr.aria-label]="item.ariaLabel"
+                (click)="closeAll()">
+                <span class="nav-icon">{{ item.icon }}</span>
+                <span class="nav-text">{{ item.navLabel }}</span>
+              </a>
+            }
+
             <a
               routerLink="/settings"
               routerLinkActive="active"
@@ -192,124 +72,19 @@
         }
       </div>
 
-      <!-- Mobile Menu - All Links -->
       <div class="nav-group secondary mobile-only">
-        <a
-          routerLink="/bandwidth"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Sprint Bandwidth Calculator"
-          (click)="closeAll()">
-          <span class="nav-icon">⚡</span>
-          <span class="nav-text">Bandwidth</span>
-        </a>
-        <a
-          routerLink="/holidays"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Office Holidays"
-          (click)="closeAll()">
-          <span class="nav-icon">🎉</span>
-          <span class="nav-text">Holidays</span>
-        </a>
-        <a
-          routerLink="/rota"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Rota Schedule"
-          (click)="closeAll()">
-          <span class="nav-icon">🔄</span>
-          <span class="nav-text">Rota</span>
-        </a>
-        <a
-          routerLink="/achievements"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="My Achievements"
-          (click)="closeAll()">
-          <span class="nav-icon">🏆</span>
-          <span class="nav-text">Achievements</span>
-        </a>
-        <a
-          routerLink="/utilities"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Utilities"
-          (click)="closeAll()">
-          <span class="nav-icon">🛠️</span>
-          <span class="nav-text">Utilities</span>
-        </a>
-        <a
-          routerLink="/my-jira-tickets"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="My Jira Tickets"
-          (click)="closeAll()">
-          <span class="nav-icon">🎫</span>
-          <span class="nav-text">My Jira Tickets</span>
-        </a>
-        <a
-          routerLink="/ticket-tracking"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Ticket Tracking"
-          (click)="closeAll()">
-          <span class="nav-icon">🎯</span>
-          <span class="nav-text">Ticket Tracking</span>
-        </a>
-        <a routerLink="/memos" routerLinkActive="active" class="nav-link" aria-label="Memos" (click)="closeAll()">
-          <span class="nav-icon">📝</span>
-          <span class="nav-text">Memos</span>
-        </a>
-        <a
-          routerLink="/bookmarks"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Bookmarks"
-          (click)="closeAll()">
-          <span class="nav-icon">🔖</span>
-          <span class="nav-text">Bookmarks</span>
-        </a>
-        <a
-          routerLink="/markdown"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Markdown Viewer"
-          (click)="closeAll()">
-          <span class="nav-icon">📄</span>
-          <span class="nav-text">Markdown</span>
-        </a>
-        <a
-          routerLink="/seating-chart"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Seating Chart"
-          (click)="closeAll()">
-          <span class="nav-icon">🪑</span>
-          <span class="nav-text">Seating Chart</span>
-        </a>
-        <a
-          routerLink="/irctc-vacant-seats"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="IRCTC Vacant Seats"
-          (click)="closeAll()">
-          <span class="nav-icon">🚆</span>
-          <span class="nav-text">IRCTC Seats</span>
-        </a>
-        <a
-          routerLink="/credit-card-tracker"
-          routerLinkActive="active"
-          class="nav-link"
-          aria-label="Credit Card Tracker"
-          (click)="closeAll()">
-          <span class="nav-icon">💳</span>
-          <span class="nav-text">CC Tracker</span>
-        </a>
-        <a routerLink="/cue-card" routerLinkActive="active" class="nav-link" aria-label="Cue Card" (click)="closeAll()">
-          <span class="nav-icon">CC</span>
-          <span class="nav-text">Cue Card</span>
-        </a>
+        @for (item of moreNavigationItems; track item.route) {
+          <a
+            [routerLink]="'/' + item.route"
+            routerLinkActive="active"
+            class="nav-link"
+            [attr.aria-label]="item.ariaLabel"
+            (click)="closeAll()">
+            <span class="nav-icon">{{ item.icon }}</span>
+            <span class="nav-text">{{ item.navLabel }}</span>
+          </a>
+        }
+
         <a routerLink="/settings" routerLinkActive="active" class="nav-link" aria-label="Settings" (click)="closeAll()">
           <span class="nav-icon material-symbols-rounded" aria-hidden="true">settings</span>
           <span class="nav-text">Settings</span>
@@ -319,7 +94,6 @@
   </div>
 </nav>
 
-<!-- Overlay for mobile menu -->
 @if (isMenuOpen()) {
   <div class="menu-overlay" (click)="closeMenu()" (keyup.escape)="closeMenu()" tabindex="-1"></div>
 }

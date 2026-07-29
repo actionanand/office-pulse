@@ -179,6 +179,15 @@
               <span class="nav-icon">CC</span>
               <span class="nav-text">Cue Card</span>
             </a>
+            <a
+              routerLink="/settings"
+              routerLinkActive="active"
+              class="dropdown-item"
+              aria-label="Settings"
+              (click)="closeAll()">
+              <span class="nav-icon material-symbols-rounded" aria-hidden="true">settings</span>
+              <span class="nav-text">Settings</span>
+            </a>
           </div>
         }
       </div>
@@ -300,6 +309,10 @@
         <a routerLink="/cue-card" routerLinkActive="active" class="nav-link" aria-label="Cue Card" (click)="closeAll()">
           <span class="nav-icon">CC</span>
           <span class="nav-text">Cue Card</span>
+        </a>
+        <a routerLink="/settings" routerLinkActive="active" class="nav-link" aria-label="Settings" (click)="closeAll()">
+          <span class="nav-icon material-symbols-rounded" aria-hidden="true">settings</span>
+          <span class="nav-text">Settings</span>
         </a>
       </div>
     </div>

@@ -1,0 +1,206 @@
+<main class="settings-page">
+  <header class="page-heading">
+    <div>
+      <p>Preferences</p>
+      <h1>Settings</h1>
+      <span>Manage security for this device.</span>
+    </div>
+    <span class="material-symbols-rounded heading-icon" aria-hidden="true">settings</span>
+  </header>
+
+  <section class="settings-section" aria-labelledby="security-title">
+    <header class="section-heading">
+      <span class="material-symbols-rounded section-icon" aria-hidden="true">shield_lock</span>
+      <div>
+        <h2 id="security-title">Security</h2>
+        <p>Protect Office Pulse with a PIN and Android fingerprint unlock.</p>
+      </div>
+    </header>
+
+    <div class="setting-rows">
+      <div class="setting-row">
+        <span>
+          <strong>PIN protection</strong>
+          <small>{{ settings.settings().pinEnabled ? 'Enabled' : 'Not configured' }}</small>
+        </span>
+        <button class="action-button primary" type="button" (click)="openPinDialog()">
+          <span class="material-symbols-rounded" aria-hidden="true">key</span>
+          {{ settings.settings().pinEnabled ? 'Change PIN' : 'Enable PIN' }}
+        </button>
+      </div>
+
+      <div class="setting-row">
+        <span>
+          <strong>Fingerprint unlock</strong>
+          <small>{{ biometricDescription() }}</small>
+        </span>
+        <button
+          class="switch"
+          type="button"
+          role="switch"
+          aria-label="Fingerprint unlock"
+          [disabled]="!security.biometricAvailable || !settings.settings().pinEnabled"
+          [attr.aria-checked]="settings.settings().biometricEnabled"
+          [class.on]="settings.settings().biometricEnabled"
+          (click)="toggleBiometric()">
+          <span></span>
+        </button>
+      </div>
+
+      <div class="setting-row">
+        <span>
+          <strong>Lock in background</strong>
+          <small>Ask for your PIN after switching back to the app</small>
+        </span>
+        <button
+          class="switch"
+          type="button"
+          role="switch"
+          aria-label="Lock in background"
+          [disabled]="!settings.settings().pinEnabled"
+          [attr.aria-checked]="settings.settings().lockInBackground"
+          [class.on]="settings.settings().lockInBackground"
+          (click)="toggleBackgroundLock()">
+          <span></span>
+        </button>
+      </div>
+
+      <div class="setting-row">
+        <span>
+          <strong>Auto-lock delay</strong>
+          <small>Lock after Office Pulse stays in the background</small>
+        </span>
+        <button
+          #autoLockTrigger
+          type="button"
+          class="picker-trigger"
+          aria-label="Auto-lock delay"
+          [disabled]="!settings.settings().pinEnabled || !settings.settings().lockInBackground"
+          [attr.aria-expanded]="autoLockPickerOpen()"
+          aria-haspopup="dialog"
+          (click)="openAutoLockPicker()">
+          <span>{{ selectedAutoLockLabel() }}</span>
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+      </div>
+    </div>
+
+    @if (settings.settings().pinEnabled) {
+      <footer class="security-actions">
+        <button class="action-button" type="button" (click)="lockNow()">
+          <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+          Lock now
+        </button>
+        <button class="action-button danger" type="button" (click)="confirmRemove.set(true)">
+          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+          Remove PIN
+        </button>
+      </footer>
+    }
+  </section>
+</main>
+
+@if (autoLockPickerOpen()) {
+  <div
+    class="picker-backdrop"
+    role="presentation"
+    (click)="onAutoLockBackdropClick($event)"
+    (keydown)="onAutoLockPickerKeydown($event)">
+    <section
+      #autoLockSheet
+      class="picker-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Auto-lock delay"
+      tabindex="-1">
+      <header>
+        <strong>Auto-lock delay</strong>
+        <button type="button" class="picker-close" aria-label="Close options" (click)="closeAutoLockPicker()">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+      <div class="picker-options" role="listbox" aria-label="Auto-lock delay">
+        @for (option of autoLockOptions; track option.value) {
+          <button
+            type="button"
+            class="picker-option"
+            [class.selected]="option.value === settings.settings().autoLockMinutes"
+            role="option"
+            [attr.aria-selected]="option.value === settings.settings().autoLockMinutes"
+            (click)="selectAutoLock(option.value)">
+            <span>{{ option.label }}</span>
+            @if (option.value === settings.settings().autoLockMinutes) {
+              <span class="material-symbols-rounded option-check" aria-hidden="true">check_circle</span>
+            }
+          </button>
+        }
+      </div>
+    </section>
+  </div>
+}
+
+@if (pinDialogOpen()) {
+  <div class="dialog-backdrop" role="presentation" (click)="closePinDialog()">
+    <section
+      class="pin-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pin-dialog-title"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()">
+      <header>
+        <div>
+          <p>Device security</p>
+          <h2 id="pin-dialog-title">{{ settings.settings().pinEnabled ? 'Change PIN' : 'Create a PIN' }}</h2>
+        </div>
+        <button class="icon-button" type="button" aria-label="Close PIN dialog" (click)="closePinDialog()">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      <p class="warning">There is no PIN recovery. If forgotten, the app data must be cleared.</p>
+
+      <form [formGroup]="pinForm" (ngSubmit)="savePin()">
+        <label for="new-pin">New PIN</label>
+        <input
+          id="new-pin"
+          formControlName="pin"
+          type="password"
+          inputmode="numeric"
+          autocomplete="new-password"
+          minlength="4"
+          maxlength="8" />
+
+        <label for="confirm-pin">Confirm PIN</label>
+        <input
+          id="confirm-pin"
+          formControlName="confirmation"
+          type="password"
+          inputmode="numeric"
+          autocomplete="new-password"
+          minlength="4"
+          maxlength="8" />
+
+        @if (formError()) {
+          <p class="form-error" role="alert">{{ formError() }}</p>
+        }
+
+        <footer>
+          <button class="action-button" type="button" (click)="closePinDialog()">Cancel</button>
+          <button class="action-button primary" type="submit" [disabled]="savingPin()">
+            {{ savingPin() ? 'Saving...' : 'Save PIN' }}
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+@if (confirmRemove()) {
+  <app-confirmation-popup
+    title="Remove PIN protection?"
+    message="Fingerprint unlock will also be disabled on this device."
+    confirmLabel="Remove PIN"
+    (cancelled)="confirmRemove.set(false)"
+    (confirmed)="removePin()" />
+}

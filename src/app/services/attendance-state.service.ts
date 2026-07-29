@@ -5,6 +5,7 @@ import { StorageService } from './storage.service';
 import { environment as env } from '../../environments/environment';
 
 interface AttendanceCache {
+  version: number;
   entries: SheetEntry[];
   fetchedAt: string;
 }
@@ -16,8 +17,9 @@ export class AttendanceStateService {
   private gvizService = inject(GvizService);
   private storageService = inject(StorageService);
   private readonly cacheKey = 'office_pulse_attendance_cache';
+  private readonly cacheVersion = 2;
   private readonly cacheMaxAgeMs = 7 * 24 * 60 * 60 * 1000;
-  private readonly cacheRetentionDays = 7;
+  private fetchPromise: Promise<void> | null = null;
 
   // All entries from API
   allEntries = signal<SheetEntry[]>([]);
@@ -133,6 +135,19 @@ export class AttendanceStateService {
    * Fetch attendance data from Google Sheets
    */
   async fetchAttendanceData(): Promise<void> {
+    if (this.fetchPromise) {
+      return this.fetchPromise;
+    }
+
+    this.fetchPromise = this.performAttendanceFetch();
+    try {
+      await this.fetchPromise;
+    } finally {
+      this.fetchPromise = null;
+    }
+  }
+
+  private async performAttendanceFetch(): Promise<void> {
     if (!env.GOOGLE_SHEET_ID || env.GOOGLE_SHEET_ID === 'YOUR_GOOGLE_SHEET_ID_HERE') {
       console.warn('Google Sheet ID not configured');
       return;
@@ -216,7 +231,7 @@ export class AttendanceStateService {
       if (!cached) return;
 
       const cache = JSON.parse(cached) as AttendanceCache;
-      if (!Array.isArray(cache.entries)) {
+      if (cache.version !== this.cacheVersion || !Array.isArray(cache.entries)) {
         localStorage.removeItem(this.cacheKey);
         return;
       }
@@ -227,13 +242,8 @@ export class AttendanceStateService {
         return;
       }
 
-      const entries = this.filterEntriesForCache(cache.entries);
-      this.allEntries.set(entries);
+      this.allEntries.set(cache.entries);
       this.lastFetchTime.set(fetchedAt);
-
-      if (entries.length !== cache.entries.length) {
-        this.saveCachedEntries(entries);
-      }
     } catch {
       localStorage.removeItem(this.cacheKey);
     }
@@ -242,30 +252,14 @@ export class AttendanceStateService {
   private saveCachedEntries(entries: SheetEntry[]): void {
     try {
       const cache: AttendanceCache = {
-        entries: this.filterEntriesForCache(entries),
+        version: this.cacheVersion,
+        entries,
         fetchedAt: new Date().toISOString(),
       };
       localStorage.setItem(this.cacheKey, JSON.stringify(cache));
     } catch {
       // Ignore storage quota/private-mode errors. Fresh API data is already in memory.
     }
-  }
-
-  private filterEntriesForCache(entries: SheetEntry[]): SheetEntry[] {
-    const cutoff = this.getDateStringWithOffset(-this.cacheRetentionDays + 1);
-    return entries.filter(entry => {
-      const entryDate = entry.date || this.getDateFromTimeString(entry.entryTime);
-      return entryDate >= cutoff;
-    });
-  }
-
-  private getDateStringWithOffset(offsetDays: number): string {
-    const date = new Date();
-    date.setDate(date.getDate() + offsetDays);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 
   private getDateFromTimeString(timeStr: string): string {

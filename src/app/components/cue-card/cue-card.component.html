@@ -399,28 +399,30 @@
           </div>
         </header>
 
-        <div class="detail-content cue-card-content" [innerHTML]="card.contentHtml | safeCueCardHtml"></div>
+        <div class="detail-scroll-area">
+          <div class="detail-content cue-card-content" [innerHTML]="card.contentHtml | safeCueCardHtml"></div>
 
-        @if (card.table; as detailTable) {
-          <section class="detail-table-section" aria-label="Cue card table">
-            @if (card.tableName) {
-              <h3>{{ card.tableName }}</h3>
-            }
-            <div class="detail-table-wrap">
-              <table class="detail-table" [class.bold-header]="card.tableHeaderBold">
-                <tbody>
-                  @for (row of detailTable.rows; track $index; let rowIndex = $index) {
-                    <tr>
-                      @for (cell of row; track $index; let columnIndex = $index) {
-                        <td [innerHTML]="cell | safeCueCardHtml"></td>
-                      }
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          </section>
-        }
+          @if (card.table; as detailTable) {
+            <section class="detail-table-section" aria-label="Cue card table">
+              @if (card.tableName) {
+                <h3>{{ card.tableName }}</h3>
+              }
+              <div class="detail-table-wrap">
+                <table class="detail-table" [class.bold-header]="card.tableHeaderBold">
+                  <tbody>
+                    @for (row of detailTable.rows; track $index; let rowIndex = $index) {
+                      <tr>
+                        @for (cell of row; track $index; let columnIndex = $index) {
+                          <td [innerHTML]="cell | safeCueCardHtml"></td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          }
+        </div>
 
         <footer class="detail-footer">
           <button type="button" class="primary-button icon-text-button" (click)="editCard(card)">

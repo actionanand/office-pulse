@@ -181,12 +181,29 @@
     top: calc(100% + 0.5rem);
     right: 0;
     min-width: 220px;
+    max-height: calc(100dvh - 5.5rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
     background: white;
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     padding: 0.5rem;
     z-index: 1100;
     animation: dropdownSlide 0.2s ease;
+
+    scrollbar-color: #b8c0d0 transparent;
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 8px;
+      background: #b8c0d0;
+    }
 
     @keyframes dropdownSlide {
       from {

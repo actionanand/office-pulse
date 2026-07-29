@@ -1,86 +1,88 @@
-import { Injectable, signal } from '@angular/core';
-import { LOCK_SCREEN_CONFIG, LockScreenConfig } from './lock-screen.config';
+import { Injectable, inject, signal } from '@angular/core';
 
-interface AuthData {
-  passwordHash: string;
-  timestamp: number;
-}
+import { AuthService } from '../services/auth.service';
+import { SecuritySettingsService } from '../services/security-settings.service';
+import { SecurityService } from '../services/security.service';
+
+export type LockMode = 'password' | 'pin';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LockScreenService {
-  private readonly config: LockScreenConfig = LOCK_SCREEN_CONFIG;
-  private pendingUrl = '/';
+  private readonly auth = inject(AuthService);
+  private readonly settings = inject(SecuritySettingsService);
+  private readonly security = inject(SecurityService);
+  private pendingUrl: string | null = null;
+  private backgroundedAt: number | null = null;
+  private readonly primaryAuthenticatedAtStartup = this.auth.hasStoredAuth();
 
-  // Signal to track authentication state
-  private readonly _isAuthenticated = signal<boolean>(false);
+  private readonly _isAuthenticated = signal(
+    this.primaryAuthenticatedAtStartup && !this.settings.settings().pinEnabled,
+  );
   readonly isAuthenticated = this._isAuthenticated.asReadonly();
 
-  // Signal to track if lock screen should be shown
-  private readonly _showLockScreen = signal<boolean>(false);
+  private readonly _showLockScreen = signal(!this.primaryAuthenticatedAtStartup || this.settings.settings().pinEnabled);
   readonly showLockScreen = this._showLockScreen.asReadonly();
 
-  constructor() {
-    // Check authentication status on service initialization
-    this.checkAuthentication();
-  }
+  private readonly _lockMode = signal<LockMode>(
+    this.primaryAuthenticatedAtStartup && this.settings.settings().pinEnabled ? 'pin' : 'password',
+  );
+  readonly lockMode = this._lockMode.asReadonly();
 
-  /**
-   * Check if user is authenticated and session is still valid
-   */
   checkAuthentication(): boolean {
-    const authData = this.getAuthData();
-
-    if (!authData) {
-      this._isAuthenticated.set(false);
+    if (!this.auth.hasStoredAuth()) {
+      this.requirePrimaryLogin();
       return false;
     }
 
-    // Check if password hash matches
-    if (authData.passwordHash !== this.config.passwordHash) {
-      // Password has changed, clear storage and require re-authentication
-      this.clearAuth();
-      this._isAuthenticated.set(false);
-      return false;
-    }
-
-    // Check expiry if configured
-    if (this.config.expiryTime > 0) {
-      const now = Date.now();
-      const elapsed = now - authData.timestamp;
-
-      if (elapsed > this.config.expiryTime) {
-        // Session expired
-        this.clearAuth();
-        this._isAuthenticated.set(false);
-        return false;
-      }
-    }
-
-    this._isAuthenticated.set(true);
-    return true;
-  }
-
-  /**
-   * Validate password against the configured hash
-   */
-  async validatePassword(password: string): Promise<boolean> {
-    const hash = await this.sha1(password);
-
-    if (hash === this.config.passwordHash) {
-      this.saveAuth(hash);
+    if (!this.settings.settings().pinEnabled) {
       this._isAuthenticated.set(true);
       return true;
     }
 
-    return false;
+    if (!this._isAuthenticated()) {
+      this._lockMode.set('pin');
+      this._showLockScreen.set(true);
+      return false;
+    }
+
+    return true;
   }
 
-  /**
-   * Show the lock screen
-   */
+  async validatePassword(password: string): Promise<boolean> {
+    if (!(await this.auth.login(password))) return false;
+
+    if (this.settings.settings().pinEnabled) {
+      this._lockMode.set('pin');
+      this._isAuthenticated.set(false);
+      this._showLockScreen.set(true);
+    } else {
+      this._isAuthenticated.set(true);
+    }
+    return true;
+  }
+
+  async validatePin(pin: string): Promise<boolean> {
+    if (!this.auth.hasStoredAuth()) {
+      this.requirePrimaryLogin();
+      return false;
+    }
+
+    const valid = await this.security.verifyPin(pin, this.settings.settings());
+    if (valid) {
+      this._isAuthenticated.set(true);
+    }
+    return valid;
+  }
+
   showLock(): void {
+    if (!this.auth.hasStoredAuth()) {
+      this.requirePrimaryLogin();
+      return;
+    }
+
+    this._lockMode.set(this.settings.settings().pinEnabled ? 'pin' : 'password');
     this._showLockScreen.set(true);
   }
 
@@ -88,72 +90,86 @@ export class LockScreenService {
     this.pendingUrl = url || '/';
   }
 
-  consumePendingUrl(): string {
+  consumePendingUrl(): string | null {
     const url = this.pendingUrl;
-    this.pendingUrl = '/';
+    this.pendingUrl = null;
     return url;
   }
 
-  /**
-   * Hide the lock screen
-   */
   hideLock(): void {
-    this._showLockScreen.set(false);
-  }
-
-  /**
-   * Lock the application (clear auth and show lock screen)
-   */
-  lock(): void {
-    this.clearAuth();
-    this._isAuthenticated.set(false);
-    this._showLockScreen.set(true);
-  }
-
-  /**
-   * Get authentication data from localStorage
-   */
-  private getAuthData(): AuthData | null {
-    try {
-      const data = localStorage.getItem(this.config.storageKey);
-      return data ? JSON.parse(data) : null;
-    } catch {
-      return null;
+    if (this._isAuthenticated()) {
+      this._showLockScreen.set(false);
     }
   }
 
-  /**
-   * Save authentication data to localStorage
-   */
-  private saveAuth(passwordHash: string): void {
-    const authData: AuthData = {
-      passwordHash,
-      timestamp: Date.now(),
-    };
-    localStorage.setItem(this.config.storageKey, JSON.stringify(authData));
+  lock(): void {
+    if (!this.auth.hasStoredAuth()) {
+      this.requirePrimaryLogin();
+      return;
+    }
+    if (!this.settings.settings().pinEnabled) return;
+
+    this._isAuthenticated.set(false);
+    this._lockMode.set('pin');
+    this._showLockScreen.set(true);
   }
 
-  /**
-   * Clear authentication data from localStorage
-   */
-  private clearAuth(): void {
-    localStorage.removeItem(this.config.storageKey);
+  pinConfigured(hideLockScreen = true): void {
+    if (!this.auth.hasStoredAuth()) {
+      this.requirePrimaryLogin();
+      return;
+    }
+
+    this._isAuthenticated.set(true);
+    if (hideLockScreen) {
+      this._showLockScreen.set(false);
+    }
   }
 
-  /**
-   * Generate SHA1 hash of a string
-   */
-  private async sha1(str: string): Promise<string> {
-    const buffer = new TextEncoder().encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-1', buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  pinRemoved(): void {
+    if (this.auth.hasStoredAuth()) {
+      this._isAuthenticated.set(true);
+      this._showLockScreen.set(false);
+    } else {
+      this.requirePrimaryLogin();
+    }
   }
 
-  /**
-   * Get UI configuration
-   */
-  getConfig(): LockScreenConfig {
-    return this.config;
+  biometricUnlock(): void {
+    if (this.auth.hasStoredAuth() && this.settings.settings().pinEnabled && this.settings.settings().biometricEnabled) {
+      this._isAuthenticated.set(true);
+    }
+  }
+
+  handleVisibilityChange(): void {
+    if (document.visibilityState === 'visible' && !this.auth.hasStoredAuth()) {
+      this.requirePrimaryLogin();
+      return;
+    }
+
+    const settings = this.settings.settings();
+    if (!settings.pinEnabled || !settings.lockInBackground) {
+      this.backgroundedAt = null;
+      return;
+    }
+
+    if (document.visibilityState === 'hidden') {
+      this.backgroundedAt = Date.now();
+      return;
+    }
+
+    if (this.backgroundedAt !== null) {
+      const elapsed = Date.now() - this.backgroundedAt;
+      this.backgroundedAt = null;
+      if (elapsed >= settings.autoLockMinutes * 60_000) {
+        this.lock();
+      }
+    }
+  }
+
+  private requirePrimaryLogin(): void {
+    this._isAuthenticated.set(false);
+    this._lockMode.set('password');
+    this._showLockScreen.set(true);
   }
 }

@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { AuthService } from '../services/auth.service';
 import { SecuritySettingsService } from '../services/security-settings.service';
 import { SecurityService } from '../services/security.service';
@@ -8,7 +9,7 @@ import { LockScreenService } from './lock-screen.service';
 
 @Component({
   selector: 'app-lock-screen',
-  imports: [FormsModule],
+  imports: [FormsModule, LucideDynamicIcon],
   templateUrl: './lock-screen.component.html',
   styleUrl: './lock-screen.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

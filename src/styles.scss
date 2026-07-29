@@ -10,10 +10,24 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #f5f7fa;
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button,
+a,
+[role='button'] {
+  touch-action: manipulation;
 }
 
 /* Mobile-specific styles */
@@ -44,6 +58,7 @@ html,
 body {
   height: auto;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 // ============================================
@@ -300,5 +315,16 @@ svg[lucideIcon] {
 @keyframes lucide-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

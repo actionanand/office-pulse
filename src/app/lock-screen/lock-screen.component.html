@@ -55,7 +55,7 @@
 
     @if (lockMode() === 'pin' && settings.settings().biometricEnabled && security.biometricAvailable) {
       <button type="button" class="biometric-button" (click)="security.requestBiometric()">
-        <span class="material-symbols-rounded" aria-hidden="true">fingerprint</span>
+        <svg lucideIcon="fingerprint-pattern" aria-hidden="true"></svg>
         Use fingerprint
       </button>
     }
@@ -82,7 +82,7 @@
             </h2>
           </div>
           <button type="button" class="dialog-close" aria-label="Close PIN reset" (click)="closeReset()">
-            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+            <svg lucideIcon="x" aria-hidden="true"></svg>
           </button>
         </header>
 

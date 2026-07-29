@@ -10,7 +10,8 @@
 .navbar-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0.75rem 2rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) max(2rem, env(safe-area-inset-right)) 0.75rem
+    max(2rem, env(safe-area-inset-left));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -159,6 +160,7 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     scrollbar-gutter: stable;
     background: white;
     border-radius: 8px;
@@ -257,7 +259,8 @@
 // Tablet/small laptop responsive
 @media (max-width: 1024px) {
   .navbar-container {
-    padding: 0.6rem 1rem;
+    padding: max(0.6rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 0.6rem
+      max(1rem, env(safe-area-inset-left));
     gap: 0.75rem;
   }
 
@@ -306,7 +309,8 @@
   }
 
   .navbar-container {
-    padding: 0.75rem 1rem;
+    padding: max(0.75rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 0.75rem
+      max(1rem, env(safe-area-inset-left));
   }
 
   .navbar-brand {
@@ -321,6 +325,8 @@
 
   .menu-toggle {
     display: flex;
+    width: 44px;
+    height: 44px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 6px;
 
@@ -345,6 +351,8 @@
     z-index: 1000;
     align-items: stretch;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 
     &.open {
       right: 0;
@@ -360,14 +368,14 @@
 
     &.primary {
       margin-right: 0;
-      padding: 5rem 0.75rem 0.75rem;
+      padding: max(5rem, calc(env(safe-area-inset-top) + 4rem)) 0.75rem 0.75rem;
       border-right: none;
       border-bottom: 1px solid rgba(255, 255, 255, 0.15);
       background: rgba(0, 0, 0, 0.1);
     }
 
     &.secondary {
-      padding: 0.75rem;
+      padding: 0.75rem 0.75rem max(0.75rem, env(safe-area-inset-bottom));
       gap: 0.25rem;
     }
   }
@@ -436,7 +444,8 @@
 
 @media (max-width: 480px) {
   .navbar-container {
-    padding: 0.6rem 0.75rem;
+    padding: max(0.6rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) 0.6rem
+      max(0.75rem, env(safe-area-inset-left));
   }
 
   .navbar-brand {

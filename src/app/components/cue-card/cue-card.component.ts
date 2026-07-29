@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signa
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { CueCard, CueCardMode, CueCardTable } from '../../models/cue-card.model';
 import { SafeCueCardHtmlPipe } from '../../pipes/safe-cue-card-html.pipe';
 import { CueCardService } from '../../services/cue-card.service';
@@ -25,7 +26,14 @@ type ConfirmationDialog = {
 
 @Component({
   selector: 'app-cue-card',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SafeCueCardHtmlPipe, ConfirmationPopupComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    SafeCueCardHtmlPipe,
+    ConfirmationPopupComponent,
+    LucideDynamicIcon,
+  ],
   templateUrl: './cue-card.component.html',
   styleUrl: './cue-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -79,7 +79,7 @@
             (click)="formatContent('insertUnorderedList')"
             aria-label="Unordered list"
             title="Unordered list">
-            <span class="material-symbols-rounded" aria-hidden="true">format_list_bulleted</span>
+            <svg lucideIcon="list" aria-hidden="true"></svg>
           </button>
           <button
             type="button"
@@ -88,7 +88,7 @@
             (click)="formatContent('insertOrderedList')"
             aria-label="Ordered list"
             title="Ordered list">
-            <span class="material-symbols-rounded" aria-hidden="true">format_list_numbered</span>
+            <svg lucideIcon="list-ordered" aria-hidden="true"></svg>
           </button>
           <button
             type="button"
@@ -97,7 +97,7 @@
             (click)="formatContent('indent')"
             aria-label="Indent list item"
             title="Indent">
-            <span class="material-symbols-rounded" aria-hidden="true">format_indent_increase</span>
+            <svg lucideIcon="list-indent-increase" aria-hidden="true"></svg>
           </button>
           <button
             type="button"
@@ -106,7 +106,7 @@
             (click)="formatContent('outdent')"
             aria-label="Outdent list item"
             title="Outdent">
-            <span class="material-symbols-rounded" aria-hidden="true">format_indent_decrease</span>
+            <svg lucideIcon="list-indent-decrease" aria-hidden="true"></svg>
           </button>
 
           <span class="toolbar-divider" aria-hidden="true"></span>
@@ -157,7 +157,7 @@
             </div>
             @if (table()) {
               <button type="button" class="danger-button icon-text-button" (click)="clearTable()">
-                <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+                <svg lucideIcon="trash-2" aria-hidden="true"></svg>
                 Remove table
               </button>
             }
@@ -187,7 +187,7 @@
                 class="secondary-button icon-text-button"
                 (click)="addTableRow()"
                 [disabled]="!canAddTableRow()">
-                <span class="material-symbols-rounded" aria-hidden="true">add</span>
+                <svg lucideIcon="plus" aria-hidden="true"></svg>
                 Add row
               </button>
               <button
@@ -195,15 +195,15 @@
                 class="secondary-button icon-text-button"
                 (click)="addTableColumn()"
                 [disabled]="!canAddTableColumn()">
-                <span class="material-symbols-rounded" aria-hidden="true">view_column_2</span>
+                <svg lucideIcon="columns-3" aria-hidden="true"></svg>
                 Add column
               </button>
               <button type="button" class="ghost-button icon-text-button" (click)="removeLastTableRow()">
-                <span class="material-symbols-rounded" aria-hidden="true">remove</span>
+                <svg lucideIcon="minus" aria-hidden="true"></svg>
                 Remove row
               </button>
               <button type="button" class="ghost-button icon-text-button" (click)="removeLastTableColumn()">
-                <span class="material-symbols-rounded" aria-hidden="true">splitscreen_left</span>
+                <svg lucideIcon="columns-2" aria-hidden="true"></svg>
                 Remove column
               </button>
             </div>
@@ -245,7 +245,7 @@
                   (input)="updateNewTableColumnCount($any($event.target).value)" />
               </div>
               <button type="button" class="secondary-button icon-text-button" (click)="createTable()">
-                <span class="material-symbols-rounded" aria-hidden="true">table</span>
+                <svg lucideIcon="table" aria-hidden="true"></svg>
                 Create table
               </button>
             </div>
@@ -260,7 +260,7 @@
                 placeholder="Paste rows copied from a sheet"
                 (input)="updateTablePasteText($any($event.target).value)"></textarea>
               <button type="button" class="ghost-button icon-text-button" (click)="applyTablePaste()">
-                <span class="material-symbols-rounded" aria-hidden="true">content_paste</span>
+                <svg lucideIcon="clipboard-paste" aria-hidden="true"></svg>
                 Use pasted table
               </button>
             </div>
@@ -269,24 +269,24 @@
 
         <div class="action-row">
           <button type="button" class="primary-button icon-text-button" (click)="copyForSheet(false)">
-            <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+            <svg lucideIcon="copy" aria-hidden="true"></svg>
             {{ isEditing() ? 'Copy replacement row' : 'Copy row' }}
           </button>
           <button type="button" class="secondary-button icon-text-button" (click)="copyForSheet(true)">
-            <span class="material-symbols-rounded" aria-hidden="true">table_rows</span>
+            <svg lucideIcon="rows-3" aria-hidden="true"></svg>
             Copy with header
           </button>
           <button type="button" class="secondary-button icon-text-button" (click)="saveOffline()">
-            <span class="material-symbols-rounded" aria-hidden="true">save</span>
+            <svg lucideIcon="save" aria-hidden="true"></svg>
             Save offline
           </button>
           <button type="button" class="danger-button icon-text-button" (click)="requestClearEditor()">
-            <span class="material-symbols-rounded" aria-hidden="true">mop</span>
+            <svg lucideIcon="brush-cleaning" aria-hidden="true"></svg>
             Clear editor
           </button>
           @if (hasOfflineCards()) {
             <button type="button" class="danger-button icon-text-button" (click)="clearOfflineCueCards()">
-              <span class="material-symbols-rounded" aria-hidden="true">delete_sweep</span>
+              <svg lucideIcon="eraser" aria-hidden="true"></svg>
               Clear offline cue card
             </button>
           }
@@ -305,7 +305,7 @@
           class="secondary-button icon-text-button"
           (click)="refreshCueCards()"
           [disabled]="isLoading()">
-          <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
+          <svg lucideIcon="refresh-cw" aria-hidden="true"></svg>
           Refresh
         </button>
       </div>
@@ -350,7 +350,7 @@
                   type="button"
                   class="open-button icon-text-button"
                   (click)="$event.stopPropagation(); openCard(card)">
-                  <span class="material-symbols-rounded" aria-hidden="true">open_in_full</span>
+                  <svg lucideIcon="expand" aria-hidden="true"></svg>
                   Open
                 </button>
                 @if (card.isOffline) {
@@ -359,7 +359,7 @@
                     class="danger-button compact-button"
                     aria-label="Delete offline cue card"
                     (click)="$event.stopPropagation(); deleteOfflineCueCard(card)">
-                    <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+                    <svg lucideIcon="trash-2" aria-hidden="true"></svg>
                   </button>
                 }
               </div>
@@ -394,7 +394,7 @@
           </div>
           <div class="detail-actions">
             <button type="button" class="close-button" aria-label="Close cue card" (click)="closeCard()">
-              <span class="material-symbols-rounded" aria-hidden="true">close</span>
+              <svg lucideIcon="x" aria-hidden="true"></svg>
             </button>
           </div>
         </header>
@@ -426,17 +426,17 @@
 
         <footer class="detail-footer">
           <button type="button" class="primary-button icon-text-button" (click)="editCard(card)">
-            <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+            <svg lucideIcon="pencil" aria-hidden="true"></svg>
             Edit cue card
           </button>
           @if (card.isOffline) {
             <button type="button" class="danger-button icon-text-button" (click)="deleteOfflineCueCard(card)">
-              <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+              <svg lucideIcon="trash-2" aria-hidden="true"></svg>
               Delete offline
             </button>
           }
           <button type="button" class="ghost-button icon-text-button" (click)="closeCard()">
-            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+            <svg lucideIcon="x" aria-hidden="true"></svg>
             Close
           </button>
         </footer>

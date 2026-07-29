@@ -5,12 +5,12 @@
       <h1>Settings</h1>
       <span>Manage security for this device.</span>
     </div>
-    <span class="material-symbols-rounded heading-icon" aria-hidden="true">settings</span>
+    <svg class="heading-icon" lucideIcon="settings" aria-hidden="true"></svg>
   </header>
 
   <section class="settings-section" aria-labelledby="security-title">
     <header class="section-heading">
-      <span class="material-symbols-rounded section-icon" aria-hidden="true">shield_lock</span>
+      <svg class="section-icon" lucideIcon="shield-check" aria-hidden="true"></svg>
       <div>
         <h2 id="security-title">Security</h2>
         <p>Protect Office Pulse with a PIN and Android fingerprint unlock.</p>
@@ -24,7 +24,7 @@
           <small>{{ settings.settings().pinEnabled ? 'Enabled' : 'Not configured' }}</small>
         </span>
         <button class="action-button primary" type="button" (click)="openPinDialog()">
-          <span class="material-symbols-rounded" aria-hidden="true">key</span>
+          <svg lucideIcon="key-round" aria-hidden="true"></svg>
           {{ settings.settings().pinEnabled ? 'Change PIN' : 'Enable PIN' }}
         </button>
       </div>
@@ -88,11 +88,11 @@
     @if (settings.settings().pinEnabled) {
       <footer class="security-actions">
         <button class="action-button" type="button" (click)="lockNow()">
-          <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+          <svg lucideIcon="lock-keyhole" aria-hidden="true"></svg>
           Lock now
         </button>
         <button class="action-button danger" type="button" (click)="confirmRemove.set(true)">
-          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+          <svg lucideIcon="trash-2" aria-hidden="true"></svg>
           Remove PIN
         </button>
       </footer>
@@ -116,7 +116,7 @@
       <header>
         <strong>Auto-lock delay</strong>
         <button type="button" class="picker-close" aria-label="Close options" (click)="closeAutoLockPicker()">
-          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <svg lucideIcon="x" aria-hidden="true"></svg>
         </button>
       </header>
       <div class="picker-options" role="listbox" aria-label="Auto-lock delay">
@@ -130,7 +130,7 @@
             (click)="selectAutoLock(option.value)">
             <span>{{ option.label }}</span>
             @if (option.value === settings.settings().autoLockMinutes) {
-              <span class="material-symbols-rounded option-check" aria-hidden="true">check_circle</span>
+              <svg class="option-check" lucideIcon="circle-check" aria-hidden="true"></svg>
             }
           </button>
         }
@@ -154,7 +154,7 @@
           <h2 id="pin-dialog-title">{{ settings.settings().pinEnabled ? 'Change PIN' : 'Create a PIN' }}</h2>
         </div>
         <button class="icon-button" type="button" aria-label="Close PIN dialog" (click)="closePinDialog()">
-          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <svg lucideIcon="x" aria-hidden="true"></svg>
         </button>
       </header>
 

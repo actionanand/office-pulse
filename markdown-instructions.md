@@ -1,10 +1,10 @@
-# 📄 Markdown Viewer Guide
+# Markdown Viewer Guide
 
 Welcome to the **Markdown Viewer**! This comprehensive guide showcases all supported markdown features including syntax highlighting, math equations, diagrams, and more.
 
 ---
 
-## 📝 Text Formatting
+## Text Formatting
 
 ### Headers (H1-H6)
 
@@ -36,7 +36,7 @@ You can **combine _multiple_ ~~formats~~ `together`** in a single line!
 
 ---
 
-## 📋 Lists
+## Lists
 
 ### Unordered Lists
 
@@ -82,7 +82,7 @@ Use `-`, `*`, or `+` for bullets:
 
 ---
 
-## 💬 Blockquotes
+## Blockquotes
 
 Use `>` for blockquotes:
 
@@ -112,7 +112,7 @@ Use `>` for blockquotes:
 
 ---
 
-## 🔗 Links and References
+## Links and References
 
 ### Basic Links
 
@@ -140,7 +140,7 @@ Use `>` for blockquotes:
 
 ---
 
-## 🖼️ Images
+## Images
 
 ```markdown
 ![Alt text](https://via.placeholder.com/150)
@@ -149,7 +149,7 @@ Use `>` for blockquotes:
 
 ---
 
-## 💻 Code Blocks
+## Code Blocks
 
 ### Inline Code
 
@@ -254,7 +254,7 @@ LIMIT 10;
 
 ---
 
-## 🧮 KaTeX Math Equations
+## KaTeX Math Equations
 
 ### Inline Math
 
@@ -407,7 +407,7 @@ $$
 
 ---
 
-## 📊 Mermaid.js Diagrams
+## Mermaid.js Diagrams
 
 ### Flowchart
 
@@ -594,27 +594,27 @@ timeline
 
 ---
 
-## 📋 Tables
+## Tables
 
 Create tables using pipes `|` and dashes `-`:
 
 ```markdown
 | Feature  | Status | Priority | Notes            |
 | -------- | ------ | -------- | ---------------- |
-| Markdown | ✅     | High     | Core feature     |
-| Prism.js | ✅     | High     | Syntax highlight |
-| Mermaid  | ✅     | Medium   | Diagrams         |
-| KaTeX    | ✅     | Medium   | Math equations   |
+| Markdown | Yes    | High     | Core feature     |
+| Prism.js | Yes    | High     | Syntax highlight |
+| Mermaid  | Yes    | Medium   | Diagrams         |
+| KaTeX    | Yes    | Medium   | Math equations   |
 ```
 
 **Renders as:**
 
 | Feature  | Status | Priority | Notes            |
 | -------- | ------ | -------- | ---------------- |
-| Markdown | ✅     | High     | Core feature     |
-| Prism.js | ✅     | High     | Syntax highlight |
-| Mermaid  | ✅     | Medium   | Diagrams         |
-| KaTeX    | ✅     | Medium   | Math equations   |
+| Markdown | Yes    | High     | Core feature     |
+| Prism.js | Yes    | High     | Syntax highlight |
+| Mermaid  | Yes    | Medium   | Diagrams         |
+| KaTeX    | Yes    | Medium   | Math equations   |
 
 ### Table Alignment
 
@@ -636,13 +636,12 @@ Use colons `:` to align columns:
 
 ---
 
-## ⚡ Horizontal Rules
+## Horizontal Rules
 
 Use three or more dashes, asterisks, or underscores:
 
 ```markdown
 ---
-
 ---
 
 ---
@@ -658,7 +657,7 @@ Use three or more dashes, asterisks, or underscores:
 
 ---
 
-## 🎨 HTML in Markdown
+## HTML in Markdown
 
 You can use HTML for advanced formatting:
 
@@ -676,7 +675,7 @@ You can use HTML for advanced formatting:
 
 ---
 
-## 📐 Escaping Characters
+## Escaping Characters
 
 Use backslash `\` to escape special characters:
 
@@ -690,7 +689,7 @@ Use backslash `\` to escape special characters:
 
 ---
 
-## 🔤 Special Characters
+## Special Characters
 
 Common HTML entities:
 
@@ -706,7 +705,7 @@ Common HTML entities:
 
 ---
 
-## 📌 Footnotes
+## Footnotes
 
 Add footnotes using `[^1]` syntax:
 
@@ -722,7 +721,7 @@ Here's a sentence with a footnote[^1].
 
 ---
 
-## 🎯 Definition Lists
+## Definition Lists
 
 ```markdown
 Term 1
@@ -735,7 +734,7 @@ Term 2
 
 ---
 
-## 💡 Usage Tips
+## Usage Tips
 
 ### Getting Started
 
@@ -746,11 +745,11 @@ Term 2
 
 ### Features
 
-- ✅ **Syntax Highlighting**: 18+ programming languages
-- ✅ **Math Equations**: Full LaTeX/KaTeX support
-- ✅ **Diagrams**: 10+ Mermaid diagram types
-- ✅ **Tables**: GitHub-flavored markdown tables
-- ✅ **Local Storage**: History saved in browser
+- **Syntax Highlighting**: 18+ programming languages
+- **Math Equations**: Full LaTeX/KaTeX support
+- **Diagrams**: 10+ Mermaid diagram types
+- **Tables**: GitHub-flavored markdown tables
+- **Local Storage**: History saved in browser
 
 ### Keyboard Shortcuts
 
@@ -759,7 +758,7 @@ Term 2
 
 ---
 
-## 🚀 Quick Reference
+## Quick Reference
 
 ### Most Used Syntax
 
@@ -785,6 +784,6 @@ $x^2$ $\sqrt{x}$ $\frac{a}{b}$ $\sum$ $\int$ $\alpha$ $\beta$
 
 ---
 
-**Happy documenting! 📝✨**
+**Happy documenting!**
 
-> Made with ❤️ using Angular, Prism.js, Mermaid.js, and KaTeX
+> Made with Angular, Prism.js, Mermaid.js, and KaTeX

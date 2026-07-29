@@ -166,7 +166,10 @@
 
   <div class="action-buttons">
     @if (canRemoveLocalEntry()) {
-      <button class="btn btn-remove" (click)="openRemoveEntryConfirmation()">Remove</button>
+      <button class="btn btn-remove" (click)="openRemoveEntryConfirmation()">
+        <svg lucideIcon="trash-2" aria-hidden="true"></svg>
+        Remove
+      </button>
     } @else {
       <button
         class="btn btn-entry"
@@ -191,7 +194,10 @@
 
     @if (canLoadOfflineEntry()) {
       <div class="offline-entry-actions">
-        <button class="btn btn-remove btn-remove-offline" (click)="openRemoveEntryConfirmation()">Remove Entry</button>
+        <button class="btn btn-remove btn-remove-offline" (click)="openRemoveEntryConfirmation()">
+          <svg lucideIcon="trash-2" aria-hidden="true"></svg>
+          Remove Entry
+        </button>
         <button
           class="btn btn-load-offline"
           (click)="loadOfflineEntry()"
@@ -229,26 +235,82 @@
   @if (showEntryDialog()) {
     <div class="dialog-overlay" (click)="closeEntryDialog()" (keyup.escape)="closeEntryDialog()" tabindex="-1">
       <div
-        class="dialog-content"
+        class="dialog-content entry-time-dialog"
         (click)="$event.stopPropagation()"
         (keyup)="$event.stopPropagation()"
         role="dialog"
-        aria-modal="true">
-        <h2>Mark Entry Time</h2>
-        <div class="dialog-body">
-          <button class="btn btn-primary" (click)="handleEntrySubmit(false)">Use Current Time</button>
-          <div class="separator">OR</div>
-          <div class="custom-time-section">
-            <label for="customDateTime">Custom Date & Time:</label>
-            <input type="datetime-local" id="customDateTime" #customDateTime />
-            <button class="btn btn-secondary" (click)="handleEntrySubmit(true, customDateTime.value)">
-              Use Custom Time
-            </button>
+        aria-modal="true"
+        aria-labelledby="entry-time-dialog-title">
+        <header class="entry-time-header">
+          <span class="entry-time-icon" aria-hidden="true">
+            <svg lucideIcon="clock-3"></svg>
+          </span>
+          <div>
+            <span class="entry-time-eyebrow">Attendance</span>
+            <h2 id="entry-time-dialog-title">Mark Entry Time</h2>
+            <p>Choose when you started work today.</p>
           </div>
+          <button type="button" class="entry-time-close" (click)="closeEntryDialog()" aria-label="Close entry dialog">
+            <svg lucideIcon="x" aria-hidden="true"></svg>
+          </button>
+        </header>
+
+        <div class="entry-time-body">
+          <button type="button" class="current-time-option" (click)="handleEntrySubmit(false)">
+            <span class="option-icon" aria-hidden="true">
+              <svg lucideIcon="log-in"></svg>
+            </span>
+            <span class="option-copy">
+              <strong>Use current time</strong>
+              <small>Mark your entry right now</small>
+            </span>
+            <svg class="option-chevron" lucideIcon="chevron-right" aria-hidden="true"></svg>
+          </button>
+
+          <div class="entry-time-divider"><span>or choose another time</span></div>
+
+          <section class="custom-time-card" aria-labelledby="custom-time-label">
+            <div class="custom-time-copy">
+              <label id="custom-time-label" for="customDateTime">Custom date and time</label>
+              <small>Use this when you started earlier.</small>
+            </div>
+            <div class="custom-time-control">
+              <div class="custom-time-fields">
+                <label class="custom-time-field" for="customEntryDate">
+                  <span>Date</span>
+                  <span class="custom-time-input">
+                    <svg lucideIcon="calendar-days" aria-hidden="true"></svg>
+                    <input type="date" id="customEntryDate" #customEntryDate />
+                  </span>
+                </label>
+                <label class="custom-time-field" for="customEntryTime">
+                  <span>Time</span>
+                  <span class="custom-time-input">
+                    <svg lucideIcon="clock-3" aria-hidden="true"></svg>
+                    <input type="time" id="customEntryTime" #customEntryTime />
+                  </span>
+                </label>
+              </div>
+              <button
+                type="button"
+                class="btn custom-time-submit"
+                (click)="
+                  handleEntrySubmit(
+                    true,
+                    customEntryDate.value && customEntryTime.value
+                      ? customEntryDate.value + 'T' + customEntryTime.value
+                      : ''
+                  )
+                ">
+                Use selected time
+              </button>
+            </div>
+          </section>
         </div>
-        <div class="dialog-actions">
-          <button class="btn btn-cancel" (click)="closeEntryDialog()">Cancel</button>
-        </div>
+
+        <footer class="entry-time-footer">
+          <button type="button" class="entry-time-cancel" (click)="closeEntryDialog()">Cancel</button>
+        </footer>
       </div>
     </div>
   }

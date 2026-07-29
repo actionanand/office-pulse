@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { SeatingChartService } from '../../services/seating-chart.service';
 import { SeatingEntry } from '../../models/seating-chart.model';
 
@@ -23,7 +24,7 @@ export interface CalendarMonth {
 
 @Component({
   selector: 'app-seating-chart',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon],
   templateUrl: './seating-chart.component.html',
   styleUrl: './seating-chart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

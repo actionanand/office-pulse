@@ -1,10 +1,10 @@
 @if (showLockScreen()) {
 <app-lock-screen />
-}
-
+} @else {
 <app-navbar />
 <div class="app-content">
   <router-outlet />
 </div>
+}
 
 <app-snackbar />

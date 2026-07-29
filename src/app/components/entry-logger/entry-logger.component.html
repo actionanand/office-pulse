@@ -7,20 +7,26 @@
   <div class="status-card">
     @if (isSubmittedToday()) {
       <div class="status-submitted">
-        <div class="status-icon">✅</div>
+        <svg class="status-icon" lucideIcon="circle-check" aria-hidden="true"></svg>
         <div class="status-text">
           @if (isDayOffToday()) {
             <h2>Day Off Applied!</h2>
             <p>You have marked today as Day Off</p>
             @if (todayApiEntry()) {
-              <p class="small-text api-info">📊 Data from server</p>
+              <p class="small-text api-info">
+                <svg lucideIcon="cloud-download" aria-hidden="true"></svg>
+                Data from server
+              </p>
               <p class="small-text">Status: <strong class="status-badge day-off">Day Off</strong></p>
             }
           } @else {
             <h2>Submitted!</h2>
             <p>You submitted your entry/exit for today</p>
             @if (todayApiEntry()) {
-              <p class="small-text api-info">📊 Data from server</p>
+              <p class="small-text api-info">
+                <svg lucideIcon="cloud-download" aria-hidden="true"></svg>
+                Data from server
+              </p>
               @if (todayApiEntry()!.status) {
                 <p class="small-text">
                   Status: <strong class="status-badge">{{ todayApiEntry()!.status }}</strong>
@@ -35,7 +41,8 @@
                 Exit: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong>
               </p>
               <p class="duration-text">
-                ⏱️ Total Duration: <strong>{{ durationDisplay() }}</strong>
+                <svg lucideIcon="timer" aria-hidden="true"></svg>
+                Total Duration: <strong>{{ durationDisplay() }}</strong>
               </p>
             } @else {
               <p class="small-text info-text">Exit time not recorded yet</p>
@@ -45,7 +52,7 @@
       </div>
     } @else if (hasEnteredToday()) {
       <div class="status-entered">
-        <div class="status-icon">✓</div>
+        <svg class="status-icon" lucideIcon="circle-check" aria-hidden="true"></svg>
         <div class="status-text">
           <h2>Welcome!</h2>
           <p>
@@ -53,10 +60,12 @@
           </p>
           <div class="time-pills">
             <p class="duration-text">
-              ⏱️ Duration: <strong>{{ durationSinceEntry() }}</strong>
+              <svg lucideIcon="timer" aria-hidden="true"></svg>
+              Duration: <strong>{{ durationSinceEntry() }}</strong>
             </p>
             <p class="remaining-text">
-              ⏰ Remaining: <strong>{{ remainingTime() }}</strong>
+              <svg lucideIcon="clock-3" aria-hidden="true"></svg>
+              Remaining: <strong>{{ remainingTime() }}</strong>
             </p>
           </div>
           @if (hasExitedToday()) {
@@ -92,7 +101,7 @@
       }
     } @else if (entryLog()?.entryTime && !entryLog()?.exitTime) {
       <div class="status-entered">
-        <div class="status-icon">✓</div>
+        <svg class="status-icon" lucideIcon="circle-check" aria-hidden="true"></svg>
         <div class="status-text">
           <h2>Welcome!</h2>
           <p>
@@ -100,10 +109,12 @@
           </p>
           <div class="time-pills">
             <p class="duration-text">
-              ⏱️ Duration: <strong>{{ durationSinceEntry() }}</strong>
+              <svg lucideIcon="timer" aria-hidden="true"></svg>
+              Duration: <strong>{{ durationSinceEntry() }}</strong>
             </p>
             <p class="remaining-text">
-              ⏰ Remaining: <strong>{{ remainingTime() }}</strong>
+              <svg lucideIcon="clock-3" aria-hidden="true"></svg>
+              Remaining: <strong>{{ remainingTime() }}</strong>
             </p>
           </div>
         </div>
@@ -131,7 +142,7 @@
       </div>
     } @else {
       <div class="status-not-entered">
-        <div class="status-icon">⏰</div>
+        <svg class="status-icon" lucideIcon="clock-3" aria-hidden="true"></svg>
         <div class="status-text">
           <h2>Not Checked In</h2>
           <p>You have not come to office today</p>
@@ -155,13 +166,17 @@
 
   <div class="action-buttons">
     @if (canRemoveLocalEntry()) {
-      <button class="btn btn-remove" (click)="openRemoveEntryConfirmation()">Remove</button>
+      <button class="btn btn-remove" (click)="openRemoveEntryConfirmation()">
+        <svg lucideIcon="trash-2" aria-hidden="true"></svg>
+        Remove
+      </button>
     } @else {
       <button
         class="btn btn-entry"
         (click)="openEntryDialog()"
         [disabled]="hasEnteredToday() || isSubmittedToday() || (entryLog()?.entryTime && !entryLog()?.exitTime)">
-        📥 Entry
+        <svg lucideIcon="log-in" aria-hidden="true"></svg>
+        Entry
       </button>
     }
 
@@ -173,24 +188,32 @@
         hasExitedToday() ||
         !(hasEnteredToday() || (entryLog()?.entryTime && !entryLog()?.exitTime))
       ">
-      📤 Exit
+      <svg lucideIcon="log-out" aria-hidden="true"></svg>
+      Exit
     </button>
 
     @if (canLoadOfflineEntry()) {
       <div class="offline-entry-actions">
-        <button class="btn btn-remove btn-remove-offline" (click)="openRemoveEntryConfirmation()">Remove Entry</button>
+        <button class="btn btn-remove btn-remove-offline" (click)="openRemoveEntryConfirmation()">
+          <svg lucideIcon="trash-2" aria-hidden="true"></svg>
+          Remove Entry
+        </button>
         <button
           class="btn btn-load-offline"
           (click)="loadOfflineEntry()"
           title="Load previously submitted entry from offline storage">
-          💾 Load Offline Entry
+          <svg lucideIcon="cloud-download" aria-hidden="true"></svg>
+          Load Offline Entry
         </button>
       </div>
     }
   </div>
 
   <div class="past-entry-section">
-    <button class="btn btn-past-entry" (click)="openPastDateDialog()">📅 Add Past Date Entry</button>
+    <button class="btn btn-past-entry" (click)="openPastDateDialog()">
+      <svg lucideIcon="calendar-days" aria-hidden="true"></svg>
+      Add Past Date Entry
+    </button>
   </div>
 
   <!-- Todo List Toggle (Always Visible) -->
@@ -212,26 +235,82 @@
   @if (showEntryDialog()) {
     <div class="dialog-overlay" (click)="closeEntryDialog()" (keyup.escape)="closeEntryDialog()" tabindex="-1">
       <div
-        class="dialog-content"
+        class="dialog-content entry-time-dialog"
         (click)="$event.stopPropagation()"
         (keyup)="$event.stopPropagation()"
         role="dialog"
-        aria-modal="true">
-        <h2>Mark Entry Time</h2>
-        <div class="dialog-body">
-          <button class="btn btn-primary" (click)="handleEntrySubmit(false)">Use Current Time</button>
-          <div class="separator">OR</div>
-          <div class="custom-time-section">
-            <label for="customDateTime">Custom Date & Time:</label>
-            <input type="datetime-local" id="customDateTime" #customDateTime />
-            <button class="btn btn-secondary" (click)="handleEntrySubmit(true, customDateTime.value)">
-              Use Custom Time
-            </button>
+        aria-modal="true"
+        aria-labelledby="entry-time-dialog-title">
+        <header class="entry-time-header">
+          <span class="entry-time-icon" aria-hidden="true">
+            <svg lucideIcon="clock-3"></svg>
+          </span>
+          <div>
+            <span class="entry-time-eyebrow">Attendance</span>
+            <h2 id="entry-time-dialog-title">Mark Entry Time</h2>
+            <p>Choose when you started work today.</p>
           </div>
+          <button type="button" class="entry-time-close" (click)="closeEntryDialog()" aria-label="Close entry dialog">
+            <svg lucideIcon="x" aria-hidden="true"></svg>
+          </button>
+        </header>
+
+        <div class="entry-time-body">
+          <button type="button" class="current-time-option" (click)="handleEntrySubmit(false)">
+            <span class="option-icon" aria-hidden="true">
+              <svg lucideIcon="log-in"></svg>
+            </span>
+            <span class="option-copy">
+              <strong>Use current time</strong>
+              <small>Mark your entry right now</small>
+            </span>
+            <svg class="option-chevron" lucideIcon="chevron-right" aria-hidden="true"></svg>
+          </button>
+
+          <div class="entry-time-divider"><span>or choose another time</span></div>
+
+          <section class="custom-time-card" aria-labelledby="custom-time-label">
+            <div class="custom-time-copy">
+              <label id="custom-time-label" for="customDateTime">Custom date and time</label>
+              <small>Use this when you started earlier.</small>
+            </div>
+            <div class="custom-time-control">
+              <div class="custom-time-fields">
+                <label class="custom-time-field" for="customEntryDate">
+                  <span>Date</span>
+                  <span class="custom-time-input">
+                    <svg lucideIcon="calendar-days" aria-hidden="true"></svg>
+                    <input type="date" id="customEntryDate" #customEntryDate />
+                  </span>
+                </label>
+                <label class="custom-time-field" for="customEntryTime">
+                  <span>Time</span>
+                  <span class="custom-time-input">
+                    <svg lucideIcon="clock-3" aria-hidden="true"></svg>
+                    <input type="time" id="customEntryTime" #customEntryTime />
+                  </span>
+                </label>
+              </div>
+              <button
+                type="button"
+                class="btn custom-time-submit"
+                (click)="
+                  handleEntrySubmit(
+                    true,
+                    customEntryDate.value && customEntryTime.value
+                      ? customEntryDate.value + 'T' + customEntryTime.value
+                      : ''
+                  )
+                ">
+                Use selected time
+              </button>
+            </div>
+          </section>
         </div>
-        <div class="dialog-actions">
-          <button class="btn btn-cancel" (click)="closeEntryDialog()">Cancel</button>
-        </div>
+
+        <footer class="entry-time-footer">
+          <button type="button" class="entry-time-cancel" (click)="closeEntryDialog()">Cancel</button>
+        </footer>
       </div>
     </div>
   }
@@ -264,7 +343,7 @@
               <label for="exitEntryDate">Entry Time:</label>
               <div class="datetime-pair">
                 <label class="datetime-input" for="exitEntryDate">
-                  <span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>
+                  <svg lucideIcon="calendar-days" aria-hidden="true"></svg>
                   <input
                     type="date"
                     id="exitEntryDate"
@@ -274,7 +353,7 @@
                     required />
                 </label>
                 <label class="datetime-input" for="exitEntryTime">
-                  <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+                  <svg lucideIcon="clock-3" aria-hidden="true"></svg>
                   <input
                     type="time"
                     id="exitEntryTime"
@@ -289,7 +368,7 @@
               <label for="exitExitDate">Exit Time:</label>
               <div class="datetime-pair">
                 <label class="datetime-input" for="exitExitDate">
-                  <span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>
+                  <svg lucideIcon="calendar-days" aria-hidden="true"></svg>
                   <input
                     type="date"
                     id="exitExitDate"
@@ -299,7 +378,7 @@
                     required />
                 </label>
                 <label class="datetime-input" for="exitExitTime">
-                  <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+                  <svg lucideIcon="clock-3" aria-hidden="true"></svg>
                   <input
                     type="time"
                     id="exitExitTime"
@@ -423,7 +502,7 @@
         (keyup)="$event.stopPropagation()"
         role="dialog"
         aria-modal="true">
-        <h2>🚀 Ready to Submit to Google Form?</h2>
+        <h2><svg lucideIcon="rocket" aria-hidden="true"></svg> Ready to Submit to Google Form?</h2>
         <div class="dialog-body">
           <div class="confirmation-info">
             <p class="info-text">Your entry and exit times have been recorded:</p>
@@ -438,7 +517,7 @@
               </div>
             </div>
             <div class="warning-box">
-              <p>⚠️ <strong>Important:</strong></p>
+              <p><svg lucideIcon="triangle-alert" aria-hidden="true"></svg> <strong>Important:</strong></p>
               <ul>
                 <li>Clicking "Yes, Submit" will open the Google Form in a popup dialog</li>
                 <li>After submission, you won't be able to add another entry until tomorrow</li>
@@ -463,7 +542,7 @@
         (keyup)="$event.stopPropagation()"
         role="dialog"
         aria-modal="true">
-        <h2>📅 Select Past Date</h2>
+        <h2><svg lucideIcon="calendar-days" aria-hidden="true"></svg> Select Past Date</h2>
         <div class="dialog-body">
           <p class="info-message">Choose a date to add attendance record</p>
           <div class="date-picker-section">
@@ -499,13 +578,13 @@
           </p>
           <div class="action-buttons-grid">
             <button class="action-btn leave-btn" (click)="applyLeaveForPastDate()">
-              <span class="action-icon">🌴</span>
+              <svg class="action-icon" lucideIcon="palmtree" aria-hidden="true"></svg>
               <span class="action-text">Apply Leave</span>
               <span class="action-hint">Mark as Day Off</span>
             </button>
 
             <button class="action-btn entry-btn" (click)="addEntryForPastDate()">
-              <span class="action-icon">📝</span>
+              <svg class="action-icon" lucideIcon="notebook-pen" aria-hidden="true"></svg>
               <span class="action-text">Add Entry</span>
               <span class="action-hint">Log work hours</span>
             </button>

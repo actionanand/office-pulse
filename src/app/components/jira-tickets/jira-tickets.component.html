@@ -9,12 +9,12 @@
     <div class="header-actions">
       @if (selectedCount() > 0) {
         <button class="copy-btn" (click)="copySelectedTickets()">
-          <span class="copy-icon">📋</span>
+          <svg class="copy-icon" lucideIcon="clipboard-copy" aria-hidden="true"></svg>
           Copy {{ selectedCount() }} {{ selectedCount() === 1 ? 'Ticket' : 'Tickets' }}
         </button>
       }
       <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
-        <span class="refresh-icon">↻</span>
+        <svg class="refresh-icon" lucideIcon="refresh-cw" aria-hidden="true"></svg>
         Refresh
       </button>
     </div>
@@ -107,7 +107,7 @@
                         (click)="showCommentPopup(ticket.comments, $event)"
                         aria-label="Show full comment">
                         {{ getTruncatedComment(ticket.comments) }}
-                        <span class="expand-icon">🔍</span>
+                        <svg class="expand-icon" lucideIcon="search" aria-hidden="true"></svg>
                       </button>
                     } @else {
                       <span class="comments-text">{{ ticket.comments }}</span>
@@ -118,7 +118,8 @@
                 </td>
                 <td class="col-url">
                   <a [href]="ticket.url" target="_blank" rel="noopener noreferrer" class="jira-link">
-                    View Ticket ↗
+                    View Ticket
+                    <svg lucideIcon="external-link" aria-hidden="true"></svg>
                   </a>
                 </td>
               </tr>
@@ -129,7 +130,10 @@
 
       @if (totalPages() > 1) {
         <div class="pagination">
-          <button class="pagination-btn" [disabled]="currentPage() === 1" (click)="previousPage()">← Previous</button>
+          <button class="pagination-btn" [disabled]="currentPage() === 1" (click)="previousPage()">
+            <svg lucideIcon="arrow-left" aria-hidden="true"></svg>
+            Previous
+          </button>
 
           <div class="page-numbers">
             @for (page of getPageNumbers(); track $index) {
@@ -144,7 +148,8 @@
           </div>
 
           <button class="pagination-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
-            Next →
+            Next
+            <svg lucideIcon="arrow-right" aria-hidden="true"></svg>
           </button>
         </div>
 
@@ -170,7 +175,9 @@
     <div class="comment-popup" role="document">
       <div class="popup-header">
         <h3 id="popup-title">Full Comment</h3>
-        <button class="close-btn" (click)="closeCommentPopup()" aria-label="Close">&times;</button>
+        <button class="close-btn" (click)="closeCommentPopup()" aria-label="Close">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
       </div>
       <div class="popup-content">
         <p>{{ selectedComment() }}</p>

@@ -1,6 +1,7 @@
 import { Component, signal, computed, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { TodoService } from '../../services/todo.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
@@ -10,7 +11,7 @@ import { getISTDateString, getISTDay, getISTMonth } from '../../utils/date-utils
 
 @Component({
   selector: 'app-todo-list',
-  imports: [CommonModule, FormsModule, ConfirmationDialogComponent],
+  imports: [CommonModule, FormsModule, ConfirmationDialogComponent, LucideDynamicIcon],
   templateUrl: './todo-list.component.html',
   styleUrls: ['./todo-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,10 +66,10 @@ export class TodoListComponent implements OnInit {
       next: todos => {
         this.allTodos.set(todos);
         this.isSyncing.set(false);
-        console.log('✅ Todos synced from Google Sheets:', todos.length);
+        console.log('Todos synced from Google Sheets:', todos.length);
       },
       error: error => {
-        console.error('❌ Error syncing todos:', error);
+        console.error('Error syncing todos:', error);
         this.isSyncing.set(false);
         // Load from local storage as fallback
         this.loadTodos();
@@ -382,17 +383,17 @@ export class TodoListComponent implements OnInit {
   getRecurrenceLabel(todo: TodoItem): string {
     switch (todo.recurrenceType) {
       case 'daily':
-        return '🔄 Daily';
+        return 'Daily';
       case 'weekly':
-        return `🔄 Weekly (${this.formatDaysOfWeek(todo.daysOfWeek || [])})`;
+        return `Weekly (${this.formatDaysOfWeek(todo.daysOfWeek || [])})`;
       case 'biweekly':
-        return `🔄 Every 2 weeks (${this.formatDaysOfWeek(todo.daysOfWeek || [])})`;
+        return `Every 2 weeks (${this.formatDaysOfWeek(todo.daysOfWeek || [])})`;
       case 'monthly':
-        return `🔄 Monthly (Day ${todo.dayOfMonth})`;
+        return `Monthly (Day ${todo.dayOfMonth})`;
       case 'yearly':
-        return `🔄 Yearly`;
+        return 'Yearly';
       case 'custom':
-        return `🔄 ${this.formatDaysOfWeek(todo.daysOfWeek || [])}`;
+        return this.formatDaysOfWeek(todo.daysOfWeek || []);
       default:
         return '';
     }

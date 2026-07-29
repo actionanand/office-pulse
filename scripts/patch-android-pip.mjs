@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const appPackage = 'com.actionanand.officepulse.app';
@@ -8,16 +8,24 @@ const reminderPluginPath = join(javaDir, 'OfficePulseReminderPlugin.java');
 const reminderReceiverPath = join(javaDir, 'OfficePulseReminderReceiver.java');
 const manifestPath = join('android', 'app', 'src', 'main', 'AndroidManifest.xml');
 const drawableDir = join('android', 'app', 'src', 'main', 'res', 'drawable');
+const drawableNoDpiDir = join('android', 'app', 'src', 'main', 'res', 'drawable-nodpi');
 const notificationSmallIconPath = join(drawableDir, 'ic_stat_office_pulse.xml');
+const splashLogoPath = join(drawableNoDpiDir, 'office_pulse_splash_logo.png');
+const splashIconPath = join(drawableDir, 'office_pulse_splash_icon.xml');
+const splashScreenPath = join(drawableDir, 'office_pulse_splash_screen.xml');
 const valuesDir = join('android', 'app', 'src', 'main', 'res', 'values');
+const valuesV31Dir = join('android', 'app', 'src', 'main', 'res', 'values-v31');
+const valuesNightV31Dir = join('android', 'app', 'src', 'main', 'res', 'values-night-v31');
 const colorsPath = join(valuesDir, 'colors.xml');
 const stylesPath = join(valuesDir, 'styles.xml');
+const gradlePath = join('android', 'app', 'build.gradle');
 const lightShellColor = '#F7F8FB';
 const darkShellColor = '#111827';
 const headerStartColor = '#667EEA';
 
 mkdirSync(javaDir, { recursive: true });
 mkdirSync(drawableDir, { recursive: true });
+mkdirSync(drawableNoDpiDir, { recursive: true });
 mkdirSync(valuesDir, { recursive: true });
 
 writeFileSync(
@@ -366,17 +374,33 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
+import android.util.Base64;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
+
+import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.util.concurrent.Executor;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 
 public class MainActivity extends BridgeActivity {
   private static final int APP_LIGHT_COLOR = Color.rgb(247, 248, 251);
   private static final int APP_DARK_COLOR = Color.rgb(17, 24, 39);
   private static final int APP_HEADER_COLOR = Color.rgb(102, 126, 234);
+  private static final String BIOMETRIC_KEY_ALIAS = "office_pulse_biometric_key";
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -389,6 +413,7 @@ public class MainActivity extends BridgeActivity {
 
     if (getBridge() != null && getBridge().getWebView() != null) {
       getBridge().getWebView().addJavascriptInterface(new ThemeBridge(), "OfficePulseAndroid");
+      getBridge().getWebView().addJavascriptInterface(new NativeSecurityBridge(), "OfficePulseNative");
     }
   }
 
@@ -443,9 +468,196 @@ public class MainActivity extends BridgeActivity {
       runOnUiThread(() -> applySystemBars("dark".equals(theme)));
     }
   }
+
+  public class NativeSecurityBridge {
+    @JavascriptInterface
+    public boolean isBiometricAvailable() {
+      return BiometricManager.from(MainActivity.this).canAuthenticate(
+        BiometricManager.Authenticators.BIOMETRIC_STRONG
+      ) == BiometricManager.BIOMETRIC_SUCCESS;
+    }
+
+    @JavascriptInterface
+    public void enableBiometric(String secret) {
+      runOnUiThread(() -> {
+        try {
+          Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+          cipher.init(Cipher.ENCRYPT_MODE, createBiometricKey());
+          showBiometricPrompt(
+            "Enable fingerprint unlock",
+            "Confirm your fingerprint for Office Pulse",
+            cipher,
+            () -> {
+              try {
+                byte[] encrypted = cipher.doFinal(secret.getBytes(StandardCharsets.UTF_8));
+                getPreferences(MODE_PRIVATE).edit()
+                  .putString("biometric_ciphertext", Base64.encodeToString(encrypted, Base64.NO_WRAP))
+                  .putString("biometric_iv", Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP))
+                  .apply();
+                dispatchEvent("biometric-enabled");
+              } catch (Exception ignored) {
+                // Keep PIN unlock available when biometric setup cannot finish.
+              }
+            }
+          );
+        } catch (Exception ignored) {
+          // Keep PIN unlock available when biometric setup cannot start.
+        }
+      });
+    }
+
+    @JavascriptInterface
+    public void authenticateBiometric() {
+      runOnUiThread(() -> {
+        try {
+          String encryptedValue = getPreferences(MODE_PRIVATE).getString("biometric_ciphertext", "");
+          String ivValue = getPreferences(MODE_PRIVATE).getString("biometric_iv", "");
+          if (encryptedValue.isEmpty() || ivValue.isEmpty()) {
+            return;
+          }
+
+          Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+          cipher.init(
+            Cipher.DECRYPT_MODE,
+            loadBiometricKey(),
+            new GCMParameterSpec(128, Base64.decode(ivValue, Base64.NO_WRAP))
+          );
+          showBiometricPrompt(
+            "Unlock Office Pulse",
+            "Use your fingerprint or enter your PIN",
+            cipher,
+            () -> {
+              try {
+                byte[] result = cipher.doFinal(Base64.decode(encryptedValue, Base64.NO_WRAP));
+                if (result.length > 0) {
+                  dispatchEvent("biometric-success");
+                }
+              } catch (Exception ignored) {
+                // PIN remains available when biometric decryption fails.
+              }
+            }
+          );
+        } catch (Exception ignored) {
+          // PIN remains available when the Android key has been invalidated.
+        }
+      });
+    }
+
+    @JavascriptInterface
+    public void disableBiometric() {
+      getPreferences(MODE_PRIVATE).edit()
+        .remove("biometric_ciphertext")
+        .remove("biometric_iv")
+        .apply();
+      try {
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        keyStore.deleteEntry(BIOMETRIC_KEY_ALIAS);
+      } catch (Exception ignored) {
+        // Nothing else is required when the key does not exist.
+      }
+    }
+  }
+
+  private void showBiometricPrompt(String title, String subtitle, Cipher cipher, Runnable success) {
+    Executor executor = ContextCompat.getMainExecutor(this);
+    BiometricPrompt prompt = new BiometricPrompt(
+      this,
+      executor,
+      new BiometricPrompt.AuthenticationCallback() {
+        @Override
+        public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
+          super.onAuthenticationSucceeded(result);
+          success.run();
+        }
+      }
+    );
+    BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
+      .setTitle(title)
+      .setSubtitle(subtitle)
+      .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+      .setNegativeButtonText("Use PIN")
+      .build();
+    prompt.authenticate(info, new BiometricPrompt.CryptoObject(cipher));
+  }
+
+  private SecretKey createBiometricKey() throws Exception {
+    KeyGenerator generator = KeyGenerator.getInstance(
+      KeyProperties.KEY_ALGORITHM_AES,
+      "AndroidKeyStore"
+    );
+    KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(
+      BIOMETRIC_KEY_ALIAS,
+      KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT
+    )
+      .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+      .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+      .setUserAuthenticationRequired(true)
+      .setInvalidatedByBiometricEnrollment(true);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      builder.setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG);
+    }
+    generator.init(builder.build());
+    return generator.generateKey();
+  }
+
+  private SecretKey loadBiometricKey() throws Exception {
+    KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+    keyStore.load(null);
+    return (SecretKey) keyStore.getKey(BIOMETRIC_KEY_ALIAS, null);
+  }
+
+  private void dispatchEvent(String eventName) {
+    getBridge().getWebView().post(() ->
+      getBridge().getWebView().evaluateJavascript(
+        "window.dispatchEvent(new CustomEvent('" + eventName + "'))",
+        null
+      )
+    );
+  }
 }
 `,
 );
+
+copyFileSync('public/office_pulse.png', splashLogoPath);
+writeFileSync(
+  splashIconPath,
+  `<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/office_pulse_splash_logo"
+    android:inset="26%" />
+`,
+);
+writeFileSync(
+  splashScreenPath,
+  `<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/office_pulse_shell_light" />
+    <item android:gravity="center">
+        <inset android:drawable="@drawable/office_pulse_splash_icon" android:inset="32%" />
+    </item>
+</layer-list>
+`,
+);
+
+mkdirSync(valuesV31Dir, { recursive: true });
+mkdirSync(valuesNightV31Dir, { recursive: true });
+const android12SplashStyles = `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/office_pulse_shell_light</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/office_pulse_splash_icon</item>
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+        <item name="android:statusBarColor">@color/office_pulse_header</item>
+        <item name="android:navigationBarColor">@color/office_pulse_shell_light</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>
+`;
+writeFileSync(join(valuesV31Dir, 'styles.xml'), android12SplashStyles);
+writeFileSync(join(valuesNightV31Dir, 'styles.xml'), android12SplashStyles);
 
 let manifest = readFileSync(manifestPath, 'utf8');
 
@@ -470,12 +682,24 @@ if (!/android\.permission\.SCHEDULE_EXACT_ALARM/.test(manifest)) {
   );
 }
 
+if (!/android\.permission\.USE_BIOMETRIC/.test(manifest)) {
+  manifest = manifest.replace(
+    /<manifest([^>]*)>/,
+    '<manifest$1>\n    <uses-permission android:name="android.permission.USE_BIOMETRIC" />',
+  );
+}
+
 if (!/OfficePulseReminderReceiver/.test(manifest)) {
   manifest = manifest.replace(
     /<\/application>/,
     '        <receiver android:name=".OfficePulseReminderReceiver" android:exported="false" />\n    </application>',
   );
 }
+
+manifest = manifest.replace(
+  /(<activity\b(?=[^>]*android:name="\.MainActivity")[^>]*android:theme=")[^"]*(")/,
+  '$1@style/AppTheme.NoActionBarLaunch$2',
+);
 
 writeFileSync(manifestPath, manifest);
 
@@ -503,13 +727,20 @@ styles = ensureStyleItems(styles, 'AppTheme', shellStyleItems);
 styles = ensureStyleItems(styles, 'AppTheme.NoActionBar', shellStyleItems);
 styles = ensureStyleItems(styles, 'AppTheme.NoActionBarLaunch', [
   ...shellStyleItems,
-  ['android:background', '@color/office_pulse_shell_light'],
-  ['windowSplashScreenBackground', '@color/office_pulse_shell_light'],
-  ['postSplashScreenTheme', '@style/AppTheme.NoActionBar'],
+  ['android:windowBackground', '@drawable/office_pulse_splash_screen'],
 ]);
 writeFileSync(stylesPath, styles);
 
-console.log('Android native shell polish patched for Office Pulse.');
+let gradle = readFileSync(gradlePath, 'utf8');
+if (!gradle.includes('androidx.biometric:biometric')) {
+  gradle = gradle.replace(
+    /dependencies\s*\{/,
+    "dependencies {\n    implementation 'androidx.biometric:biometric:1.1.0'",
+  );
+  writeFileSync(gradlePath, gradle);
+}
+
+console.log('Android native shell, splash, biometric, and notification support patched for Office Pulse.');
 
 function readOptionalFile(filePath) {
   try {

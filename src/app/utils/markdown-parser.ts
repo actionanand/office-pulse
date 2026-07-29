@@ -42,15 +42,24 @@ export class MarkdownParser {
 
       // Check if line is a checkbox (highest priority)
       if (/^-\s*\[\s*\]\s+/.test(line)) {
-        line = line.replace(/^-\s*\[\s*\]\s+(.+)$/, '<div class="checkbox-item">☐ $1</div>');
+        line = line.replace(
+          /^-\s*\[\s*\]\s+(.+)$/,
+          '<div class="checkbox-item"><span class="checkbox-marker" aria-hidden="true"></span>$1</div>',
+        );
         processedLines.push(line);
         continue;
       } else if (/^-\s*\[x\]\s+/i.test(line)) {
-        line = line.replace(/^-\s*\[x\]\s+(.+)$/i, '<div class="checkbox-item checked">☑ $1</div>');
+        line = line.replace(
+          /^-\s*\[x\]\s+(.+)$/i,
+          '<div class="checkbox-item checked"><span class="checkbox-marker" aria-hidden="true"></span>$1</div>',
+        );
         processedLines.push(line);
         continue;
       } else if (/^-\s*\[o\]\s+/i.test(line)) {
-        line = line.replace(/^-\s*\[o\]\s+(.+)$/i, '<div class="checkbox-item checked-no-strike">☑ $1</div>');
+        line = line.replace(
+          /^-\s*\[o\]\s+(.+)$/i,
+          '<div class="checkbox-item checked-no-strike"><span class="checkbox-marker" aria-hidden="true"></span>$1</div>',
+        );
         processedLines.push(line);
         continue;
       }

@@ -1,5 +1,6 @@
 import { Component, signal, computed, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { AttendanceStateService } from '../../services/attendance-state.service';
 import { SheetEntry } from '../../services/gviz.service';
 import { PdfExportService } from '../../services/pdf-export.service';
@@ -17,7 +18,7 @@ interface CalendarDay {
 
 @Component({
   selector: 'app-monthly-calendar',
-  imports: [CommonModule, DownloadDialogComponent],
+  imports: [CommonModule, DownloadDialogComponent, LucideDynamicIcon],
   templateUrl: './monthly-calendar.component.html',
   styleUrls: ['./monthly-calendar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

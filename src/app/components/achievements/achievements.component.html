@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="achievements-header">
     <div class="header-info">
-      <h1 class="page-title">🏆 My Achievements</h1>
+      <h1 class="page-title"><svg lucideIcon="trophy" aria-hidden="true"></svg> My Achievements</h1>
       @if (achievementsByYear().length > 0) {
         <span class="total-badge">{{ getTotalCount() }} Total</span>
       }
@@ -10,16 +10,20 @@
     <div class="header-actions">
       <button class="btn btn-add" (click)="toggleForm()">
         @if (showForm()) {
-          ✕ Close Form
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+          Close Form
         } @else {
-          ➕ Add Achievement
+          <svg lucideIcon="plus" aria-hidden="true"></svg>
+          Add Achievement
         }
       </button>
       <button class="btn btn-refresh" (click)="refreshData()" [disabled]="isLoading()">
         @if (isLoading()) {
-          🔄 Loading...
+          <svg class="lucide-spin" lucideIcon="loader-circle" aria-hidden="true"></svg>
+          Loading...
         } @else {
-          🔄 Refresh
+          <svg lucideIcon="refresh-cw" aria-hidden="true"></svg>
+          Refresh
         }
       </button>
     </div>
@@ -28,67 +32,71 @@
   <!-- Add Achievement Form -->
   @if (showForm()) {
     <div class="form-card">
-      <h2 class="form-title">📝 Add New Achievement</h2>
+      <h2 class="form-title"><svg lucideIcon="notebook-pen" aria-hidden="true"></svg> Add New Achievement</h2>
       <div class="form-grid">
         <div class="form-group full-width">
           <label for="title">Title <span class="required">*</span></label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             id="title"
             [value]="formData().title"
             (input)="updateFormField('title', $any($event.target).value)"
             placeholder="e.g., Completed PDF automation project"
-            required
-          />
+            required />
         </div>
-        
+
         <div class="form-group">
           <label for="link">Link (Jira/Reference)</label>
-          <input 
-            type="url" 
+          <input
+            type="url"
             id="link"
             [value]="formData().link"
             (input)="updateFormField('link', $any($event.target).value)"
-            placeholder="e.g., https://jira.example.com/PROJ-123"
-          />
+            placeholder="e.g., https://jira.example.com/PROJ-123" />
         </div>
-        
+
         <div class="form-group">
           <label for="date">Reference Date</label>
-          <input 
-            type="date" 
+          <input
+            type="date"
             id="date"
             [value]="formData().date"
-            (input)="updateFormField('date', $any($event.target).value)"
-          />
+            (input)="updateFormField('date', $any($event.target).value)" />
         </div>
-        
+
         <div class="form-group full-width">
           <label for="comments">Comments / Description</label>
-          <textarea 
+          <textarea
             id="comments"
             [value]="formData().comments"
             (input)="updateFormField('comments', $any($event.target).value)"
             placeholder="Describe your achievement, technologies used, impact, etc."
-            rows="4"
-          ></textarea>
+            rows="4"></textarea>
         </div>
       </div>
-      
+
       <div class="form-actions">
-        <button class="btn btn-secondary" (click)="resetForm()">🔄 Reset</button>
-        <button class="btn btn-secondary" (click)="openEmptyForm()">📋 Open Empty Form</button>
+        <button class="btn btn-secondary" (click)="resetForm()">
+          <svg lucideIcon="rotate-ccw" aria-hidden="true"></svg>
+          Reset
+        </button>
+        <button class="btn btn-secondary" (click)="openEmptyForm()">
+          <svg lucideIcon="clipboard" aria-hidden="true"></svg>
+          Open Empty Form
+        </button>
         <button class="btn btn-primary" (click)="submitForm()" [disabled]="isSubmitting()">
           @if (isSubmitting()) {
             Submitting...
           } @else {
-            🚀 Submit Achievement
+            <svg lucideIcon="send" aria-hidden="true"></svg>
+            Submit Achievement
           }
         </button>
       </div>
-      
+
       <p class="form-note">
-        💡 Submit Achievement saves directly. Use Open Empty Form if you want to open the embedded form manually.
+        <svg lucideIcon="lightbulb" aria-hidden="true"></svg>
+        Submit Achievement saves directly. Use Open Empty Form if you want to open the embedded form manually.
       </p>
     </div>
   }
@@ -106,34 +114,47 @@
     </div>
   } @else if (achievementsByYear().length === 0) {
     <div class="empty-state">
-      <div class="empty-icon">🎯</div>
+      <svg class="empty-icon" lucideIcon="target" aria-hidden="true"></svg>
       <h3>No achievements yet</h3>
       <p>Start tracking your accomplishments by adding your first achievement!</p>
-      <button class="btn btn-primary" (click)="toggleForm()">➕ Add Your First Achievement</button>
+      <button class="btn btn-primary" (click)="toggleForm()">
+        <svg lucideIcon="plus" aria-hidden="true"></svg>
+        Add Your First Achievement
+      </button>
     </div>
   } @else {
     <!-- Expand/Collapse All -->
     <div class="bulk-actions">
-      <button class="btn btn-text" (click)="expandAllYears()">📂 Expand All</button>
-      <button class="btn btn-text" (click)="collapseAllYears()">📁 Collapse All</button>
+      <button class="btn btn-text" (click)="expandAllYears()">
+        <svg lucideIcon="folder-open" aria-hidden="true"></svg>
+        Expand All
+      </button>
+      <button class="btn btn-text" (click)="collapseAllYears()">
+        <svg lucideIcon="folder" aria-hidden="true"></svg>
+        Collapse All
+      </button>
     </div>
 
     <!-- Achievements by Year -->
     @for (yearGroup of achievementsByYear(); track yearGroup.year) {
       <div class="year-section">
-        <button 
-          class="year-header" 
+        <button
+          class="year-header"
           (click)="toggleYear(yearGroup.year)"
-          [class.expanded]="isYearExpanded(yearGroup.year)"
-        >
+          [class.expanded]="isYearExpanded(yearGroup.year)">
           <div class="year-info">
-            <span class="year-icon">📅</span>
+            <svg class="year-icon" lucideIcon="calendar-days" aria-hidden="true"></svg>
             <span class="year-label">{{ yearGroup.year }}</span>
-            <span class="year-count">{{ yearGroup.achievements.length }} achievement{{ yearGroup.achievements.length !== 1 ? 's' : '' }}</span>
+            <span class="year-count"
+              >{{ yearGroup.achievements.length }} achievement{{ yearGroup.achievements.length !== 1 ? 's' : '' }}</span
+            >
           </div>
-          <span class="expand-icon">{{ isYearExpanded(yearGroup.year) ? '▼' : '▶' }}</span>
+          <svg
+            class="expand-icon"
+            [lucideIcon]="isYearExpanded(yearGroup.year) ? 'chevron-down' : 'chevron-right'"
+            aria-hidden="true"></svg>
         </button>
-        
+
         @if (isYearExpanded(yearGroup.year)) {
           <div class="achievements-list">
             @for (achievement of yearGroup.achievements; track achievement.sno) {
@@ -142,20 +163,20 @@
                   <span class="achievement-sno">#{{ achievement.sno }}</span>
                   <h3 class="achievement-title">{{ achievement.title }}</h3>
                 </div>
-                
+
                 <div class="achievement-meta">
                   @if (achievement.date) {
                     <span class="meta-item">
-                      <span class="meta-icon">📆</span>
+                      <svg class="meta-icon" lucideIcon="calendar-days" aria-hidden="true"></svg>
                       {{ achievement.date }}
                     </span>
                   }
                   @if (achievement.link) {
                     <span class="meta-item">
-                      <span class="meta-icon">🔗</span>
+                      <svg class="meta-icon" lucideIcon="link" aria-hidden="true"></svg>
                       @if (isValidUrl(achievement.link)) {
                         <a [href]="achievement.link" target="_blank" rel="noopener noreferrer" class="link">
-                          {{ achievement.link | slice:0:50 }}{{ achievement.link.length > 50 ? '...' : '' }}
+                          {{ achievement.link | slice: 0 : 50 }}{{ achievement.link.length > 50 ? '...' : '' }}
                         </a>
                       } @else {
                         <span class="link-text">{{ achievement.link }}</span>
@@ -163,7 +184,7 @@
                     </span>
                   }
                 </div>
-                
+
                 @if (achievement.comments) {
                   <div class="achievement-comments">
                     <p>{{ achievement.comments }}</p>
@@ -181,8 +202,7 @@
   <app-google-form-dialog
     [isOpen]="showGoogleFormDialog()"
     [formUrl]="googleFormUrl()"
-    [dialogTitle]="'🏆 Add Achievement'"
+    dialogTitle="Add Achievement"
     (closeDialog)="onGoogleFormClose()"
-    (formSubmitted)="onGoogleFormSubmitted()"
-  />
+    (formSubmitted)="onGoogleFormSubmitted()" />
 </div>

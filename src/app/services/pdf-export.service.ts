@@ -537,7 +537,7 @@ export class PdfExportService {
       html += `
       <div class="month-section">
         <div class="month-header">
-          <span class="month-title">📅 ${summary.monthName}</span>
+          <span class="month-title">${summary.monthName}</span>
           <div class="month-stats">
             <span class="month-stat">
               <span>Days:</span>
@@ -579,7 +579,7 @@ export class PdfExportService {
 
     return `
     <div class="yearly-summary">
-      <h3>📊 Yearly Summary - ${year}</h3>
+      <h3>Yearly Summary - ${year}</h3>
       <div class="yearly-summary-grid">
         <div class="yearly-summary-item">
           <div class="yearly-summary-value">${totalDays}</div>

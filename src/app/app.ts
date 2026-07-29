@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, effect, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { SnackbarComponent } from './components/snackbar/snackbar.component';
@@ -14,12 +14,17 @@ import { LoggerService } from './logger/logger.service';
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(window:biometric-success)': 'onBiometricSuccess()',
+    '(document:visibilitychange)': 'onVisibilityChange()',
+  },
 })
 export class App implements OnInit {
   protected title = 'Office Pulse';
   private attendanceState = inject(AttendanceStateService);
   private readonly lockService = inject(LockScreenService);
   private readonly logger = inject(LoggerService);
+  private readonly router = inject(Router);
   private attendanceFetchScheduled = false;
 
   protected readonly showLockScreen = this.lockService.showLockScreen;
@@ -41,12 +46,24 @@ export class App implements OnInit {
     this.logger.info('Logging status:', this.logger.isLoggingEnabled() ? 'ENABLED' : 'DISABLED');
   }
 
+  protected async onBiometricSuccess(): Promise<void> {
+    this.lockService.biometricUnlock();
+    const targetUrl = this.lockService.consumePendingUrl() ?? this.router.url ?? '/';
+    await this.router.navigateByUrl('/__office_pulse_auth_resume', { skipLocationChange: true });
+    await this.router.navigateByUrl(targetUrl, { replaceUrl: true });
+    this.lockService.hideLock();
+  }
+
+  protected onVisibilityChange(): void {
+    this.lockService.handleVisibilityChange();
+  }
+
   private scheduleAttendanceRefresh(): void {
     if (this.attendanceFetchScheduled) return;
 
     this.attendanceFetchScheduled = true;
     setTimeout(() => {
-      void this.attendanceState.refreshIfNeeded(15);
+      void this.attendanceState.fetchAttendanceData();
     }, 0);
   }
 }

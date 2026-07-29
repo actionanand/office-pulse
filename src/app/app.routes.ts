@@ -6,6 +6,7 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./components/home/home.component').then(m => m.HomeComponent),
+    canActivate: [lockGuard],
   },
   {
     path: 'calendar',
@@ -43,6 +44,11 @@ export const routes: Routes = [
   {
     path: 'utilities',
     loadComponent: () => import('./components/utilities/utilities.component').then(m => m.UtilitiesComponent),
+    canActivate: [lockGuard],
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('./components/settings/settings.component').then(m => m.SettingsComponent),
     canActivate: [lockGuard],
   },
   {
@@ -93,9 +99,11 @@ export const routes: Routes = [
     path: 'markdown',
     loadComponent: () =>
       import('./components/markdown-viewer/markdown-viewer.component').then(m => m.MarkdownViewerComponent),
+    canActivate: [lockGuard],
   },
   {
     path: '**',
     loadComponent: () => import('./components/not-found/not-found.component').then(m => m.NotFoundComponent),
+    canActivate: [lockGuard],
   },
 ];

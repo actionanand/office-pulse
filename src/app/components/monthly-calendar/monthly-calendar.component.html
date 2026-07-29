@@ -1,8 +1,12 @@
 <div class="calendar-container">
   <div class="calendar-header">
-    <button class="nav-btn" (click)="previousMonth()" aria-label="Previous month">◀</button>
+    <button class="nav-btn" (click)="previousMonth()" aria-label="Previous month">
+      <svg lucideIcon="chevron-left" aria-hidden="true"></svg>
+    </button>
     <h2 class="month-title">{{ monthName() }}</h2>
-    <button class="nav-btn" (click)="nextMonth()" [disabled]="!canGoNext()" aria-label="Next month">▶</button>
+    <button class="nav-btn" (click)="nextMonth()" [disabled]="!canGoNext()" aria-label="Next month">
+      <svg lucideIcon="chevron-right" aria-hidden="true"></svg>
+    </button>
   </div>
 
   <div class="calendar-stats">
@@ -14,7 +18,10 @@
       <span class="stat-label">Total Hours:</span>
       <span class="stat-value">{{ totalWorkingHours() }}</span>
     </div>
-    <button class="btn-download" (click)="openDownloadDialog()" aria-label="Download Entry Logs">📥 Download</button>
+    <button class="btn-download" (click)="openDownloadDialog()" aria-label="Download Entry Logs">
+      <svg lucideIcon="download" aria-hidden="true"></svg>
+      Download
+    </button>
   </div>
 
   @if (isLoading()) {
@@ -24,7 +31,7 @@
     </div>
   } @else if (error()) {
     <div class="error-state">
-      <p class="error-icon">⚠️</p>
+      <svg class="error-icon" lucideIcon="triangle-alert" aria-hidden="true"></svg>
       <p class="error-message">{{ error() }}</p>
       <button class="btn btn-retry" (click)="retryLoadData()">Retry</button>
     </div>
@@ -56,7 +63,7 @@
           @if (day.entry && day.isCurrentMonth) {
             @if (day.entry.status === 'Day Off') {
               <div class="entry-indicator day-off-indicator">
-                <span class="status-icon">🌴</span>
+                <svg class="status-icon" lucideIcon="palmtree" aria-hidden="true"></svg>
               </div>
             } @else {
               <div class="entry-indicator">
@@ -75,7 +82,7 @@
 
     @if (calendarDays().length === 0 || totalDaysPresent() === 0) {
       <div class="empty-state">
-        <p class="empty-icon">📅</p>
+        <svg class="empty-icon" lucideIcon="calendar-off" aria-hidden="true"></svg>
         <p class="empty-message">No attendance records found for this month.</p>
       </div>
     }
@@ -92,18 +99,20 @@
         aria-modal="true">
         <div class="details-header">
           <h3>Attendance Details</h3>
-          <button class="close-btn" (click)="closeDetails()" aria-label="Close">✕</button>
+          <button class="close-btn" (click)="closeDetails()" aria-label="Close">
+            <svg lucideIcon="x" aria-hidden="true"></svg>
+          </button>
         </div>
 
         <div class="details-body">
           <div class="detail-row">
-            <span class="detail-label">📅 Date:</span>
+            <span class="detail-label"><svg lucideIcon="calendar-days" aria-hidden="true"></svg> Date:</span>
             <span class="detail-value">{{ selectedDay()!.fullDate }}</span>
           </div>
 
           @if (selectedDay()!.entry!.status) {
             <div class="detail-row">
-              <span class="detail-label">📋 Status:</span>
+              <span class="detail-label"><svg lucideIcon="clipboard-list" aria-hidden="true"></svg> Status:</span>
               <span class="detail-value">
                 <span class="status-badge" [class]="getStatusClass(selectedDay()!.entry!.status!)">
                   {{ selectedDay()!.entry!.status }}
@@ -114,12 +123,12 @@
 
           @if (selectedDay()!.entry!.status !== 'Day Off') {
             <div class="detail-row">
-              <span class="detail-label">🕐 Entry Time:</span>
+              <span class="detail-label"><svg lucideIcon="clock-3" aria-hidden="true"></svg> Entry Time:</span>
               <span class="detail-value">{{ formatTime(selectedDay()!.entry!.entryTime) }}</span>
             </div>
 
             <div class="detail-row">
-              <span class="detail-label">🕐 Exit Time:</span>
+              <span class="detail-label"><svg lucideIcon="clock-3" aria-hidden="true"></svg> Exit Time:</span>
               <span class="detail-value">
                 {{ formatTime(selectedDay()!.entry!.exitTime) }}
                 @if (getExitDateDisplay(selectedDay()!.entry!)) {
@@ -130,26 +139,29 @@
 
             @if (selectedDay()!.entry!.duration) {
               <div class="detail-row">
-                <span class="detail-label">⏱️ Duration:</span>
+                <span class="detail-label"><svg lucideIcon="timer" aria-hidden="true"></svg> Duration:</span>
                 <span class="detail-value highlight">{{ selectedDay()!.entry!.duration }}</span>
               </div>
             }
           } @else {
             <div class="detail-row full-width">
-              <p class="day-off-message">🌴 Day Off - No work hours recorded</p>
+              <p class="day-off-message">
+                <svg lucideIcon="palmtree" aria-hidden="true"></svg>
+                Day Off - No work hours recorded
+              </p>
             </div>
           }
 
           @if (selectedDay()!.entry!.companyName) {
             <div class="detail-row">
-              <span class="detail-label">🏢 Company:</span>
+              <span class="detail-label"><svg lucideIcon="building-2" aria-hidden="true"></svg> Company:</span>
               <span class="detail-value">{{ selectedDay()!.entry!.companyName }}</span>
             </div>
           }
 
           @if (selectedDay()!.entry!.comments) {
             <div class="detail-row full-width">
-              <span class="detail-label">💬 Comments:</span>
+              <span class="detail-label"><svg lucideIcon="message-circle" aria-hidden="true"></svg> Comments:</span>
               <span class="detail-value">{{ selectedDay()!.entry!.comments }}</span>
             </div>
           }

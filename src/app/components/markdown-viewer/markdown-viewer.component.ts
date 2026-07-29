@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MarkdownModule, MarkdownService } from 'ngx-markdown';
 import { HttpClient } from '@angular/common/http';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { SnackbarService } from '../../services/snackbar.service';
 import { getISTDate } from '../../utils/date-utils';
 
@@ -29,7 +30,7 @@ declare global {
 
 @Component({
   selector: 'app-markdown-viewer',
-  imports: [CommonModule, FormsModule, MarkdownModule],
+  imports: [CommonModule, FormsModule, MarkdownModule, LucideDynamicIcon],
   templateUrl: './markdown-viewer.component.html',
   styleUrl: './markdown-viewer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -114,10 +115,10 @@ export class MarkdownViewerComponent implements AfterViewInit {
     // Check if it's a local file path
     if (this.isLocalFilePath(urlPath)) {
       this.snackbarService.error(
-        '⚠️ Local file paths cannot be loaded directly due to browser security.\n\n' +
+        'Local file paths cannot be loaded directly due to browser security.\n\n' +
           'Local paths like "C:\\Users\\..." or "/home/user/..." are blocked by CORS policy.\n\n' +
-          '✅ Solution: Use the "Choose Markdown File" button to browse and select files from your computer.\n\n' +
-          '💡 URL loading works only for HTTP/HTTPS URLs (e.g., https://example.com/file.md)',
+          'Solution: Use the "Choose Markdown File" button to browse and select files from your computer.\n\n' +
+          'URL loading works only for HTTP/HTTPS URLs (e.g., https://example.com/file.md)',
       );
       this.isLoading.set(false);
       return;
@@ -148,7 +149,7 @@ export class MarkdownViewerComponent implements AfterViewInit {
       error: err => {
         console.error('Failed to load URL:', err);
         this.snackbarService.error(
-          '❌ Failed to load the URL.\n\n' +
+          'Failed to load the URL.\n\n' +
             'Possible reasons:\n' +
             '• Invalid URL format\n' +
             '• File not found (404)\n' +

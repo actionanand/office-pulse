@@ -8,7 +8,8 @@
   z-index: 60;
   display: grid;
   place-items: center;
-  padding: 1rem;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
   background: rgba(15, 23, 42, 0.46);
 }
 
@@ -46,6 +47,7 @@
   place-items: center;
   width: 2.5rem;
   height: 2.5rem;
+  padding: 0.55rem;
   border-radius: 999px;
   background: #fff1f3;
   color: #be123c;
@@ -56,21 +58,6 @@
   justify-content: flex-end;
   gap: 0.7rem;
   flex-wrap: wrap;
-}
-
-.material-symbols-rounded {
-  font-family: 'Material Symbols Rounded';
-  font-size: 1.2rem;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: 0;
-  text-transform: none;
-  white-space: nowrap;
-  direction: ltr;
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
-  -webkit-font-smoothing: antialiased;
 }
 
 .icon-text-button {
@@ -110,7 +97,8 @@ button:focus-visible {
 
 @media (max-width: 720px) {
   .confirm-backdrop {
-    padding: 0.75rem;
+    padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right))
+      max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
   }
 
   .confirm-actions,

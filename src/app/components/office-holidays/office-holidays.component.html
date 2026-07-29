@@ -2,20 +2,17 @@
   <!-- Tabs -->
   <div class="tabs-container">
     <div class="tabs">
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab() === 'holidays'"
-        (click)="setActiveTab('holidays')"
-      >
-        🎉 Holidays
+      <button class="tab-btn" [class.active]="activeTab() === 'holidays'" (click)="setActiveTab('holidays')">
+        <svg lucideIcon="party-popper" aria-hidden="true"></svg>
+        Holidays
         <span class="tab-count">{{ holidays().length }}</span>
       </button>
-      <button 
-        class="tab-btn" 
+      <button
+        class="tab-btn"
         [class.active]="activeTab() === 'important-days'"
-        (click)="setActiveTab('important-days')"
-      >
-        ⭐ Important Days
+        (click)="setActiveTab('important-days')">
+        <svg lucideIcon="star" aria-hidden="true"></svg>
+        Important Days
         <span class="tab-count">{{ importantDays().length }}</span>
       </button>
     </div>
@@ -26,14 +23,16 @@
     <div class="tab-content">
       <div class="content-header">
         <div class="header-info">
-          <h1 class="page-title">🎉 {{ holidayMeta().title }}</h1>
+          <h1 class="page-title"><svg lucideIcon="party-popper" aria-hidden="true"></svg> {{ holidayMeta().title }}</h1>
           <span class="year-badge">{{ holidayMeta().year }}</span>
         </div>
         <button class="btn btn-refresh" (click)="refreshData()" [disabled]="isHolidaysLoading()">
           @if (isHolidaysLoading()) {
-            🔄 Loading...
+            <svg class="lucide-spin" lucideIcon="loader-circle" aria-hidden="true"></svg>
+            Loading...
           } @else {
-            🔄 Refresh
+            <svg lucideIcon="refresh-cw" aria-hidden="true"></svg>
+            Refresh
           }
         </button>
       </div>
@@ -65,13 +64,14 @@
             </thead>
             <tbody>
               @for (holiday of holidays(); track holiday.sno) {
-                <tr 
+                <tr
                   [class.past]="isPastDate(holiday.date)"
                   [class.today]="isTodayDate(holiday.date)"
                   [class.upcoming]="isUpcomingDate(holiday.date)"
-                  [class.this-month]="isThisMonth(holiday.date) && !isPastDate(holiday.date) && !isTodayDate(holiday.date)"
-                  [class.next-month]="isNextMonth(holiday.date)"
-                >
+                  [class.this-month]="
+                    isThisMonth(holiday.date) && !isPastDate(holiday.date) && !isTodayDate(holiday.date)
+                  "
+                  [class.next-month]="isNextMonth(holiday.date)">
                   <td class="col-sno">{{ holiday.sno }}</td>
                   <td class="col-name">
                     <span class="item-name">{{ holiday.name }}</span>
@@ -123,7 +123,7 @@
       <!-- Notes Section -->
       @if (holidayMeta().notes.length > 0) {
         <div class="notes-section">
-          <h3>📝 Notes</h3>
+          <h3><svg lucideIcon="notebook-pen" aria-hidden="true"></svg> Notes</h3>
           <ul class="notes-list">
             @for (note of holidayMeta().notes; track note) {
               <li>{{ note }}</li>
@@ -139,14 +139,16 @@
     <div class="tab-content">
       <div class="content-header">
         <div class="header-info">
-          <h1 class="page-title">⭐ Important Days</h1>
+          <h1 class="page-title"><svg lucideIcon="star" aria-hidden="true"></svg> Important Days</h1>
           <span class="year-badge">{{ importantDayMeta().year }}</span>
         </div>
         <button class="btn btn-refresh" (click)="refreshData()" [disabled]="isImportantDaysLoading()">
           @if (isImportantDaysLoading()) {
-            🔄 Loading...
+            <svg class="lucide-spin" lucideIcon="loader-circle" aria-hidden="true"></svg>
+            Loading...
           } @else {
-            🔄 Refresh
+            <svg lucideIcon="refresh-cw" aria-hidden="true"></svg>
+            Refresh
           }
         </button>
       </div>
@@ -179,13 +181,12 @@
             </thead>
             <tbody>
               @for (day of importantDays(); track day.sno) {
-                <tr 
+                <tr
                   [class.past]="isPastDate(day.date)"
                   [class.today]="isTodayDate(day.date)"
                   [class.upcoming]="isUpcomingDate(day.date)"
                   [class.this-month]="isThisMonth(day.date) && !isPastDate(day.date) && !isTodayDate(day.date)"
-                  [class.next-month]="isNextMonth(day.date)"
-                >
+                  [class.next-month]="isNextMonth(day.date)">
                   <td class="col-sno">{{ day.sno }}</td>
                   <td class="col-name">
                     <span class="item-name">{{ day.name }}</span>
@@ -250,7 +251,7 @@
       <!-- Notes Section -->
       @if (importantDayMeta().notes.length > 0) {
         <div class="notes-section">
-          <h3>📝 Notes</h3>
+          <h3><svg lucideIcon="notebook-pen" aria-hidden="true"></svg> Notes</h3>
           <ul class="notes-list">
             @for (note of importantDayMeta().notes; track note) {
               <li>{{ note }}</li>

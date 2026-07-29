@@ -3,17 +3,19 @@
     <div class="snackbar" [class]="'snackbar-' + message()!.type" role="alert" aria-live="polite">
       <span class="snackbar-icon">
         @if (message()!.type === 'success') {
-          ✓
+          <svg lucideIcon="circle-check" aria-hidden="true"></svg>
         } @else if (message()!.type === 'error') {
-          ✕
+          <svg lucideIcon="circle-x" aria-hidden="true"></svg>
         } @else if (message()!.type === 'warning') {
-          ⚠
+          <svg lucideIcon="triangle-alert" aria-hidden="true"></svg>
         } @else {
-          ℹ
+          <svg lucideIcon="info" aria-hidden="true"></svg>
         }
       </span>
       <span class="snackbar-message">{{ message()!.message }}</span>
-      <button class="snackbar-close" (click)="close()" aria-label="Close notification" type="button">×</button>
+      <button class="snackbar-close" (click)="close()" aria-label="Close notification" type="button">
+        <svg lucideIcon="x" aria-hidden="true"></svg>
+      </button>
     </div>
   </div>
 }

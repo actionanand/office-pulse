@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { LucideDynamicIcon } from '@lucide/angular';
 
 @Component({
   selector: 'app-confirmation-popup',
   standalone: true,
+  imports: [LucideDynamicIcon],
   templateUrl: './confirmation-popup.component.html',
   styleUrl: './confirmation-popup.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

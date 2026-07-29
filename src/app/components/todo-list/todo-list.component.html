@@ -1,15 +1,19 @@
 <div class="todo-container">
   <div class="todo-header">
-    <h2>📋 Tasks</h2>
+    <h2><svg lucideIcon="list-checks" aria-hidden="true"></svg> Tasks</h2>
     <div class="date-navigation">
-      <button class="btn-nav" (click)="changeDate('prev')" title="Previous day">◀</button>
+      <button class="btn-nav" (click)="changeDate('prev')" title="Previous day" aria-label="Previous day">
+        <svg lucideIcon="chevron-left" aria-hidden="true"></svg>
+      </button>
       <div class="date-display">
         <span class="date-text">{{ getFormattedDate() }}</span>
         @if (!isToday()) {
           <button class="btn-today" (click)="goToToday()">Today</button>
         }
       </div>
-      <button class="btn-nav" (click)="changeDate('next')" title="Next day">▶</button>
+      <button class="btn-nav" (click)="changeDate('next')" title="Next day" aria-label="Next day">
+        <svg lucideIcon="chevron-right" aria-hidden="true"></svg>
+      </button>
     </div>
     <div class="header-actions">
       <button
@@ -18,13 +22,21 @@
         [disabled]="isSyncing()"
         title="Sync todos from Google Sheets">
         @if (isSyncing()) {
-          🔄 Syncing...
+          <svg class="lucide-spin" lucideIcon="loader-circle" aria-hidden="true"></svg>
+          Syncing...
         } @else {
-          📊 Sync Sheet
+          <svg lucideIcon="file-spreadsheet" aria-hidden="true"></svg>
+          Sync Sheet
         }
       </button>
-      <button class="btn btn-add" (click)="openAddForm()">+ Add Todo</button>
-      <button class="btn btn-clear" (click)="clearAllTodos()">Clear All</button>
+      <button class="btn btn-add" (click)="openAddForm()">
+        <svg lucideIcon="plus" aria-hidden="true"></svg>
+        Add Todo
+      </button>
+      <button class="btn btn-clear" (click)="clearAllTodos()">
+        <svg lucideIcon="brush-cleaning" aria-hidden="true"></svg>
+        Clear All
+      </button>
     </div>
   </div>
 
@@ -68,34 +80,58 @@
 
             <div class="badges badges-desktop">
               @if (todo.isDefaultTodo) {
-                <span class="source-badge default-badge">📌 Default</span>
+                <span class="source-badge default-badge">
+                  <svg lucideIcon="clipboard-check" aria-hidden="true"></svg>
+                  Default
+                </span>
               } @else {
-                <span class="source-badge custom-badge">✏️ Custom</span>
+                <span class="source-badge custom-badge">
+                  <svg lucideIcon="square-pen" aria-hidden="true"></svg>
+                  Custom
+                </span>
               }
               @if (todo.recurrenceType !== 'once') {
-                <span class="recurrence-badge">{{ getRecurrenceLabel(todo) }}</span>
+                <span class="recurrence-badge">
+                  <svg lucideIcon="repeat-2" aria-hidden="true"></svg>
+                  {{ getRecurrenceLabel(todo) }}
+                </span>
               }
             </div>
           </div>
 
           <div class="badges badges-mobile">
             @if (todo.isDefaultTodo) {
-              <span class="source-badge default-badge">📌 Default</span>
+              <span class="source-badge default-badge">
+                <svg lucideIcon="clipboard-check" aria-hidden="true"></svg>
+                Default
+              </span>
             } @else {
-              <span class="source-badge custom-badge">✏️ Custom</span>
+              <span class="source-badge custom-badge">
+                <svg lucideIcon="square-pen" aria-hidden="true"></svg>
+                Custom
+              </span>
             }
             @if (todo.recurrenceType !== 'once') {
-              <span class="recurrence-badge">{{ getRecurrenceLabel(todo) }}</span>
+              <span class="recurrence-badge">
+                <svg lucideIcon="repeat-2" aria-hidden="true"></svg>
+                {{ getRecurrenceLabel(todo) }}
+              </span>
             }
           </div>
 
           <div class="todo-actions">
             @if (!todo.isDefaultTodo) {
               @if (isEditing(todo.id)) {
-                <button class="btn-action btn-save" (click)="saveEdit(todo.id)" title="Save">✓</button>
-                <button class="btn-action btn-cancel" (click)="cancelEdit()" title="Cancel">✕</button>
+                <button class="btn-action btn-save" (click)="saveEdit(todo.id)" title="Save" aria-label="Save todo">
+                  <svg lucideIcon="check" aria-hidden="true"></svg>
+                </button>
+                <button class="btn-action btn-cancel" (click)="cancelEdit()" title="Cancel" aria-label="Cancel edit">
+                  <svg lucideIcon="x" aria-hidden="true"></svg>
+                </button>
               } @else {
-                <button class="btn-action btn-edit" (click)="startEditTodo(todo)" title="Edit">✏️</button>
+                <button class="btn-action btn-edit" (click)="startEditTodo(todo)" title="Edit" aria-label="Edit todo">
+                  <svg lucideIcon="pencil" aria-hidden="true"></svg>
+                </button>
               }
             }
             <button
@@ -103,7 +139,7 @@
               (click)="deleteTodo(todo.id)"
               title="Delete todo"
               [disabled]="todo.isDefaultTodo">
-              🗑️
+              <svg lucideIcon="trash-2" aria-hidden="true"></svg>
             </button>
           </div>
         </div>

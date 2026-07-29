@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { TicketTrackingService } from '../../services/ticket-tracking.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { DemoTicket, ReleaseTicket, SpilloverTicket, TrackedTicket } from '../../models/ticket-tracking.model';
@@ -9,7 +10,7 @@ type TabType = 'demo' | 'release' | 'spillover' | 'tracked';
 
 @Component({
   selector: 'app-ticket-tracking',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon],
   templateUrl: './ticket-tracking.component.html',
   styleUrls: ['./ticket-tracking.component.scss'],
 })

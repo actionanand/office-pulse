@@ -9,7 +9,6 @@ export const lockGuard: CanActivateFn = (_route, state) => {
   const isAuthenticated = lockService.checkAuthentication();
 
   if (!isAuthenticated) {
-    // Show lock screen
     lockService.setPendingUrl(state.url);
     lockService.showLock();
     return false;

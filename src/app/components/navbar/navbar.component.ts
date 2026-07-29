@@ -1,10 +1,11 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { LucideDynamicIcon } from '@lucide/angular';
+import { visibleNavigationItems } from '../../config/navigation.config';
 
 @Component({
   selector: 'app-navbar',
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, LucideDynamicIcon],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -12,6 +13,8 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 export class NavbarComponent {
   readonly isMenuOpen = signal(false);
   readonly isDropdownOpen = signal(false);
+  readonly primaryNavigationItems = visibleNavigationItems('primary');
+  readonly moreNavigationItems = visibleNavigationItems('more');
 
   toggleMenu(): void {
     this.isMenuOpen.update(v => !v);

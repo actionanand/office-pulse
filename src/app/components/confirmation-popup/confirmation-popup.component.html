@@ -7,7 +7,7 @@
     (click)="$event.stopPropagation()"
     (keydown)="$event.stopPropagation()">
     <header class="confirm-header">
-      <span class="confirm-icon material-symbols-rounded" aria-hidden="true">warning</span>
+      <svg class="confirm-icon" lucideIcon="triangle-alert" aria-hidden="true"></svg>
       <div>
         <h2 id="confirmation-popup-title">{{ title }}</h2>
         <p>{{ message }}</p>
@@ -16,11 +16,11 @@
 
     <footer class="confirm-actions">
       <button type="button" class="ghost-button icon-text-button" (click)="cancelled.emit()">
-        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        <svg lucideIcon="x" aria-hidden="true"></svg>
         Cancel
       </button>
       <button type="button" class="danger-button icon-text-button" (click)="confirmed.emit()">
-        <span class="material-symbols-rounded" aria-hidden="true">check</span>
+        <svg lucideIcon="check" aria-hidden="true"></svg>
         {{ confirmLabel }}
       </button>
     </footer>

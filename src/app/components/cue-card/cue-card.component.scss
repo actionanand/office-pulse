@@ -197,21 +197,6 @@ button:focus-visible,
   padding: 0.35rem;
 }
 
-.material-symbols-rounded {
-  font-family: 'Material Symbols Rounded';
-  font-size: 1.2rem;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: 0;
-  text-transform: none;
-  white-space: nowrap;
-  direction: ltr;
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
-  -webkit-font-smoothing: antialiased;
-}
-
 .icon-text-button {
   display: inline-flex;
   align-items: center;
@@ -575,7 +560,7 @@ button:focus-visible,
 .detail-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 1200;
   display: grid;
   place-items: center;
   padding: 1rem;
@@ -585,11 +570,11 @@ button:focus-visible,
 .detail-card {
   position: relative;
   display: grid;
-  align-content: start;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 1rem;
   width: min(820px, 100%);
-  max-height: min(760px, calc(100vh - 2rem));
-  overflow: auto;
+  max-height: min(760px, calc(100dvh - 2rem));
+  overflow: hidden;
   padding: 1.1rem;
   border-radius: 8px;
   border: 1px solid #e4e7ec;
@@ -644,6 +629,16 @@ button:focus-visible,
 .detail-content {
   align-self: start;
   padding: 0.1rem 0;
+}
+
+.detail-scroll-area {
+  display: grid;
+  min-height: 0;
+  gap: 1rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.2rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .detail-table-section {

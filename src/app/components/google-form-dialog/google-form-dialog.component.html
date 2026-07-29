@@ -12,7 +12,9 @@
       aria-modal="true">
       <div class="form-dialog-header">
         <h2>{{ dialogTitle() }}</h2>
-        <button class="close-btn" (click)="onCloseWithoutSubmit()" aria-label="Close dialog">✕</button>
+        <button class="close-btn" (click)="onCloseWithoutSubmit()" aria-label="Close dialog">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
       </div>
 
       <div class="form-dialog-body">

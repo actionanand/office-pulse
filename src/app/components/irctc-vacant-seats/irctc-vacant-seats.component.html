@@ -2,21 +2,32 @@
   <!-- Header -->
   <div class="header">
     <div class="title-section">
-      <h1>🚆 IRCTC Vacant Seats</h1>
+      <h1><svg lucideIcon="train-front" aria-hidden="true"></svg> IRCTC Vacant Seats</h1>
       <p class="subtitle">Find vacant berths for a comfortable journey</p>
     </div>
     <div class="header-actions">
       <a href="https://www.irctc.co.in/online-charts/" target="_blank" rel="noopener noreferrer" class="irctc-link-btn">
-        🌐 IRCTC Charts
+        <svg lucideIcon="globe" aria-hidden="true"></svg>
+        IRCTC Charts
       </a>
       <div class="view-toggle no-print">
-        <button class="toggle-btn" [class.active]="view() === 'cards'" (click)="view.set('cards')">🃏 Cards</button>
-        <button class="toggle-btn" [class.active]="view() === 'table'" (click)="view.set('table')">📋 Table</button>
+        <button class="toggle-btn" [class.active]="view() === 'cards'" (click)="view.set('cards')">
+          <svg lucideIcon="layout-grid" aria-hidden="true"></svg>
+          Cards
+        </button>
+        <button class="toggle-btn" [class.active]="view() === 'table'" (click)="view.set('table')">
+          <svg lucideIcon="table" aria-hidden="true"></svg>
+          Table
+        </button>
       </div>
       <button class="refresh-btn no-print" (click)="refresh()" [disabled]="loading()">
-        <span class="refresh-icon">↻</span> Refresh
+        <svg class="refresh-icon" lucideIcon="refresh-cw" aria-hidden="true"></svg>
+        Refresh
       </button>
-      <button class="print-btn no-print" (click)="printPage()" [disabled]="loading()">🖨️ Print / PDF</button>
+      <button class="print-btn no-print" (click)="printPage()" [disabled]="loading()">
+        <svg lucideIcon="printer" aria-hidden="true"></svg>
+        Print / PDF
+      </button>
     </div>
   </div>
 
@@ -27,7 +38,7 @@
     </div>
   } @else if (error()) {
     <div class="error-container">
-      <p class="error-message">⚠️ {{ error() }}</p>
+      <p class="error-message"><svg lucideIcon="triangle-alert" aria-hidden="true"></svg> {{ error() }}</p>
       <button class="refresh-btn" (click)="refresh()">Try Again</button>
     </div>
   } @else {
@@ -50,7 +61,7 @@
     <!-- Station Route Timeline -->
     @if (sortedStations().length > 0) {
       <div class="route-section">
-        <h3 class="section-title">🛤️ Route Timeline</h3>
+        <h3 class="section-title"><svg lucideIcon="route" aria-hidden="true"></svg> Route Timeline</h3>
         <div class="route-timeline">
           @for (station of sortedStations(); track station.place; let last = $last) {
             <div class="station-stop">
@@ -92,7 +103,7 @@
     @if (view() === 'cards') {
       @if (sortedEntries().length === 0) {
         <div class="empty-state">
-          <span class="empty-icon">🎫</span>
+          <svg class="empty-icon" lucideIcon="ticket" aria-hidden="true"></svg>
           <p>No vacant seat entries found.</p>
         </div>
       } @else {
@@ -132,7 +143,7 @@
                         </span>
                       }
                     </div>
-                    <span class="arrow">→</span>
+                    <svg class="arrow" lucideIcon="arrow-right" aria-hidden="true"></svg>
                     <div class="station to">
                       <span class="station-label">To</span>
                       <span class="station-value">{{ entry.toStation }}</span>
@@ -223,7 +234,7 @@
 
     <!-- Note -->
     <div class="data-note no-print">
-      <h4>📋 Data Entry Guide</h4>
+      <h4><svg lucideIcon="clipboard-list" aria-hidden="true"></svg> Data Entry Guide</h4>
       <ul>
         <li><strong>Seat:</strong> Single number (40), comma-separated (51, 53, 54), or range with hyphen (1-3).</li>
         <li><strong>Time:</strong> 24-hour decimal format — e.g. 21.40 = 9:40 PM, 2.30 = 2:30 AM.</li>

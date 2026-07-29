@@ -405,14 +405,15 @@
   }
 
   &::after {
-    content: '✓';
+    content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -60%) rotate(45deg);
     opacity: 0;
     transition: opacity 0.15s;
   }

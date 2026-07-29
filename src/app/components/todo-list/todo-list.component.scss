@@ -53,7 +53,7 @@
     }
   }
 
-  input[type="checkbox"] {
+  input[type='checkbox'] {
     display: none;
   }
 
@@ -74,24 +74,25 @@
     transition: all 0.3s ease;
 
     &::after {
-      content: '✓';
+      content: '';
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: translate(-50%, -60%) rotate(45deg) scale(0);
       transition: transform 0.2s ease;
     }
   }
 
-  input[type="checkbox"]:checked + .todo-checkbox-label .checkbox-custom {
+  input[type='checkbox']:checked + .todo-checkbox-label .checkbox-custom {
     background: #3498db;
     border-color: #3498db;
 
     &::after {
-      transform: translate(-50%, -50%) scale(1);
+      transform: translate(-50%, -60%) rotate(45deg) scale(1);
     }
   }
 
@@ -153,12 +154,12 @@
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
-    
+
     &.default-badge {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
     }
-    
+
     &.custom-badge {
       background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
       color: white;
@@ -380,8 +381,6 @@
     }
   }
 
-
-
   .todo-list {
     gap: 0.5rem;
   }
@@ -395,7 +394,7 @@
     align-items: start;
 
     // Hide the native checkbox
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       display: none;
     }
 

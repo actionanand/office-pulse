@@ -1,23 +1,28 @@
 <div class="seating-chart-container">
   <div class="header">
     <div class="title-section">
-      <h1>🪑 Seating Chart</h1>
+      <h1><svg lucideIcon="armchair" aria-hidden="true"></svg> Seating Chart</h1>
       <p class="subtitle">WFO seat allocations</p>
     </div>
     <div class="header-actions">
       @if (view() === 'detail') {
-        <button class="back-btn" (click)="backToOverview()"><span>←</span> Calendar</button>
+        <button class="back-btn" (click)="backToOverview()">
+          <svg lucideIcon="arrow-left" aria-hidden="true"></svg>
+          Calendar
+        </button>
       }
       <div class="view-toggle">
         <button class="toggle-btn" [class.active]="view() === 'overview'" (click)="view.set('overview')">
-          📅 Overview
+          <svg lucideIcon="calendar-days" aria-hidden="true"></svg>
+          Overview
         </button>
         <button class="toggle-btn" [class.active]="view() === 'detail'" (click)="view.set('detail')">
-          🔍 Day View
+          <svg lucideIcon="search" aria-hidden="true"></svg>
+          Day View
         </button>
       </div>
       <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
-        <span class="refresh-icon">↻</span>
+        <svg class="refresh-icon" lucideIcon="refresh-cw" aria-hidden="true"></svg>
         Refresh
       </button>
     </div>
@@ -30,14 +35,14 @@
     </div>
   } @else if (error()) {
     <div class="error-container">
-      <p class="error-message">⚠️ {{ error() }}</p>
+      <p class="error-message"><svg lucideIcon="triangle-alert" aria-hidden="true"></svg> {{ error() }}</p>
       <button class="refresh-btn" (click)="refresh()">Try Again</button>
     </div>
   } @else if (view() === 'overview') {
     <!-- ====== CALENDAR OVERVIEW ====== -->
     @if (calendarMonths().length === 0) {
       <div class="empty-state">
-        <span class="empty-icon">🏢</span>
+        <svg class="empty-icon" lucideIcon="building-2" aria-hidden="true"></svg>
         <p>No seat allocations found.</p>
       </div>
     } @else {
@@ -81,7 +86,7 @@
               }
             </div>
             @if (cal.seatSummary) {
-              <div class="seat-summary">🪑 {{ cal.seatSummary }}</div>
+              <div class="seat-summary"><svg lucideIcon="armchair" aria-hidden="true"></svg> {{ cal.seatSummary }}</div>
             }
           </div>
         }
@@ -112,7 +117,7 @@
 
     @if (entriesForDate().length === 0) {
       <div class="empty-state">
-        <span class="empty-icon">🏢</span>
+        <svg class="empty-icon" lucideIcon="building-2" aria-hidden="true"></svg>
         <p>No seat allocations found for this date.</p>
       </div>
     } @else {
@@ -124,21 +129,21 @@
           <div class="seat-card">
             <div class="seat-header">
               <div class="seat-number">
-                <span class="seat-icon">🪑</span>
+                <svg class="seat-icon" lucideIcon="armchair" aria-hidden="true"></svg>
                 <span class="seat-label">Seat {{ entry.seatNumber }}</span>
               </div>
               <div class="floor-badge">Floor {{ entry.floor }}</div>
             </div>
             <div class="seat-body">
               <div class="seat-info-row">
-                <span class="info-icon">🏢</span>
+                <svg class="info-icon" lucideIcon="building-2" aria-hidden="true"></svg>
                 <div class="info-content">
                   <span class="info-label">Organization</span>
                   <span class="info-value">{{ entry.organization }}</span>
                 </div>
               </div>
               <div class="seat-info-row">
-                <span class="info-icon">📍</span>
+                <svg class="info-icon" lucideIcon="map-pin" aria-hidden="true"></svg>
                 <div class="info-content">
                   <span class="info-label">Venue</span>
                   <span class="info-value">{{ entry.venue }}</span>
@@ -154,7 +159,7 @@
                 </div>
               }
               <div class="seat-info-row">
-                <span class="info-icon">📅</span>
+                <svg class="info-icon" lucideIcon="calendar-days" aria-hidden="true"></svg>
                 <div class="info-content">
                   <span class="info-label">{{ entry.dateRangeDisplay ? 'Date Range' : 'Date' }}</span>
                   <span class="info-value">{{ getDateLabel(entry) }}</span>
@@ -162,7 +167,7 @@
               </div>
               @if (entry.notes) {
                 <div class="seat-info-row notes-row">
-                  <span class="info-icon">📝</span>
+                  <svg class="info-icon" lucideIcon="notebook-pen" aria-hidden="true"></svg>
                   <div class="info-content">
                     <span class="info-label">Notes</span>
                     <span class="info-value">{{ entry.notes }}</span>
@@ -178,7 +183,7 @@
 
   <!-- Data Entry Guide -->
   <div class="data-entry-guide">
-    <h3 class="guide-title">📋 Data Entry Guide</h3>
+    <h3 class="guide-title"><svg lucideIcon="clipboard-list" aria-hidden="true"></svg> Data Entry Guide</h3>
     <p class="guide-intro">Supported date formats when entering data in the Google Sheet:</p>
     <div class="guide-grid">
       <div class="guide-item">
@@ -202,6 +207,9 @@
         </ul>
       </div>
     </div>
-    <p class="guide-note">⚠️ Leave Column G empty when using Column H (Date Range), and vice versa.</p>
+    <p class="guide-note">
+      <svg lucideIcon="triangle-alert" aria-hidden="true"></svg>
+      Leave Column G empty when using Column H (Date Range), and vice versa.
+    </p>
   </div>
 </div>

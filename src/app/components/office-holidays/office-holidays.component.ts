@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { HolidayService } from '../../services/holiday.service';
 import { ImportantDayService } from '../../services/important-day.service';
 import { Holiday, HolidayMeta } from '../../models/holiday.model';
@@ -9,10 +10,10 @@ type TabType = 'holidays' | 'important-days';
 
 @Component({
   selector: 'app-office-holidays',
-  imports: [CommonModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './office-holidays.component.html',
   styleUrl: './office-holidays.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OfficeHolidaysComponent implements OnInit {
   private holidayService = inject(HolidayService);
@@ -26,7 +27,7 @@ export class OfficeHolidaysComponent implements OnInit {
   readonly holidayMeta = signal<HolidayMeta>({
     title: 'Office Holidays',
     year: new Date().getFullYear().toString(),
-    notes: []
+    notes: [],
   });
   readonly isHolidaysLoading = signal(true);
   readonly holidaysError = signal<string | null>(null);
@@ -35,7 +36,7 @@ export class OfficeHolidaysComponent implements OnInit {
   readonly importantDays = signal<ImportantDay[]>([]);
   readonly importantDayMeta = signal<ImportantDayMeta>({
     year: new Date().getFullYear().toString(),
-    notes: []
+    notes: [],
   });
   readonly isImportantDaysLoading = signal(true);
   readonly importantDaysError = signal<string | null>(null);
@@ -54,16 +55,16 @@ export class OfficeHolidaysComponent implements OnInit {
     this.holidaysError.set(null);
 
     this.holidayService.fetchHolidays().subscribe({
-      next: (data) => {
+      next: data => {
         this.holidays.set(data.holidays);
         this.holidayMeta.set(data.meta);
         this.isHolidaysLoading.set(false);
       },
-      error: (err) => {
+      error: err => {
         console.error('Error loading holidays:', err);
         this.holidaysError.set('Failed to load holidays. Please try again.');
         this.isHolidaysLoading.set(false);
-      }
+      },
     });
   }
 
@@ -72,16 +73,16 @@ export class OfficeHolidaysComponent implements OnInit {
     this.importantDaysError.set(null);
 
     this.importantDayService.fetchImportantDays().subscribe({
-      next: (data) => {
+      next: data => {
         this.importantDays.set(data.days);
         this.importantDayMeta.set(data.meta);
         this.isImportantDaysLoading.set(false);
       },
-      error: (err) => {
+      error: err => {
         console.error('Error loading important days:', err);
         this.importantDaysError.set('Failed to load important days. Please try again.');
         this.isImportantDaysLoading.set(false);
-      }
+      },
     });
   }
 
@@ -103,19 +104,17 @@ export class OfficeHolidaysComponent implements OnInit {
   }
 
   isLoading(): boolean {
-    return this.activeTab() === 'holidays' 
-      ? this.isHolidaysLoading() 
-      : this.isImportantDaysLoading();
+    return this.activeTab() === 'holidays' ? this.isHolidaysLoading() : this.isImportantDaysLoading();
   }
 
   isPastDate(dateStr: string): boolean {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const targetDate = new Date(dateStr);
       targetDate.setHours(0, 0, 0, 0);
-      
+
       return targetDate < today;
     } catch {
       return false;
@@ -126,9 +125,8 @@ export class OfficeHolidaysComponent implements OnInit {
     try {
       const today = new Date();
       const targetDate = new Date(dateStr);
-      
-      return targetDate.getMonth() === today.getMonth() && 
-             targetDate.getFullYear() === today.getFullYear();
+
+      return targetDate.getMonth() === today.getMonth() && targetDate.getFullYear() === today.getFullYear();
     } catch {
       return false;
     }
@@ -139,9 +137,8 @@ export class OfficeHolidaysComponent implements OnInit {
       const today = new Date();
       const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
       const targetDate = new Date(dateStr);
-      
-      return targetDate.getMonth() === nextMonth.getMonth() && 
-             targetDate.getFullYear() === nextMonth.getFullYear();
+
+      return targetDate.getMonth() === nextMonth.getMonth() && targetDate.getFullYear() === nextMonth.getFullYear();
     } catch {
       return false;
     }
@@ -151,14 +148,14 @@ export class OfficeHolidaysComponent implements OnInit {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const targetDate = new Date(dateStr);
       targetDate.setHours(0, 0, 0, 0);
-      
+
       // Check if within next 7 days
       const weekFromNow = new Date(today);
       weekFromNow.setDate(weekFromNow.getDate() + 7);
-      
+
       return targetDate >= today && targetDate <= weekFromNow;
     } catch {
       return false;
@@ -169,13 +166,13 @@ export class OfficeHolidaysComponent implements OnInit {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      
+
       const targetDate = new Date(dateStr);
       targetDate.setHours(0, 0, 0, 0);
-      
+
       return targetDate.getTime() === tomorrow.getTime();
     } catch {
       return false;
@@ -186,10 +183,10 @@ export class OfficeHolidaysComponent implements OnInit {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const targetDate = new Date(dateStr);
       targetDate.setHours(0, 0, 0, 0);
-      
+
       return targetDate.getTime() === today.getTime();
     } catch {
       return false;

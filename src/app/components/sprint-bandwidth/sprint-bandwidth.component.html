@@ -24,26 +24,35 @@
     </div>
     <div class="header-actions">
       @if (config().sprintStarted) {
-        <button class="btn btn-sprint started" (click)="completeSprint()">✅ Complete Sprint</button>
+        <button class="btn btn-sprint started" (click)="completeSprint()">
+          <svg lucideIcon="circle-check" aria-hidden="true"></svg>
+          Complete Sprint
+        </button>
       } @else if (config().sprintCompleted) {
         <button
           class="btn btn-new-sprint"
           (click)="startNewSprint()"
           title="Start new sprint (moves marked tasks to spillover)">
-          🆕 New Sprint
+          <svg lucideIcon="circle-plus" aria-hidden="true"></svg>
+          New Sprint
         </button>
       } @else {
-        <button class="btn btn-sprint" (click)="startSprint()">🚀 Start Sprint</button>
+        <button class="btn btn-sprint" (click)="startSprint()">
+          <svg lucideIcon="rocket" aria-hidden="true"></svg>
+          Start Sprint
+        </button>
       }
       <button
         class="btn btn-clear"
         (click)="clearAll()"
         [disabled]="config().sprintStarted"
         title="Clear all except team name">
-        🧹 Clear
+        <svg lucideIcon="brush-cleaning" aria-hidden="true"></svg>
+        Clear
       </button>
       <button class="btn btn-reset" (click)="resetAll()" [disabled]="config().sprintStarted" title="Reset everything">
-        🔄 Reset
+        <svg lucideIcon="rotate-ccw" aria-hidden="true"></svg>
+        Reset
       </button>
     </div>
   </div>
@@ -51,7 +60,7 @@
   <!-- Configuration Section -->
   <div class="config-section">
     <div class="config-header">
-      <h3>⚙️ Sprint Configuration</h3>
+      <h3><svg lucideIcon="settings" aria-hidden="true"></svg> Sprint Configuration</h3>
       @if (config().sprintStarted && getSprintDaysRemaining() >= 0) {
         <div class="sprint-countdown">
           <span class="countdown-label">Days Remaining:</span>
@@ -93,7 +102,8 @@
           class="btn btn-sm btn-add-holiday"
           (click)="openWeekoffForm()"
           [disabled]="config().sprintStarted">
-          📅 Configure
+          <svg lucideIcon="calendar-days" aria-hidden="true"></svg>
+          Configure
         </button>
       </div>
       <div class="config-item">
@@ -116,14 +126,16 @@
             class="btn btn-sm btn-add-holiday"
             (click)="openHolidayForm()"
             [disabled]="config().sprintStarted">
-            ➕ Add Day
+            <svg lucideIcon="plus" aria-hidden="true"></svg>
+            Add Day
           </button>
           <button
             class="btn btn-sm btn-add-holiday"
             (click)="openHolidayRangeForm()"
             [disabled]="config().sprintStarted || !config().sprintEndDate"
             [title]="!config().sprintEndDate ? 'Set sprint end date first' : 'Add holiday range'">
-            📅 Add Range
+            <svg lucideIcon="calendar-plus" aria-hidden="true"></svg>
+            Add Range
           </button>
         </div>
       </div>
@@ -135,7 +147,9 @@
         @for (holiday of config().holidays; track holiday) {
           <span class="holiday-chip">
             {{ formatDate(holiday) }}
-            <button class="chip-remove" (click)="removeHoliday(holiday)">×</button>
+            <button class="chip-remove" (click)="removeHoliday(holiday)" aria-label="Remove holiday">
+              <svg lucideIcon="x" aria-hidden="true"></svg>
+            </button>
           </span>
         }
       </div>
@@ -144,7 +158,7 @@
 
   <!-- Bandwidth Summary -->
   <div class="summary-section" [class]="bandwidthStatus()">
-    <h3>📊 Bandwidth Summary</h3>
+    <h3><svg lucideIcon="chart-no-axes-column" aria-hidden="true"></svg> Bandwidth Summary</h3>
     <div class="summary-grid">
       <div class="summary-card available">
         <span class="summary-value">{{ summary().availableDays }}</span>
@@ -198,10 +212,16 @@
   <!-- Tasks Section -->
   <div class="tasks-section">
     <div class="tasks-header">
-      <h3>📋 Sprint Tasks</h3>
-      <button class="btn btn-add" (click)="openAddTaskForm(false)">➕ Add Task</button>
+      <h3><svg lucideIcon="clipboard-list" aria-hidden="true"></svg> Sprint Tasks</h3>
+      <button class="btn btn-add" (click)="openAddTaskForm(false)">
+        <svg lucideIcon="plus" aria-hidden="true"></svg>
+        Add Task
+      </button>
       @if (!config().sprintStarted || config().sprintCompleted) {
-        <button class="btn btn-clear-section" (click)="clearAllTasks(false)">🧹 Clear All</button>
+        <button class="btn btn-clear-section" (click)="clearAllTasks(false)">
+          <svg lucideIcon="brush-cleaning" aria-hidden="true"></svg>
+          Clear All
+        </button>
       }
     </div>
 
@@ -216,16 +236,20 @@
             <div class="task-info">
               <span class="task-name">{{ task.name }}</span>
               @if (isTaskAddedAfterSprintStart(task)) {
-                <span class="new-task-badge" title="Added after sprint started">✨ New</span>
+                <span class="new-task-badge" title="Added after sprint started">
+                  <svg lucideIcon="sparkles" aria-hidden="true"></svg>
+                  New
+                </span>
               }
               @if (task.jiraLink) {
                 <button class="jira-link" (click)="openJiraLink(sanitizeUrl(task.jiraLink))" title="Open Jira">
-                  🔗
+                  <svg lucideIcon="external-link" aria-hidden="true"></svg>
                 </button>
               }
               @if (task.deadline) {
                 <span class="task-deadline" [class.urgent]="isDeadlineUrgent(task.deadline)">
-                  📅 {{ getDeadlineText(task.deadline) }}
+                  <svg lucideIcon="calendar-clock" aria-hidden="true"></svg>
+                  {{ getDeadlineText(task.deadline) }}
                 </span>
               }
             </div>
@@ -236,14 +260,16 @@
             @if (config().sprintStarted && task.status !== 'cancelled') {
               <div class="task-status-workflow">
                 <span class="status-badge" [attr.data-status]="task.status">
-                  {{ getStatusIcon(task.status) }} {{ getStatusLabel(task.status) }}
+                  <svg [lucideIcon]="getStatusIcon(task.status)" aria-hidden="true"></svg>
+                  {{ getStatusLabel(task.status) }}
                 </span>
                 @if (getNextStatus(task.status)) {
                   <button
                     class="btn-status-next"
                     (click)="updateTaskStatus(task.id, getNextStatus(task.status)!)"
                     title="Move to {{ getStatusLabel(getNextStatus(task.status)!) }}">
-                    → {{ getStatusLabel(getNextStatus(task.status)!) }}
+                    <svg lucideIcon="move-right" aria-hidden="true"></svg>
+                    {{ getStatusLabel(getNextStatus(task.status)!) }}
                   </button>
                 }
                 @if (task.status !== 'completed') {
@@ -251,12 +277,14 @@
                     class="btn-status-complete"
                     (click)="updateTaskStatus(task.id, 'completed')"
                     title="Mark as completed">
-                    ✅ Complete
+                    <svg lucideIcon="circle-check" aria-hidden="true"></svg>
+                    Complete
                   </button>
                 }
                 @if (canReopenTask(task.status)) {
                   <button class="btn-status-reopen" (click)="updateTaskStatus(task.id, 'reopened')" title="Reopen task">
-                    🔄 Reopen
+                    <svg lucideIcon="rotate-ccw" aria-hidden="true"></svg>
+                    Reopen
                   </button>
                 }
                 @if (canCancelTask(task.status)) {
@@ -264,7 +292,8 @@
                     class="btn-status-cancel"
                     (click)="cancelTask(task.id)"
                     title="Cancel task (cannot be reopened)">
-                    ❌ Cancel
+                    <svg lucideIcon="ban" aria-hidden="true"></svg>
+                    Cancel
                   </button>
                 }
               </div>
@@ -276,24 +305,31 @@
                   (click)="moveTaskToNextSprint(task.id)"
                   title="Mark to move to next sprint">
                   @if (task.moveToNextSprint) {
-                    ✓ Marked
+                    <svg lucideIcon="check" aria-hidden="true"></svg>
+                    Marked
                   } @else {
-                    ➡️ Move
+                    <svg lucideIcon="move-right" aria-hidden="true"></svg>
+                    Move
                   }
                 </button>
               </div>
             } @else if (task.status === 'cancelled') {
               <div class="task-status-cancelled">
                 <span class="status-badge" [attr.data-status]="'cancelled'">
-                  {{ getStatusIcon('cancelled') }} Cancelled
+                  <svg [lucideIcon]="getStatusIcon('cancelled')" aria-hidden="true"></svg>
+                  Cancelled
                 </span>
               </div>
             }
 
             @if (!config().sprintStarted && !config().sprintCompleted) {
               <div class="task-actions">
-                <button class="btn-icon" (click)="startEditTask(task)" title="Edit">✏️</button>
-                <button class="btn-icon" (click)="deleteTask(task.id)" title="Delete">🗑️</button>
+                <button class="btn-icon" (click)="startEditTask(task)" title="Edit" aria-label="Edit task">
+                  <svg lucideIcon="pencil" aria-hidden="true"></svg>
+                </button>
+                <button class="btn-icon" (click)="deleteTask(task.id)" title="Delete" aria-label="Delete task">
+                  <svg lucideIcon="trash-2" aria-hidden="true"></svg>
+                </button>
               </div>
             }
           </div>
@@ -305,12 +341,16 @@
   <!-- Spillover Section -->
   <div class="tasks-section spillover-section">
     <div class="tasks-header">
-      <h3>🔄 Spillover Stories</h3>
+      <h3><svg lucideIcon="rotate-ccw" aria-hidden="true"></svg> Spillover Stories</h3>
       <button class="btn btn-add spillover-btn" (click)="openAddTaskForm(true)" [disabled]="config().sprintStarted">
-        ➕ Add Spillover
+        <svg lucideIcon="plus" aria-hidden="true"></svg>
+        Add Spillover
       </button>
       @if (!config().sprintStarted || config().sprintCompleted) {
-        <button class="btn btn-clear-section" (click)="clearAllTasks(true)">🧹 Clear All</button>
+        <button class="btn btn-clear-section" (click)="clearAllTasks(true)">
+          <svg lucideIcon="brush-cleaning" aria-hidden="true"></svg>
+          Clear All
+        </button>
       }
     </div>
 
@@ -325,16 +365,20 @@
             <div class="task-info">
               <span class="task-name">{{ task.name }}</span>
               @if (isTaskAddedAfterSprintStart(task)) {
-                <span class="new-task-badge" title="Added after sprint started">✨ New</span>
+                <span class="new-task-badge" title="Added after sprint started">
+                  <svg lucideIcon="sparkles" aria-hidden="true"></svg>
+                  New
+                </span>
               }
               @if (task.jiraLink) {
                 <button class="jira-link" (click)="openJiraLink(sanitizeUrl(task.jiraLink))" title="Open Jira">
-                  🔗
+                  <svg lucideIcon="external-link" aria-hidden="true"></svg>
                 </button>
               }
               @if (task.deadline) {
                 <span class="task-deadline" [class.urgent]="isDeadlineUrgent(task.deadline)">
-                  📅 {{ getDeadlineText(task.deadline) }}
+                  <svg lucideIcon="calendar-clock" aria-hidden="true"></svg>
+                  {{ getDeadlineText(task.deadline) }}
                 </span>
               }
             </div>
@@ -347,14 +391,16 @@
             @if (config().sprintStarted && task.status !== 'cancelled') {
               <div class="task-status-workflow">
                 <span class="status-badge" [attr.data-status]="task.status">
-                  {{ getStatusIcon(task.status) }} {{ getStatusLabel(task.status) }}
+                  <svg [lucideIcon]="getStatusIcon(task.status)" aria-hidden="true"></svg>
+                  {{ getStatusLabel(task.status) }}
                 </span>
                 @if (getNextStatus(task.status)) {
                   <button
                     class="btn-status-next"
                     (click)="updateTaskStatus(task.id, getNextStatus(task.status)!)"
                     title="Move to {{ getStatusLabel(getNextStatus(task.status)!) }}">
-                    → {{ getStatusLabel(getNextStatus(task.status)!) }}
+                    <svg lucideIcon="move-right" aria-hidden="true"></svg>
+                    {{ getStatusLabel(getNextStatus(task.status)!) }}
                   </button>
                 }
                 @if (task.status !== 'completed') {
@@ -362,12 +408,14 @@
                     class="btn-status-complete"
                     (click)="updateTaskStatus(task.id, 'completed')"
                     title="Mark as completed">
-                    ✅ Complete
+                    <svg lucideIcon="circle-check" aria-hidden="true"></svg>
+                    Complete
                   </button>
                 }
                 @if (canReopenTask(task.status)) {
                   <button class="btn-status-reopen" (click)="updateTaskStatus(task.id, 'reopened')" title="Reopen task">
-                    🔄 Reopen
+                    <svg lucideIcon="rotate-ccw" aria-hidden="true"></svg>
+                    Reopen
                   </button>
                 }
                 @if (canCancelTask(task.status)) {
@@ -375,7 +423,8 @@
                     class="btn-status-cancel"
                     (click)="cancelTask(task.id)"
                     title="Cancel task (cannot be reopened)">
-                    ❌ Cancel
+                    <svg lucideIcon="ban" aria-hidden="true"></svg>
+                    Cancel
                   </button>
                 }
               </div>
@@ -387,24 +436,31 @@
                   (click)="moveTaskToNextSprint(task.id)"
                   title="Mark to move to next sprint">
                   @if (task.moveToNextSprint) {
-                    ✓ Marked
+                    <svg lucideIcon="check" aria-hidden="true"></svg>
+                    Marked
                   } @else {
-                    ➡️ Move
+                    <svg lucideIcon="move-right" aria-hidden="true"></svg>
+                    Move
                   }
                 </button>
               </div>
             } @else if (task.status === 'cancelled') {
               <div class="task-status-cancelled">
                 <span class="status-badge" [attr.data-status]="'cancelled'">
-                  {{ getStatusIcon('cancelled') }} Cancelled
+                  <svg [lucideIcon]="getStatusIcon('cancelled')" aria-hidden="true"></svg>
+                  Cancelled
                 </span>
               </div>
             }
 
             @if (!config().sprintStarted && !config().sprintCompleted) {
               <div class="task-actions">
-                <button class="btn-icon" (click)="startEditTask(task)" title="Edit">✏️</button>
-                <button class="btn-icon" (click)="deleteTask(task.id)" title="Delete">🗑️</button>
+                <button class="btn-icon" (click)="startEditTask(task)" title="Edit" aria-label="Edit task">
+                  <svg lucideIcon="pencil" aria-hidden="true"></svg>
+                </button>
+                <button class="btn-icon" (click)="deleteTask(task.id)" title="Delete" aria-label="Delete task">
+                  <svg lucideIcon="trash-2" aria-hidden="true"></svg>
+                </button>
               </div>
             }
           </div>

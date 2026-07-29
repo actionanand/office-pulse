@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { AchievementService } from '../../services/achievement.service';
 import { AchievementsByYear, AchievementFormData } from '../../models/achievement.model';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
@@ -8,7 +9,7 @@ import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-achievements',
-  imports: [CommonModule, FormsModule, GoogleFormDialogComponent],
+  imports: [CommonModule, FormsModule, GoogleFormDialogComponent, LucideDynamicIcon],
   templateUrl: './achievements.component.html',
   styleUrl: './achievements.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

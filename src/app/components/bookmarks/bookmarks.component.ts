@@ -1,12 +1,13 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { BookmarkService } from '../../services/bookmark.service';
 import { Bookmark } from '../../models/bookmark.model';
 import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-bookmarks',
-  imports: [CommonModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './bookmarks.component.html',
   styleUrl: './bookmarks.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

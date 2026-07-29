@@ -1,19 +1,22 @@
 <div class="memos-container">
   <div class="header">
     <div class="title-section">
-      <h1>📝 Memos</h1>
+      <h1><svg lucideIcon="sticky-note" aria-hidden="true"></svg> Memos</h1>
       @if (totalCount() > 0) {
         <p class="memo-count">{{ totalCount() }} total memos</p>
       }
     </div>
     <div class="header-actions">
-      <button class="create-btn" (click)="openCreatePopup()">+ Create Memo</button>
+      <button class="create-btn" (click)="openCreatePopup()">
+        <svg lucideIcon="plus" aria-hidden="true"></svg>
+        Create Memo
+      </button>
       <button class="rich-text-btn" (click)="openRichTextConverter()">
-        <span class="rich-text-icon">✎</span>
+        <svg class="rich-text-icon" lucideIcon="text" aria-hidden="true"></svg>
         Rich Text
       </button>
       <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
-        <span class="refresh-icon">↻</span>
+        <svg class="refresh-icon" lucideIcon="refresh-cw" aria-hidden="true"></svg>
         Refresh
       </button>
     </div>
@@ -47,13 +50,13 @@
   } @else if (filteredMemos().length === 0) {
     <div class="empty-state">
       @if (activeFilter() === 'all') {
-        <p class="empty-icon">📭</p>
+        <svg class="empty-icon" lucideIcon="mail-open" aria-hidden="true"></svg>
         <p>No memos found. Create one to get started!</p>
       } @else if (activeFilter() === 'active') {
-        <p class="empty-icon">✨</p>
+        <svg class="empty-icon" lucideIcon="sparkles" aria-hidden="true"></svg>
         <p>No active memos. You're all caught up!</p>
       } @else {
-        <p class="empty-icon">🎉</p>
+        <svg class="empty-icon" lucideIcon="party-popper" aria-hidden="true"></svg>
         <p>No completed memos yet.</p>
       }
     </div>
@@ -77,18 +80,18 @@
                 (click)="openColorPicker(memo, $event)"
                 aria-label="Change color"
                 title="Change Color">
-                🎨
+                <svg lucideIcon="paintbrush" aria-hidden="true"></svg>
               </button>
               @if (memo.isLocal) {
                 <button class="action-btn edit-btn" (click)="openEditPopup(memo)" aria-label="Edit memo" title="Edit">
-                  ✏️
+                  <svg lucideIcon="pencil" aria-hidden="true"></svg>
                 </button>
                 <button
                   class="action-btn delete-btn"
                   (click)="deleteMemo(memo, $event)"
                   aria-label="Delete memo"
                   title="Delete">
-                  🗑️
+                  <svg lucideIcon="trash-2" aria-hidden="true"></svg>
                 </button>
               }
               <button
@@ -96,7 +99,7 @@
                 (click)="copyMemo(memo, $event)"
                 aria-label="Copy description"
                 title="Copy Description">
-                📋
+                <svg lucideIcon="copy" aria-hidden="true"></svg>
               </button>
               <button
                 class="action-btn status-btn"
@@ -105,9 +108,9 @@
                 aria-label="Toggle status"
                 [title]="memo.status ? 'Mark as Active' : 'Mark as Completed'">
                 @if (memo.status) {
-                  ✓
+                  <svg lucideIcon="check" aria-hidden="true"></svg>
                 } @else {
-                  ○
+                  <svg lucideIcon="circle" aria-hidden="true"></svg>
                 }
               </button>
             </div>
@@ -150,7 +153,7 @@
                     [title]="colorOption.name"
                     (click)="changeColor(memo, colorOption.value, $event)">
                     @if (memo.color === colorOption.value) {
-                      ✓
+                      <svg lucideIcon="check" aria-hidden="true"></svg>
                     }
                   </button>
                 }
@@ -178,7 +181,9 @@
     <div class="popup-content view-popup">
       <div class="popup-header">
         <h2>{{ viewMemoPopup()!.title || 'Untitled' }}</h2>
-        <button class="close-btn" (click)="closeViewPopup()">×</button>
+        <button class="close-btn" (click)="closeViewPopup()" aria-label="Close memo">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
       </div>
       <div class="popup-body">
         <div class="full-description" [innerHTML]="viewMemoPopup()!.description | markdown"></div>
@@ -205,7 +210,9 @@
     <div class="popup-content form-popup">
       <div class="popup-header">
         <h2>Create New Memo</h2>
-        <button class="close-btn" (click)="closeCreatePopup()">×</button>
+        <button class="close-btn" (click)="closeCreatePopup()" aria-label="Close create memo">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
       </div>
       <div class="popup-body">
         <div class="form-group">
@@ -221,7 +228,7 @@
                 [title]="colorOption.name"
                 (click)="formColor.set(colorOption.value)">
                 @if (formColor() === colorOption.value) {
-                  ✓
+                  <svg lucideIcon="check" aria-hidden="true"></svg>
                 }
               </button>
             }
@@ -269,7 +276,7 @@
               (click)="applyFormatting('unordered')"
               title="Unordered List"
               aria-label="Unordered List">
-              ☰
+              <svg lucideIcon="list" aria-hidden="true"></svg>
             </button>
             <button
               type="button"
@@ -285,7 +292,7 @@
               (click)="applyFormatting('checkbox')"
               title="Checkbox"
               aria-label="Checkbox">
-              ☐
+              <svg lucideIcon="square" aria-hidden="true"></svg>
             </button>
             <button
               type="button"
@@ -293,7 +300,7 @@
               (click)="applyFormatting('checked')"
               title="Checked (with strikethrough)"
               aria-label="Checked">
-              ☑
+              <svg lucideIcon="square-check" aria-hidden="true"></svg>
             </button>
             <button
               type="button"
@@ -301,7 +308,7 @@
               (click)="applyFormatting('checked-no-strike')"
               title="Checked (no strikethrough)"
               aria-label="Checked No Strike">
-              ✓
+              <svg lucideIcon="check" aria-hidden="true"></svg>
             </button>
             <span class="toolbar-separator"></span>
             <div class="color-picker-container">
@@ -400,7 +407,9 @@
     <div class="popup-content form-popup">
       <div class="popup-header">
         <h2>Edit Memo</h2>
-        <button class="close-btn" (click)="closeEditPopup()">×</button>
+        <button class="close-btn" (click)="closeEditPopup()" aria-label="Close edit memo">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
       </div>
       <div class="popup-body">
         <div class="form-group">
@@ -416,7 +425,7 @@
                 [title]="colorOption.name"
                 (click)="formColor.set(colorOption.value)">
                 @if (formColor() === colorOption.value) {
-                  ✓
+                  <svg lucideIcon="check" aria-hidden="true"></svg>
                 }
               </button>
             }
@@ -464,7 +473,7 @@
               (click)="applyFormatting('unordered')"
               title="Unordered List"
               aria-label="Unordered List">
-              ☰
+              <svg lucideIcon="list" aria-hidden="true"></svg>
             </button>
             <button
               type="button"
@@ -480,7 +489,7 @@
               (click)="applyFormatting('checkbox')"
               title="Checkbox"
               aria-label="Checkbox">
-              ☐
+              <svg lucideIcon="square" aria-hidden="true"></svg>
             </button>
             <button
               type="button"
@@ -488,7 +497,7 @@
               (click)="applyFormatting('checked')"
               title="Checked"
               aria-label="Checked">
-              ☑
+              <svg lucideIcon="square-check" aria-hidden="true"></svg>
             </button>
             <button
               type="button"
@@ -496,7 +505,7 @@
               (click)="applyFormatting('checked-no-strike')"
               title="Checked (No Strike)"
               aria-label="Checked (No Strike)">
-              ✓
+              <svg lucideIcon="check" aria-hidden="true"></svg>
             </button>
             <span class="toolbar-separator"></span>
             <div class="color-picker-container">
@@ -600,8 +609,10 @@
     tabindex="-1">
     <div class="popup-content converter-popup">
       <div class="popup-header">
-        <h2>✎ Rich Text Converter</h2>
-        <button class="close-btn" (click)="closeRichTextConverter()">×</button>
+        <h2><svg lucideIcon="text" aria-hidden="true"></svg> Rich Text Converter</h2>
+        <button class="close-btn" (click)="closeRichTextConverter()" aria-label="Close rich text converter">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
       </div>
       <div class="popup-body">
         <div class="converter-layout">
@@ -649,7 +660,7 @@
                   (click)="applyConverterFormatting('unordered')"
                   title="Unordered List"
                   aria-label="Unordered List">
-                  ☰
+                  <svg lucideIcon="list" aria-hidden="true"></svg>
                 </button>
                 <button
                   type="button"
@@ -665,7 +676,7 @@
                   (click)="applyConverterFormatting('checkbox')"
                   title="Checkbox"
                   aria-label="Checkbox">
-                  ☐
+                  <svg lucideIcon="square" aria-hidden="true"></svg>
                 </button>
                 <button
                   type="button"
@@ -673,7 +684,7 @@
                   (click)="applyConverterFormatting('checked')"
                   title="Checked (with strikethrough)"
                   aria-label="Checked">
-                  ☑
+                  <svg lucideIcon="square-check" aria-hidden="true"></svg>
                 </button>
                 <button
                   type="button"
@@ -681,7 +692,7 @@
                   (click)="applyConverterFormatting('checked-no-strike')"
                   title="Checked (no strikethrough)"
                   aria-label="Checked No Strike">
-                  ✓
+                  <svg lucideIcon="check" aria-hidden="true"></svg>
                 </button>
                 <span class="toolbar-separator"></span>
                 <div class="color-picker-container">
@@ -759,13 +770,15 @@
             </div>
             <div class="copy-actions">
               <button class="copy-btn plain-text" (click)="copyPlainText()" title="Copy without formatting">
-                <span>📄</span> Copy Plain Text
+                <svg lucideIcon="file-text" aria-hidden="true"></svg>
+                Copy Plain Text
               </button>
               <button
                 class="copy-btn sheets-text"
                 (click)="copyForGoogleSheets()"
                 title="Copy markdown syntax for Google Sheets">
-                <span>📊</span> Copy for Sheets
+                <svg lucideIcon="file-spreadsheet" aria-hidden="true"></svg>
+                Copy for Sheets
               </button>
             </div>
           </div>

@@ -2,7 +2,7 @@
   <div class="header">
     <h1>{{ meta().title }}</h1>
     <button class="refresh-btn" (click)="refreshData()" [disabled]="isLoading()">
-      <span class="icon">🔄</span>
+      <svg class="icon" lucideIcon="refresh-cw" aria-hidden="true"></svg>
       Refresh
     </button>
   </div>
@@ -24,7 +24,7 @@
 
   @if (error()) {
     <div class="error-state">
-      <span class="error-icon">⚠️</span>
+      <svg class="error-icon" lucideIcon="triangle-alert" aria-hidden="true"></svg>
       <p>{{ error() }}</p>
       <button class="retry-btn" (click)="refreshData()">Try Again</button>
     </div>
@@ -32,7 +32,7 @@
 
   @if (!isLoading() && !error() && rotas().length === 0) {
     <div class="empty-state">
-      <span class="empty-icon">📅</span>
+      <svg class="empty-icon" lucideIcon="calendar-off" aria-hidden="true"></svg>
       <p>No rota schedules available.</p>
     </div>
   }
@@ -45,7 +45,7 @@
             <p class="rota-description" [innerHTML]="getRotaDescription(rota)"></p>
             @if (rota.comments) {
               <p class="rota-comments">
-                <span class="comment-icon">💬</span>
+                <svg class="comment-icon" lucideIcon="message-circle" aria-hidden="true"></svg>
                 {{ rota.comments }}
               </p>
             }

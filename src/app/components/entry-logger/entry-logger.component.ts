@@ -1,6 +1,7 @@
 import { Component, signal, computed, effect, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 
 import { StorageService } from '../../services/storage.service';
 import { AttendanceStateService } from '../../services/attendance-state.service';
@@ -24,7 +25,14 @@ interface AttendanceFormData {
 
 @Component({
   selector: 'app-entry-logger',
-  imports: [CommonModule, FormsModule, TodoListComponent, GoogleFormDialogComponent, ConfirmationPopupComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TodoListComponent,
+    GoogleFormDialogComponent,
+    ConfirmationPopupComponent,
+    LucideDynamicIcon,
+  ],
   templateUrl: './entry-logger.component.html',
   styleUrls: ['./entry-logger.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

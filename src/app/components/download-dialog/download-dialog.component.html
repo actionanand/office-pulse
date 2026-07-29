@@ -2,57 +2,55 @@
   <div class="dialog-overlay" (click)="onOverlayClick($event)" (keyup.escape)="onClose()" tabindex="-1">
     <div class="dialog-container" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
       <div class="dialog-header">
-        <h2 id="dialog-title">📥 Download Entry Logs</h2>
-        <button class="close-btn" (click)="onClose()" aria-label="Close">✕</button>
+        <h2 id="dialog-title"><svg lucideIcon="download" aria-hidden="true"></svg> Download Entry Logs</h2>
+        <button class="close-btn" (click)="onClose()" aria-label="Close">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
       </div>
 
       <div class="dialog-body">
         <!-- Date Range Selection -->
         <div class="form-section">
           <h3 class="section-title">Select Date Range</h3>
-          
+
           <div class="radio-group">
             <label class="radio-option">
-              <input 
-                type="radio" 
-                name="dateRange" 
+              <input
+                type="radio"
+                name="dateRange"
                 value="current-month"
                 [checked]="dateRangeType() === 'current-month'"
-                (change)="onDateRangeChange('current-month')"
-              />
+                (change)="onDateRangeChange('current-month')" />
               <span class="radio-label">Current Month</span>
             </label>
-            
+
             <label class="radio-option">
-              <input 
-                type="radio" 
-                name="dateRange" 
+              <input
+                type="radio"
+                name="dateRange"
                 value="previous-month"
                 [checked]="dateRangeType() === 'previous-month'"
-                (change)="onDateRangeChange('previous-month')"
-              />
+                (change)="onDateRangeChange('previous-month')" />
               <span class="radio-label">Previous Month</span>
             </label>
-            
+
             <label class="radio-option">
-              <input 
-                type="radio" 
-                name="dateRange" 
+              <input
+                type="radio"
+                name="dateRange"
                 value="single-month"
                 [checked]="dateRangeType() === 'single-month'"
-                (change)="onDateRangeChange('single-month')"
-              />
+                (change)="onDateRangeChange('single-month')" />
               <span class="radio-label">Select Month</span>
             </label>
-            
+
             <label class="radio-option">
-              <input 
-                type="radio" 
-                name="dateRange" 
+              <input
+                type="radio"
+                name="dateRange"
                 value="full-year"
                 [checked]="dateRangeType() === 'full-year'"
-                (change)="onDateRangeChange('full-year')"
-              />
+                (change)="onDateRangeChange('full-year')" />
               <span class="radio-label">Full Year</span>
             </label>
           </div>
@@ -63,26 +61,21 @@
               @if (showYearSelector()) {
                 <div class="select-group">
                   <label for="year-select">Year</label>
-                  <select 
-                    id="year-select"
-                    [value]="selectedYear()"
-                    (change)="onYearChange($any($event.target).value)"
-                  >
+                  <select id="year-select" [value]="selectedYear()" (change)="onYearChange($any($event.target).value)">
                     @for (year of availableYears(); track year) {
                       <option [value]="year">{{ year }}</option>
                     }
                   </select>
                 </div>
               }
-              
+
               @if (showMonthSelector()) {
                 <div class="select-group">
                   <label for="month-select">Month</label>
-                  <select 
+                  <select
                     id="month-select"
                     [value]="selectedMonth()"
-                    (change)="onMonthChange($any($event.target).value)"
-                  >
+                    (change)="onMonthChange($any($event.target).value)">
                     @for (month of months; track month.value) {
                       <option [value]="month.value">{{ month.label }}</option>
                     }
@@ -97,32 +90,29 @@
         <div class="form-section">
           <h3 class="section-title">Include Optional Columns</h3>
           <p class="section-hint">Entry Time, Exit Time, and Duration are always included.</p>
-          
+
           <div class="checkbox-group">
             <label class="checkbox-option">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 [checked]="includeCompanyName()"
-                (change)="includeCompanyName.set($any($event.target).checked)"
-              />
+                (change)="includeCompanyName.set($any($event.target).checked)" />
               <span class="checkbox-label">Company Name</span>
             </label>
-            
+
             <label class="checkbox-option">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 [checked]="includeStatus()"
-                (change)="includeStatus.set($any($event.target).checked)"
-              />
+                (change)="includeStatus.set($any($event.target).checked)" />
               <span class="checkbox-label">Status (WFH, Office, etc.)</span>
             </label>
-            
+
             <label class="checkbox-option">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 [checked]="includeComments()"
-                (change)="includeComments.set($any($event.target).checked)"
-              />
+                (change)="includeComments.set($any($event.target).checked)" />
               <span class="checkbox-label">Comments</span>
             </label>
           </div>
@@ -131,38 +121,35 @@
         <!-- Days to Include -->
         <div class="form-section">
           <h3 class="section-title">Days to Include</h3>
-          
+
           <div class="radio-group">
             <label class="radio-option">
-              <input 
-                type="radio" 
-                name="daysToInclude" 
+              <input
+                type="radio"
+                name="daysToInclude"
                 value="entries-only"
                 [checked]="daysToInclude() === 'entries-only'"
-                (change)="onDaysToIncludeChange('entries-only')"
-              />
+                (change)="onDaysToIncludeChange('entries-only')" />
               <span class="radio-label">Only days with entries</span>
             </label>
-            
+
             <label class="radio-option">
-              <input 
-                type="radio" 
-                name="daysToInclude" 
+              <input
+                type="radio"
+                name="daysToInclude"
                 value="include-weekends"
                 [checked]="daysToInclude() === 'include-weekends'"
-                (change)="onDaysToIncludeChange('include-weekends')"
-              />
+                (change)="onDaysToIncludeChange('include-weekends')" />
               <span class="radio-label">Include weekends (Sat &amp; Sun)</span>
             </label>
-            
+
             <label class="radio-option">
-              <input 
-                type="radio" 
-                name="daysToInclude" 
+              <input
+                type="radio"
+                name="daysToInclude"
                 value="all-days"
                 [checked]="daysToInclude() === 'all-days'"
-                (change)="onDaysToIncludeChange('all-days')"
-              />
+                (change)="onDaysToIncludeChange('all-days')" />
               <span class="radio-label">All days (including no entry)</span>
             </label>
           </div>
@@ -172,7 +159,7 @@
       <div class="dialog-footer">
         <button class="btn btn-secondary" (click)="onClose()">Cancel</button>
         <button class="btn btn-primary" (click)="onDownload()">
-          <span class="btn-icon">📄</span>
+          <svg class="btn-icon" lucideIcon="file-down" aria-hidden="true"></svg>
           Download PDF
         </button>
       </div>

@@ -22,7 +22,7 @@ export const HIDDEN_NAVIGATION_ROUTES: readonly string[] = ['credit-card-tracker
 export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   {
     route: 'calendar',
-    icon: '\u{1F4C5}',
+    icon: 'calendar-days',
     navLabel: 'Calendar',
     ariaLabel: 'Calendar View',
     section: 'primary',
@@ -34,7 +34,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'logger',
-    icon: '\u{1F4DD}',
+    icon: 'notebook-pen',
     navLabel: 'Logger',
     ariaLabel: 'Entry Logger',
     section: 'primary',
@@ -46,7 +46,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'bandwidth',
-    icon: '\u26A1',
+    icon: 'gauge',
     navLabel: 'Bandwidth',
     ariaLabel: 'Sprint Bandwidth Calculator',
     section: 'more',
@@ -58,7 +58,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'holidays',
-    icon: '\u{1F389}',
+    icon: 'party-popper',
     navLabel: 'Holidays',
     ariaLabel: 'Office Holidays',
     section: 'more',
@@ -70,7 +70,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'rota',
-    icon: '\u{1F504}',
+    icon: 'refresh-cw',
     navLabel: 'Rota',
     ariaLabel: 'Rota Schedule',
     section: 'more',
@@ -82,7 +82,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'achievements',
-    icon: '\u{1F3C6}',
+    icon: 'trophy',
     navLabel: 'Achievements',
     ariaLabel: 'My Achievements',
     section: 'more',
@@ -94,7 +94,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'utilities',
-    icon: '\u{1F6E0}\uFE0F',
+    icon: 'wrench',
     navLabel: 'Utilities',
     ariaLabel: 'Utilities',
     section: 'more',
@@ -106,7 +106,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'my-jira-tickets',
-    icon: '\u{1F3AB}',
+    icon: 'ticket',
     navLabel: 'My Jira Tickets',
     ariaLabel: 'My Jira Tickets',
     section: 'more',
@@ -118,7 +118,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'ticket-tracking',
-    icon: '\u{1F3AF}',
+    icon: 'target',
     navLabel: 'Ticket Tracking',
     ariaLabel: 'Ticket Tracking',
     section: 'more',
@@ -130,7 +130,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'memos',
-    icon: '\u{1F4DD}',
+    icon: 'sticky-note',
     navLabel: 'Memos',
     ariaLabel: 'Memos',
     section: 'more',
@@ -142,7 +142,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'bookmarks',
-    icon: '\u{1F516}',
+    icon: 'bookmark',
     navLabel: 'Bookmarks',
     ariaLabel: 'Bookmarks',
     section: 'more',
@@ -154,7 +154,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'markdown',
-    icon: '\u{1F4C4}',
+    icon: 'file-text',
     navLabel: 'Markdown',
     ariaLabel: 'Markdown Viewer',
     section: 'more',
@@ -166,7 +166,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'seating-chart',
-    icon: '\u{1FA91}',
+    icon: 'armchair',
     navLabel: 'Seating Chart',
     ariaLabel: 'Seating Chart',
     section: 'more',
@@ -178,7 +178,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'irctc-vacant-seats',
-    icon: '\u{1F686}',
+    icon: 'train-front',
     navLabel: 'IRCTC Seats',
     ariaLabel: 'IRCTC Vacant Seats',
     section: 'more',
@@ -190,7 +190,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'credit-card-tracker',
-    icon: '\u{1F4B3}',
+    icon: 'credit-card',
     navLabel: 'CC Tracker',
     ariaLabel: 'Credit Card Tracker',
     section: 'more',
@@ -202,7 +202,7 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: 'cue-card',
-    icon: 'CC',
+    icon: 'presentation',
     navLabel: 'Cue Card',
     ariaLabel: 'Cue Card',
     section: 'more',

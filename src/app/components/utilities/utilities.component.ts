@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { CopyService } from '../../services/copy.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
@@ -10,7 +11,7 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
 
 @Component({
   selector: 'app-utilities',
-  imports: [CommonModule, FormsModule, GoogleFormDialogComponent, ConfirmationDialogComponent],
+  imports: [CommonModule, FormsModule, GoogleFormDialogComponent, ConfirmationDialogComponent, LucideDynamicIcon],
   templateUrl: './utilities.component.html',
   styleUrl: './utilities.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

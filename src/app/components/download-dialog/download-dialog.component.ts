@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { PdfExportOptions, DateRangeType, DaysToInclude } from '../../models/pdf-export.model';
 
 @Component({
@@ -7,7 +8,7 @@ import { PdfExportOptions, DateRangeType, DaysToInclude } from '../../models/pdf
   templateUrl: './download-dialog.component.html',
   styleUrl: './download-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule]
+  imports: [FormsModule, LucideDynamicIcon],
 })
 export class DownloadDialogComponent {
   isOpen = input<boolean>(false);
@@ -42,16 +43,14 @@ export class DownloadDialogComponent {
     { value: 9, label: 'September' },
     { value: 10, label: 'October' },
     { value: 11, label: 'November' },
-    { value: 12, label: 'December' }
+    { value: 12, label: 'December' },
   ];
 
   // Show month selector only for single-month type
   showMonthSelector = computed(() => this.dateRangeType() === 'single-month');
 
   // Show year selector for full-year and single-month
-  showYearSelector = computed(() => 
-    this.dateRangeType() === 'full-year' || this.dateRangeType() === 'single-month'
-  );
+  showYearSelector = computed(() => this.dateRangeType() === 'full-year' || this.dateRangeType() === 'single-month');
 
   onDateRangeChange(value: string): void {
     this.dateRangeType.set(value as DateRangeType);
@@ -81,9 +80,9 @@ export class DownloadDialogComponent {
       includeCompanyName: this.includeCompanyName(),
       includeComments: this.includeComments(),
       includeStatus: this.includeStatus(),
-      daysToInclude: this.daysToInclude()
+      daysToInclude: this.daysToInclude(),
     };
-    
+
     this.download.emit(options);
     this.closeDialog.emit();
   }

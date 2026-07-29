@@ -34,6 +34,7 @@
     "@angular/forms": "^20.3.0",
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
+    "@lucide/angular": "^1.27.0",
     "clipboard": "^2.0.11",
     "katex": "^0.16.27",
     "marked": "^16.4.2",

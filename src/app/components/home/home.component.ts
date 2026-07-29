@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LucideDynamicIcon } from '@lucide/angular';
 
 import { visibleNavigationItems } from '../../config/navigation.config';
 
@@ -8,7 +9,7 @@ import { visibleNavigationItems } from '../../config/navigation.config';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, LucideDynamicIcon],
 })
 export class HomeComponent {
   readonly quickLinks = visibleNavigationItems()

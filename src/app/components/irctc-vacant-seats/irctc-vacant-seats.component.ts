@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { IrctcVacantSeatService } from '../../services/irctc-vacant-seat.service';
 import {
   VacantSeatEntry,
@@ -10,7 +11,7 @@ import {
 
 @Component({
   selector: 'app-irctc-vacant-seats',
-  imports: [CommonModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './irctc-vacant-seats.component.html',
   styleUrl: './irctc-vacant-seats.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,13 +1,14 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { JiraTicketService } from '../../services/jira-ticket.service';
 import { JiraTicket } from '../../models/jira-ticket.model';
 import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-jira-tickets',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon],
   templateUrl: './jira-tickets.component.html',
   styleUrls: ['./jira-tickets.component.scss'],
 })

@@ -1,6 +1,6 @@
 <div class="markdown-viewer">
   <div class="header">
-    <h1>📄 Markdown Viewer</h1>
+    <h1><svg lucideIcon="file-text" aria-hidden="true"></svg> Markdown Viewer</h1>
     <p class="subtitle">Upload and preview markdown files with syntax highlighting, math equations, and diagrams</p>
   </div>
 
@@ -14,7 +14,7 @@
   <div class="controls">
     <div class="upload-section">
       <label for="file-upload" class="upload-label">
-        <span class="upload-icon">📁</span>
+        <svg class="upload-icon" lucideIcon="folder-open" aria-hidden="true"></svg>
         <span>Choose Markdown File</span>
       </label>
       <input
@@ -25,16 +25,22 @@
         class="file-input" />
       @if (fileName()) {
         <div class="current-file">
-          <span class="file-icon">📝</span>
+          <svg class="file-icon" lucideIcon="file-text" aria-hidden="true"></svg>
           <span class="file-name">{{ fileName() }}</span>
         </div>
       }
     </div>
 
-    <button class="btn-load-url" (click)="openUrlDialog()">🔗 Load from URL</button>
+    <button class="btn-load-url" (click)="openUrlDialog()">
+      <svg lucideIcon="link" aria-hidden="true"></svg>
+      Load from URL
+    </button>
 
     @if (!showInstructions() && markdownContent()) {
-      <button class="btn-show-instructions" (click)="showInstructionsView()">📖 Show Instructions</button>
+      <button class="btn-show-instructions" (click)="showInstructionsView()">
+        <svg lucideIcon="book-open" aria-hidden="true"></svg>
+        Show Instructions
+      </button>
     }
   </div>
 
@@ -43,7 +49,9 @@
       <div class="modal-dialog" role="dialog" aria-modal="true">
         <div class="modal-header">
           <h2>Load Markdown from URL</h2>
-          <button class="btn-close" (click)="closeUrlDialog()" title="Close dialog">✕</button>
+          <button class="btn-close" (click)="closeUrlDialog()" title="Close dialog" aria-label="Close dialog">
+            <svg lucideIcon="x" aria-hidden="true"></svg>
+          </button>
         </div>
         <div class="modal-body">
           <p class="modal-instruction">Enter a HTTP/HTTPS URL to a markdown file:</p>
@@ -54,8 +62,9 @@
             placeholder="e.g., https://example.com/file.md"
             class="url-input" />
           <div class="modal-note">
-            <strong>⚠️ Note:</strong> Local file paths (C:\Users\..., /home/user/...) cannot be loaded due to browser
-            security. Use the <strong>"Choose Markdown File"</strong> button above to browse local files.
+            <strong><svg lucideIcon="triangle-alert" aria-hidden="true"></svg> Note:</strong> Local file paths
+            (C:\Users\..., /home/user/...) cannot be loaded due to browser security. Use the
+            <strong>"Choose Markdown File"</strong> button above to browse local files.
           </div>
         </div>
         <div class="modal-footer">
@@ -69,7 +78,7 @@
   @if (viewedFiles().length > 0) {
     <div class="history-section">
       <div class="history-header">
-        <h3>📚 Recently Viewed</h3>
+        <h3><svg lucideIcon="library-big" aria-hidden="true"></svg> Recently Viewed</h3>
         <button class="btn-clear-all" (click)="clearViewedFiles()">Clear All</button>
       </div>
       <ul class="history-list">
@@ -77,14 +86,23 @@
           <li class="history-item">
             <div class="history-content">
               <button class="btn-load-history" (click)="loadFromHistory(file)" title="Load this file">
-                📄 {{ file.name }}
+                <svg lucideIcon="file-text" aria-hidden="true"></svg>
+                {{ file.name }}
               </button>
               <div class="file-meta">
-                <span class="file-source">{{ file.source === 'url' ? '🔗' : '📁' }}</span>
+                <span class="file-source">
+                  <svg [lucideIcon]="file.source === 'url' ? 'link' : 'folder'" aria-hidden="true"></svg>
+                </span>
                 <span class="entry-date">{{ getFormattedDate(file.uploadedAt) }}</span>
               </div>
             </div>
-            <button class="btn-remove" (click)="removeViewedFile(file.filePath)" title="Remove from history">✖</button>
+            <button
+              class="btn-remove"
+              (click)="removeViewedFile(file.filePath)"
+              title="Remove from history"
+              aria-label="Remove from history">
+              <svg lucideIcon="x" aria-hidden="true"></svg>
+            </button>
           </li>
         }
       </ul>

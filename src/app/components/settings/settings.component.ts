@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 
 import { ConfirmationPopupComponent } from '../confirmation-popup/confirmation-popup.component';
 import { LockScreenService } from '../../lock-screen/lock-screen.service';
@@ -18,7 +19,7 @@ import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-settings',
-  imports: [ConfirmationPopupComponent, ReactiveFormsModule],
+  imports: [ConfirmationPopupComponent, ReactiveFormsModule, LucideDynamicIcon],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

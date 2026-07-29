@@ -1,10 +1,11 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { visibleNavigationItems } from '../../config/navigation.config';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, LucideDynamicIcon],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

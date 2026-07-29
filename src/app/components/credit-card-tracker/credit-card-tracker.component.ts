@@ -1,12 +1,13 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { CreditCardService } from '../../services/credit-card.service';
 import { CreditCard, CreditCardAge, CreditCardSortKey, CreditCardSortDir } from '../../models/credit-card.model';
 
 @Component({
   selector: 'app-credit-card-tracker',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideDynamicIcon],
   templateUrl: './credit-card-tracker.component.html',
   styleUrl: './credit-card-tracker.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -125,15 +126,15 @@ export class CreditCardTrackerComponent implements OnInit {
   getAgeLabel(age: CreditCardAge): string {
     switch (age) {
       case 'frequent':
-        return '⚡ Frequent';
+        return 'Frequent';
       case 'recent':
-        return '✅ < 3 months';
+        return '< 3 months';
       case 'moderate':
-        return '⚠️ 3–6 months';
+        return '3–6 months';
       case 'old':
-        return '🔶 6–12 months';
+        return '6–12 months';
       case 'very-old':
-        return '🔴 Over 1 year';
+        return 'Over 1 year';
     }
   }
 

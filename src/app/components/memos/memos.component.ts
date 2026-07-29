@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { MemoService } from '../../services/memo.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
@@ -29,7 +30,7 @@ export const MEMO_COLORS = [
 
 @Component({
   selector: 'app-memos',
-  imports: [CommonModule, FormsModule, ConfirmationDialogComponent, MarkdownPipe],
+  imports: [CommonModule, FormsModule, ConfirmationDialogComponent, MarkdownPipe, LucideDynamicIcon],
   templateUrl: './memos.component.html',
   styleUrls: ['./memos.component.scss'],
 })

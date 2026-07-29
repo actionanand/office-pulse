@@ -13,7 +13,7 @@ export class LoggerUtils {
   static enable(): void {
     try {
       localStorage.setItem('enableLog', 'ON');
-      console.log('✅ Logging ENABLED. Please refresh the page for changes to take effect.');
+      console.log('Logging ENABLED. Please refresh the page for changes to take effect.');
       console.log('Run: location.reload()');
     } catch (error) {
       console.error('Failed to enable logging:', error);
@@ -27,7 +27,7 @@ export class LoggerUtils {
   static disable(): void {
     try {
       localStorage.removeItem('enableLog');
-      console.log('❌ Logging DISABLED. Please refresh the page for changes to take effect.');
+      console.log('Logging DISABLED. Please refresh the page for changes to take effect.');
       console.log('Run: location.reload()');
     } catch (error) {
       console.error('Failed to disable logging:', error);
@@ -41,7 +41,7 @@ export class LoggerUtils {
     try {
       const value = localStorage.getItem('enableLog');
       const isEnabled = value === 'ON';
-      console.log('Current logging status:', isEnabled ? '✅ ENABLED' : '❌ DISABLED');
+      console.log('Current logging status:', isEnabled ? 'ENABLED' : 'DISABLED');
       console.log('localStorage["enableLog"]:', value || '(not set)');
 
       if (isEnabled) {

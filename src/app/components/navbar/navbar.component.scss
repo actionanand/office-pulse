@@ -45,9 +45,8 @@
 // Hamburger Menu Toggle
 .menu-toggle {
   display: none;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
   background: transparent;
@@ -57,38 +56,11 @@
   z-index: 1001;
   position: relative;
 
-  .hamburger-line {
-    position: absolute;
-    width: 22px;
-    height: 2.5px;
-    background: white;
-    border-radius: 2px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    &:nth-child(1) {
-      transform: translateY(-7px);
-    }
-
-    &:nth-child(2) {
-      transform: translateY(0);
-    }
-
-    &:nth-child(3) {
-      transform: translateY(7px);
-    }
-  }
-
-  &.active {
-    .hamburger-line:nth-child(1) {
-      transform: translateY(0) rotate(45deg);
-    }
-    .hamburger-line:nth-child(2) {
-      opacity: 0;
-      transform: scaleX(0);
-    }
-    .hamburger-line:nth-child(3) {
-      transform: translateY(0) rotate(-45deg);
-    }
+  svg {
+    width: 21px;
+    height: 21px;
+    color: #fff;
+    stroke-width: 2.25;
   }
 }
 
@@ -130,8 +102,10 @@
   white-space: nowrap;
 
   .nav-icon {
-    font-size: 1rem;
-    line-height: 1;
+    flex: 0 0 1rem;
+    width: 1rem;
+    height: 1rem;
+    stroke-width: 2.1;
   }
 
   &:hover {
@@ -160,9 +134,9 @@
     border: 2px solid transparent;
 
     .dropdown-arrow {
-      font-size: 0.7rem;
+      width: 0.8rem;
+      height: 0.8rem;
       transition: transform 0.3s ease;
-      display: inline-block;
       margin-left: 0.25rem;
 
       &.open {
@@ -231,9 +205,9 @@
     white-space: nowrap;
 
     .nav-icon {
-      font-size: 1.2rem;
-      width: 24px;
-      text-align: center;
+      flex-basis: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
     }
 
     .nav-text {
@@ -314,7 +288,9 @@
     gap: 0.25rem;
 
     .nav-icon {
-      font-size: 0.9rem;
+      flex-basis: 0.9rem;
+      width: 0.9rem;
+      height: 0.9rem;
     }
   }
 }
@@ -407,9 +383,10 @@
     gap: 0.75rem;
 
     .nav-icon {
-      font-size: 1.3rem;
-      width: 36px;
-      text-align: center;
+      flex-basis: 1.3rem;
+      width: 1.3rem;
+      height: 1.3rem;
+      margin-inline: 0.45rem;
     }
 
     .nav-text {
@@ -493,8 +470,10 @@
     font-size: 0.9rem;
 
     .nav-icon {
-      font-size: 1.2rem;
-      width: 32px;
+      flex-basis: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
+      margin-inline: 0.4rem;
     }
   }
 }

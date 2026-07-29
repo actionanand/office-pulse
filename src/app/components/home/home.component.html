@@ -2,7 +2,7 @@
   <!-- Hero Section -->
   <section class="hero">
     <div class="hero-content">
-      <span class="hero-icon">📊</span>
+      <span class="hero-icon" aria-hidden="true">📊</span>
       <h1 class="hero-title">{{ greeting }}!</h1>
       <p class="hero-subtitle">Welcome to <strong>Office Pulse</strong> — your productivity companion</p>
     </div>
@@ -18,17 +18,13 @@
     <h2 class="section-title">Quick Access</h2>
     <div class="quick-links-grid">
       @for (link of quickLinks; track link.path) {
-        <a 
-          [routerLink]="link.path" 
-          class="quick-link-card"
-          [style.--card-color]="link.color"
-        >
-          <div class="card-icon">{{ link.icon }}</div>
+        <a [routerLink]="link.path" class="quick-link-card" [style.--card-color]="link.color">
+          <svg class="card-icon" [lucideIcon]="link.icon" aria-hidden="true"></svg>
           <div class="card-content">
             <h3 class="card-title">{{ link.title }}</h3>
             <p class="card-description">{{ link.description }}</p>
           </div>
-          <div class="card-arrow">→</div>
+          <svg class="card-arrow" lucideIcon="arrow-right" aria-hidden="true"></svg>
         </a>
       }
     </div>
@@ -36,6 +32,6 @@
 
   <!-- Footer -->
   <footer class="home-footer">
-    <p>Made with ❤️ for productivity</p>
+    <p>Made with <svg class="footer-heart" lucideIcon="heart" aria-label="care"></svg> for productivity</p>
   </footer>
 </div>

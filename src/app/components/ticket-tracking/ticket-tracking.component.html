@@ -11,7 +11,7 @@
         (activeTab() === 'tracked' && selectedTrackedCount() > 0)
       ) {
         <button class="copy-btn" (click)="copySelectedTickets()">
-          <span class="copy-icon">📋</span>
+          <svg class="copy-icon" lucideIcon="clipboard-copy" aria-hidden="true"></svg>
           Copy
           @if (activeTab() === 'demo') {
             {{ selectedDemoCount() }}
@@ -33,13 +33,13 @@
         </button>
         @if (activeTab() === 'release' && selectedReleaseCount() > 0) {
           <button class="copy-btn specialized" (click)="copyReleaseTicketsSpecialized()">
-            <span class="copy-icon">📝</span>
+            <svg class="copy-icon" lucideIcon="notebook-pen" aria-hidden="true"></svg>
             Specialized Copy
           </button>
         }
       }
       <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
-        <span class="refresh-icon">↻</span>
+        <svg class="refresh-icon" lucideIcon="refresh-cw" aria-hidden="true"></svg>
         Refresh
       </button>
     </div>
@@ -139,7 +139,7 @@
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
                       @if (hoveredCell() === 'demo-sno-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -150,7 +150,7 @@
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
                       @if (hoveredCell() === 'demo-title-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -168,7 +168,7 @@
                         {{ ticket.url }}
                       </a>
                       @if (hoveredCell() === 'demo-url-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td class="col-status">
@@ -247,7 +247,7 @@
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
                       @if (hoveredCell() === 'release-sno-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -258,7 +258,7 @@
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
                       @if (hoveredCell() === 'release-title-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -276,7 +276,7 @@
                         {{ ticket.url }}
                       </a>
                       @if (hoveredCell() === 'release-url-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -287,7 +287,7 @@
                       (click)="copyCellContent(ticket.componentName, $event)">
                       {{ ticket.componentName }}
                       @if (hoveredCell() === 'release-component-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -298,7 +298,7 @@
                       (click)="copyCellContent(ticket.deploymentType, $event)">
                       {{ ticket.deploymentType }}
                       @if (hoveredCell() === 'release-deployment-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -309,7 +309,7 @@
                       (click)="copyCellContent(ticket.versionNumber, $event)">
                       {{ ticket.versionNumber || '-' }}
                       @if (hoveredCell() === 'release-version-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                   </tr>
@@ -380,7 +380,7 @@
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
                       @if (hoveredCell() === 'spillover-sno-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -391,7 +391,7 @@
                       (click)="copyCellContent(ticket.date, $event)">
                       {{ ticket.date || '-' }}
                       @if (hoveredCell() === 'spillover-date-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -402,7 +402,7 @@
                       (click)="copyCellContent(ticket.sprintName, $event)">
                       {{ ticket.sprintName || '-' }}
                       @if (hoveredCell() === 'spillover-sprint-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -413,7 +413,7 @@
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
                       @if (hoveredCell() === 'spillover-title-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -431,7 +431,7 @@
                         {{ ticket.url }}
                       </a>
                       @if (hoveredCell() === 'spillover-url-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -442,7 +442,7 @@
                       (click)="copyCellContent(ticket.reasonForSpilling, $event)">
                       {{ ticket.reasonForSpilling || '-' }}
                       @if (hoveredCell() === 'spillover-reason-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -453,7 +453,7 @@
                       (click)="copyCellContent(ticket.solution, $event)">
                       {{ ticket.solution || '-' }}
                       @if (hoveredCell() === 'spillover-solution-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -464,7 +464,7 @@
                       (click)="copyCellContent(ticket.supportTicketsCreated, $event)">
                       {{ ticket.supportTicketsCreated || '-' }}
                       @if (hoveredCell() === 'spillover-support-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -475,7 +475,7 @@
                       (click)="copyCellContent(ticket.impediment, $event)">
                       {{ ticket.impediment || '-' }}
                       @if (hoveredCell() === 'spillover-impediment-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                   </tr>
@@ -541,7 +541,7 @@
                       (click)="copyCellContent(ticket.sno, $event)">
                       {{ ticket.sno }}
                       @if (hoveredCell() === 'tracked-sno-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -552,7 +552,7 @@
                       (click)="copyCellContent(ticket.title, $event)">
                       {{ ticket.title }}
                       @if (hoveredCell() === 'tracked-title-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td
@@ -570,7 +570,7 @@
                         {{ ticket.url }}
                       </a>
                       @if (hoveredCell() === 'tracked-url-' + ticket.sno) {
-                        <span class="copy-hint">📋</span>
+                        <svg class="copy-hint" lucideIcon="copy" aria-hidden="true"></svg>
                       }
                     </td>
                     <td class="col-status">

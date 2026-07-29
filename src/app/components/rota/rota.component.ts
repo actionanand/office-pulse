@@ -1,11 +1,12 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { RotaService } from '../../services/rota.service';
 import { Rota, RotaMeta } from '../../models/rota.model';
 
 @Component({
   selector: 'app-rota',
-  imports: [CommonModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './rota.component.html',
   styleUrl: './rota.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

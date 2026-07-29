@@ -284,3 +284,21 @@ markdown table {
   }
 }
 */
+svg[lucideIcon] {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -0.14em;
+  stroke-width: 2;
+}
+
+.lucide-spin {
+  animation: lucide-spin 0.85s linear infinite;
+}
+
+@keyframes lucide-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,13 +1,23 @@
-import { Component, output, input, ChangeDetectionStrategy, inject, ElementRef, effect, viewChild } from '@angular/core';
+import {
+  Component,
+  output,
+  input,
+  ChangeDetectionStrategy,
+  inject,
+  ElementRef,
+  effect,
+  viewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { LucideDynamicIcon } from '@lucide/angular';
 
 @Component({
   selector: 'app-google-form-dialog',
-  imports: [CommonModule],
+  imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './google-form-dialog.component.html',
   styleUrls: ['./google-form-dialog.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GoogleFormDialogComponent {
   private domSanitizer = inject(DomSanitizer);
@@ -18,8 +28,8 @@ export class GoogleFormDialogComponent {
   // Inputs
   isOpen = input<boolean>(false);
   formUrl = input<string>('');
-  dialogTitle = input<string>('📝 Office Attendance Form');
-  
+  dialogTitle = input<string>('Office Attendance Form');
+
   // Outputs
   closeDialog = output<void>();
   formSubmitted = output<void>();

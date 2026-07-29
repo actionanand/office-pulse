@@ -2,16 +2,23 @@
   <!-- Header -->
   <div class="header">
     <div class="title-section">
-      <h1>💳 Credit Card Tracker</h1>
+      <h1><svg lucideIcon="credit-card" aria-hidden="true"></svg> Credit Card Tracker</h1>
       <p class="subtitle">Monitor last usage to avoid accidental closure by bank</p>
     </div>
     <div class="header-actions">
       <div class="view-toggle">
-        <button class="toggle-btn" [class.active]="view() === 'cards'" (click)="view.set('cards')">🃏 Cards</button>
-        <button class="toggle-btn" [class.active]="view() === 'table'" (click)="view.set('table')">📋 Table</button>
+        <button class="toggle-btn" [class.active]="view() === 'cards'" (click)="view.set('cards')">
+          <svg lucideIcon="layout-grid" aria-hidden="true"></svg>
+          Cards
+        </button>
+        <button class="toggle-btn" [class.active]="view() === 'table'" (click)="view.set('table')">
+          <svg lucideIcon="table" aria-hidden="true"></svg>
+          Table
+        </button>
       </div>
       <button class="refresh-btn" (click)="refresh()" [disabled]="loading()">
-        <span class="refresh-icon">↻</span> Refresh
+        <svg class="refresh-icon" lucideIcon="refresh-cw" aria-hidden="true"></svg>
+        Refresh
       </button>
     </div>
   </div>
@@ -23,7 +30,7 @@
     </div>
   } @else if (error()) {
     <div class="error-container">
-      <p class="error-message">⚠️ {{ error() }}</p>
+      <p class="error-message"><svg lucideIcon="triangle-alert" aria-hidden="true"></svg> {{ error() }}</p>
       <button class="refresh-btn" (click)="refresh()">Try Again</button>
     </div>
   } @else {
@@ -45,11 +52,17 @@
 
     <!-- Legend -->
     <div class="legend">
-      <span class="legend-item age-recent">✅ Within 3 months</span>
-      <span class="legend-item age-moderate">⚠️ 3–6 months</span>
-      <span class="legend-item age-old">🔶 6–12 months</span>
-      <span class="legend-item age-very-old">🔴 Over 1 year</span>
-      <span class="legend-item age-frequent">⚡ Frequently used (always safe)</span>
+      <span class="legend-item age-recent"
+        ><svg lucideIcon="circle-check" aria-hidden="true"></svg> Within 3 months</span
+      >
+      <span class="legend-item age-moderate"
+        ><svg lucideIcon="triangle-alert" aria-hidden="true"></svg> 3–6 months</span
+      >
+      <span class="legend-item age-old"><svg lucideIcon="circle-alert" aria-hidden="true"></svg> 6–12 months</span>
+      <span class="legend-item age-very-old"><svg lucideIcon="circle-x" aria-hidden="true"></svg> Over 1 year</span>
+      <span class="legend-item age-frequent"
+        ><svg lucideIcon="zap" aria-hidden="true"></svg> Frequently used (always safe)</span
+      >
     </div>
 
     <!-- ══════ CARDS VIEW ══════ -->
@@ -72,7 +85,7 @@
 
       @if (sortedCards().length === 0) {
         <div class="empty-state">
-          <span class="empty-icon">💳</span>
+          <svg class="empty-icon" lucideIcon="credit-card" aria-hidden="true"></svg>
           <p>No credit card entries found.</p>
         </div>
       } @else {
@@ -122,28 +135,33 @@
                 class="age-chip chip-frequent"
                 [class.active]="filterAge() === 'frequent'"
                 (click)="filterAge.set('frequent')">
-                ⚡ Frequent
+                <svg lucideIcon="zap" aria-hidden="true"></svg>
+                Frequent
               </button>
               <button
                 class="age-chip chip-recent"
                 [class.active]="filterAge() === 'recent'"
                 (click)="filterAge.set('recent')">
-                ✅ &lt;3 months
+                <svg lucideIcon="circle-check" aria-hidden="true"></svg>
+                &lt;3 months
               </button>
               <button
                 class="age-chip chip-moderate"
                 [class.active]="filterAge() === 'moderate'"
                 (click)="filterAge.set('moderate')">
-                ⚠️ 3–6 months
+                <svg lucideIcon="triangle-alert" aria-hidden="true"></svg>
+                3–6 months
               </button>
               <button class="age-chip chip-old" [class.active]="filterAge() === 'old'" (click)="filterAge.set('old')">
-                🔶 6–12 months
+                <svg lucideIcon="circle-alert" aria-hidden="true"></svg>
+                6–12 months
               </button>
               <button
                 class="age-chip chip-very-old"
                 [class.active]="filterAge() === 'very-old'"
                 (click)="filterAge.set('very-old')">
-                🔴 Over 1 year
+                <svg lucideIcon="circle-x" aria-hidden="true"></svg>
+                Over 1 year
               </button>
             </div>
           </div>
@@ -155,7 +173,10 @@
                 totalCards() !== 1 ? 's' : ''
               }}
             </span>
-            <button class="clear-filters-btn" (click)="clearFilters()">× Clear filters</button>
+            <button class="clear-filters-btn" (click)="clearFilters()">
+              <svg lucideIcon="x" aria-hidden="true"></svg>
+              Clear filters
+            </button>
           } @else {
             <span class="filter-count-neutral">{{ totalCards() }} cards total</span>
           }
@@ -165,7 +186,7 @@
       <!-- Table -->
       @if (sortedCards().length === 0) {
         <div class="empty-state">
-          <span class="empty-icon">🔍</span>
+          <svg class="empty-icon" lucideIcon="search" aria-hidden="true"></svg>
           <p>No cards match the current filters.</p>
         </div>
       } @else {

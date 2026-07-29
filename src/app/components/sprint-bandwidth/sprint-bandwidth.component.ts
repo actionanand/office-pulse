@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { SprintBandwidthService } from '../../services/sprint-bandwidth.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
@@ -10,7 +11,7 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
 
 @Component({
   selector: 'app-sprint-bandwidth',
-  imports: [CommonModule, FormsModule, ConfirmationDialogComponent],
+  imports: [CommonModule, FormsModule, ConfirmationDialogComponent, LucideDynamicIcon],
   templateUrl: './sprint-bandwidth.component.html',
   styleUrl: './sprint-bandwidth.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -375,13 +376,13 @@ export class SprintBandwidthComponent {
 
   getStatusIcon(status: TaskStatus): string {
     const icons: Record<TaskStatus, string> = {
-      open: '⚪',
-      working: '🔵',
-      'dev-finished': '🟢',
-      testing: '🟡',
-      completed: '✅',
-      reopened: '🔴',
-      cancelled: '⛔',
+      open: 'circle',
+      working: 'loader-circle',
+      'dev-finished': 'circle-check',
+      testing: 'search',
+      completed: 'circle-check',
+      reopened: 'rotate-ccw',
+      cancelled: 'ban',
     };
     return icons[status];
   }

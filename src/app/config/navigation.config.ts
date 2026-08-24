@@ -45,6 +45,42 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
     },
   },
   {
+    route: 'calendar-pro',
+    icon: 'calendar-days',
+    navLabel: 'Calendar Pro',
+    ariaLabel: 'Calendar Pro',
+    section: 'more',
+    home: {
+      title: 'Calendar Pro',
+      description: 'View and review your private attendance history',
+      color: '#0f766e',
+    },
+  },
+  {
+    route: 'logger-pro',
+    icon: 'notebook-pen',
+    navLabel: 'Logger Pro',
+    ariaLabel: 'Logger Pro',
+    section: 'more',
+    home: {
+      title: 'Logger Pro',
+      description: 'Record work hours with private on-device history',
+      color: '#2563eb',
+    },
+  },
+  {
+    route: 'tasks',
+    icon: 'list-todo',
+    navLabel: 'Tasks',
+    ariaLabel: 'Task Planner',
+    section: 'more',
+    home: {
+      title: 'Tasks',
+      description: 'Plan one-time and repeating tasks with reminders',
+      color: '#ca8a04',
+    },
+  },
+  {
     route: 'bandwidth',
     icon: 'gauge',
     navLabel: 'Bandwidth',

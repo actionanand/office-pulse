@@ -16,6 +16,8 @@ import { LockScreenService } from '../../lock-screen/lock-screen.service';
 import { SecuritySettingsService } from '../../services/security-settings.service';
 import { SecurityService } from '../../services/security.service';
 import { SnackbarService } from '../../services/snackbar.service';
+import { AttendanceBackupService } from '../../services/attendance-backup.service';
+import { AttendanceDatabaseService } from '../../services/attendance-database.service';
 
 @Component({
   selector: 'app-settings',
@@ -33,12 +35,23 @@ export class SettingsComponent {
   private readonly lockScreen = inject(LockScreenService);
   private readonly snackbar = inject(SnackbarService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly attendanceBackup = inject(AttendanceBackupService);
+  protected readonly attendanceDatabase = inject(AttendanceDatabaseService);
 
   protected readonly pinDialogOpen = signal(false);
   protected readonly confirmRemove = signal(false);
   protected readonly savingPin = signal(false);
   protected readonly formError = signal('');
   protected readonly autoLockPickerOpen = signal(false);
+  protected readonly backupDialogOpen = signal(false);
+  protected readonly restoreDialogOpen = signal(false);
+  protected readonly confirmRestore = signal(false);
+  protected readonly portabilityBusy = signal(false);
+  protected readonly portabilityError = signal('');
+  protected readonly backupPassword = signal('');
+  protected readonly backupConfirmation = signal('');
+  protected readonly restorePassword = signal('');
+  protected readonly restoreFile = signal<File | null>(null);
   protected readonly pinForm = this.formBuilder.nonNullable.group({
     pin: ['', [Validators.required, Validators.pattern(/^\d{4,8}$/)]],
     confirmation: ['', [Validators.required, Validators.pattern(/^\d{4,8}$/)]],
@@ -68,6 +81,7 @@ export class SettingsComponent {
   private readonly autoLockSheet = viewChild<ElementRef<HTMLElement>>('autoLockSheet');
 
   constructor() {
+    void this.attendanceDatabase.initialize();
     effect(onCleanup => {
       if (!this.autoLockPickerOpen()) return;
 
@@ -217,5 +231,99 @@ export class SettingsComponent {
     this.lockScreen.pinRemoved();
     this.confirmRemove.set(false);
     this.snackbar.success('PIN protection removed.');
+  }
+
+  protected openBackupDialog(): void {
+    this.portabilityError.set('');
+    this.backupPassword.set('');
+    this.backupConfirmation.set('');
+    this.backupDialogOpen.set(true);
+  }
+
+  protected closeBackupDialog(): void {
+    if (!this.portabilityBusy()) this.backupDialogOpen.set(false);
+  }
+
+  protected async createAttendanceBackup(): Promise<void> {
+    const password = this.backupPassword();
+    if (password.length < 8 || password !== this.backupConfirmation()) {
+      this.portabilityError.set('Use at least 8 characters and enter the same password twice.');
+      return;
+    }
+
+    this.portabilityBusy.set(true);
+    this.portabilityError.set('');
+    try {
+      const count = await this.attendanceBackup.createEncryptedBackup(password);
+      this.backupDialogOpen.set(false);
+      this.snackbar.success(`Encrypted backup created with ${count} attendance record${count === 1 ? '' : 's'}.`);
+    } catch (error) {
+      this.portabilityError.set(this.errorMessage(error, 'Unable to create the attendance backup.'));
+    } finally {
+      this.portabilityBusy.set(false);
+    }
+  }
+
+  protected chooseRestoreFile(input: HTMLInputElement): void {
+    input.value = '';
+    input.click();
+  }
+
+  protected onRestoreFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (!file) return;
+    this.restoreFile.set(file);
+    this.restorePassword.set('');
+    this.portabilityError.set('');
+    this.restoreDialogOpen.set(true);
+  }
+
+  protected closeRestoreDialog(): void {
+    if (!this.portabilityBusy()) this.restoreDialogOpen.set(false);
+  }
+
+  protected requestRestore(): void {
+    if (this.restorePassword().length < 8) {
+      this.portabilityError.set('Enter the password used when this backup was created.');
+      return;
+    }
+    this.restoreDialogOpen.set(false);
+    this.confirmRestore.set(true);
+  }
+
+  protected async restoreAttendanceBackup(): Promise<void> {
+    const file = this.restoreFile();
+    this.confirmRestore.set(false);
+    if (!file) return;
+
+    this.portabilityBusy.set(true);
+    try {
+      const count = await this.attendanceBackup.restoreEncryptedBackup(file, this.restorePassword());
+      this.restoreFile.set(null);
+      this.snackbar.success(`Restored ${count} attendance record${count === 1 ? '' : 's'}.`);
+    } catch (error) {
+      this.portabilityError.set(this.errorMessage(error, 'Unable to restore the attendance backup.'));
+      this.restoreDialogOpen.set(true);
+      this.snackbar.error(this.portabilityError());
+    } finally {
+      this.portabilityBusy.set(false);
+    }
+  }
+
+  protected setBackupPassword(event: Event): void {
+    this.backupPassword.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setBackupConfirmation(event: Event): void {
+    this.backupConfirmation.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setRestorePassword(event: Event): void {
+    this.restorePassword.set((event.target as HTMLInputElement).value);
+  }
+
+  private errorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error ? error.message : fallback;
   }
 }

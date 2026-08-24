@@ -1,0 +1,221 @@
+<main class="todo-page">
+  <header class="page-heading">
+    <div>
+      <p>Personal planner</p>
+      <h1>Tasks</h1>
+      <span>Plan one-time and repeating work.</span>
+    </div>
+    <button type="button" class="primary-button" (click)="openNewTask()">
+      <svg lucideIcon="plus" aria-hidden="true"></svg>New task
+    </button>
+  </header>
+
+  <nav class="view-tabs" aria-label="Task views">
+    <button type="button" [class.active]="view() === 'day'" (click)="view.set('day')">
+      <svg lucideIcon="calendar-days" aria-hidden="true"></svg>Day
+    </button>
+    <button type="button" [class.active]="view() === 'all'" (click)="view.set('all')">
+      <svg lucideIcon="list-todo" aria-hidden="true"></svg>All tasks
+    </button>
+  </nav>
+
+  @if (view() === 'day') {
+    <section class="day-toolbar">
+      <button type="button" class="icon-button" aria-label="Previous day" (click)="changeDate(-1)">
+        <svg lucideIcon="chevron-left" aria-hidden="true"></svg>
+      </button>
+      <div>
+        <strong>{{ formattedSelectedDate() }}</strong
+        ><button type="button" (click)="goToToday()">Today</button>
+      </div>
+      <button type="button" class="icon-button" aria-label="Next day" (click)="changeDate(1)">
+        <svg lucideIcon="chevron-right" aria-hidden="true"></svg>
+      </button>
+    </section>
+    <section class="progress-row">
+      <span>{{ completedCount() }} of {{ tasksForDate().length }} completed</span>
+      <div><i [style.width.%]="tasksForDate().length ? (completedCount() / tasksForDate().length) * 100 : 0"></i></div>
+    </section>
+  }
+
+  @if (database.loading()) {
+    <div class="state"><svg class="spin" lucideIcon="loader-circle" aria-hidden="true"></svg>Loading tasks...</div>
+  } @else if (database.error()) {
+    <div class="state error"><svg lucideIcon="triangle-alert" aria-hidden="true"></svg>{{ database.error() }}</div>
+  } @else {
+    <section class="task-list">
+      @for (todo of view() === 'day' ? tasksForDate() : database.todos(); track todo.id) {
+        <article class="task-item" [class.completed]="view() === 'day' && isCompleted(todo)">
+          @if (view() === 'day') {
+            <button
+              type="button"
+              class="complete-button"
+              [attr.aria-label]="isCompleted(todo) ? 'Mark incomplete' : 'Mark complete'"
+              (click)="toggleCompleted(todo)">
+              <svg [lucideIcon]="isCompleted(todo) ? 'circle-check' : 'circle'" aria-hidden="true"></svg>
+            </button>
+          } @else {
+            <div class="task-icon"><svg lucideIcon="list-todo" aria-hidden="true"></svg></div>
+          }
+          <div class="task-content">
+            <header>
+              <strong>{{ todo.title }}</strong>
+              @if (todo.dueTime) {
+                <time>{{ todo.dueTime }}</time>
+              }
+            </header>
+            @if (todo.notes) {
+              <p>{{ todo.notes }}</p>
+            }
+            <div class="badges">
+              <span><svg lucideIcon="repeat-2" aria-hidden="true"></svg>{{ recurrenceLabel(todo) }}</span>
+              @if (todo.reminderEnabled) {
+                <span
+                  ><svg lucideIcon="bell" aria-hidden="true"></svg>{{ reminderLabel(todo.reminderMinutesBefore) }}</span
+                >
+              }
+              @if (view() === 'all') {
+                <span><svg lucideIcon="calendar-days" aria-hidden="true"></svg>{{ todo.startDate }}</span>
+              }
+            </div>
+          </div>
+          <div class="task-actions">
+            <button type="button" aria-label="Edit task" (click)="editTask(todo)">
+              <svg lucideIcon="pencil" aria-hidden="true"></svg>
+            </button>
+            <button type="button" class="delete" aria-label="Delete task" (click)="deletingTodo.set(todo)">
+              <svg lucideIcon="trash-2" aria-hidden="true"></svg>
+            </button>
+          </div>
+        </article>
+      } @empty {
+        <div class="empty-state">
+          <svg lucideIcon="list-checks" aria-hidden="true"></svg><strong>No tasks here</strong
+          ><span>Create a task or choose another date.</span>
+        </div>
+      }
+    </section>
+  }
+</main>
+
+@if (editorOpen()) {
+  <div class="editor-backdrop" role="presentation" (click)="closeEditor()" (keydown)="closeEditor()">
+    <section
+      class="editor-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="todo-editor-title"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()">
+      <header>
+        <div>
+          <p>Task planner</p>
+          <h2 id="todo-editor-title">{{ draft.id ? 'Edit task' : 'New task' }}</h2>
+        </div>
+        <button type="button" class="icon-button" aria-label="Close" (click)="closeEditor()">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
+      </header>
+      <div class="editor-body">
+        <label for="task-title">Task title</label
+        ><input id="task-title" type="text" maxlength="160" [(ngModel)]="draft.title" />
+        <label for="task-notes">Notes <span>Optional</span></label
+        ><textarea id="task-notes" rows="3" maxlength="800" [(ngModel)]="draft.notes"></textarea>
+        <div class="field-grid">
+          <div>
+            <label for="task-date">Start date</label><input id="task-date" type="date" [(ngModel)]="draft.startDate" />
+          </div>
+          <div>
+            <label for="task-time">Time <span>Optional</span></label
+            ><input id="task-time" type="time" [(ngModel)]="draft.dueTime" />
+          </div>
+        </div>
+
+        <fieldset>
+          <legend>Repeat</legend>
+          <div class="choice-grid recurrence-grid">
+            @for (option of recurrenceOptions; track option.value) {
+              <button
+                type="button"
+                [class.selected]="draft.recurrence === option.value"
+                (click)="setRecurrence(option.value)">
+                {{ option.label }}
+              </button>
+            }
+          </div>
+        </fieldset>
+        @if (draft.recurrence === 'weekly' || draft.recurrence === 'biweekly') {
+          <fieldset>
+            <legend>Weekdays</legend>
+            <div class="weekday-grid">
+              @for (day of weekdays; track day.value) {
+                <button
+                  type="button"
+                  [class.selected]="draft.daysOfWeek.includes(day.value)"
+                  [attr.aria-label]="day.value"
+                  (click)="toggleWeekday(day.value)">
+                  {{ day.label }}
+                </button>
+              }
+            </div>
+          </fieldset>
+        }
+        @if (draft.recurrence !== 'once') {
+          <label for="task-end">End date <span>Optional</span></label
+          ><input id="task-end" type="date" [min]="draft.startDate" [(ngModel)]="draft.endDate" />
+        }
+
+        <div class="reminder-row">
+          <span><strong>Reminder</strong><small>Notify before the task time</small></span
+          ><button
+            type="button"
+            class="switch"
+            role="switch"
+            [class.on]="draft.reminderEnabled"
+            [attr.aria-checked]="draft.reminderEnabled"
+            (click)="draft.reminderEnabled = !draft.reminderEnabled">
+            <i></i>
+          </button>
+        </div>
+        @if (draft.reminderEnabled) {
+          <fieldset>
+            <legend>Notify</legend>
+            <div class="choice-grid reminder-grid">
+              @for (minutes of reminderOptions; track minutes) {
+                <button
+                  type="button"
+                  [class.selected]="draft.reminderMinutesBefore === minutes"
+                  (click)="draft.reminderMinutesBefore = minutes">
+                  {{ reminderLabel(minutes) }}
+                </button>
+              }
+            </div>
+          </fieldset>
+        }
+      </div>
+      <footer>
+        <button type="button" class="secondary-button" (click)="closeEditor()">Cancel</button
+        ><button type="button" class="primary-button" [disabled]="saving()" (click)="saveTask()">
+          <svg lucideIcon="save" aria-hidden="true"></svg>{{ saving() ? 'Saving...' : 'Save task' }}
+        </button>
+      </footer>
+    </section>
+  </div>
+}
+
+@if (deletingTodo()) {
+  <app-confirmation-popup
+    title="Delete task?"
+    message="This removes the task and all of its completion history."
+    confirmLabel="Delete"
+    (cancelled)="deletingTodo.set(null)"
+    (confirmed)="confirmDelete()" />
+}
+@if (permissionTodo()) {
+  <app-confirmation-popup
+    title="Turn on task reminders?"
+    message="Allow Office Pulse to notify you about scheduled tasks."
+    confirmLabel="Turn on"
+    (cancelled)="declineReminderPermission()"
+    (confirmed)="confirmReminderPermission()" />
+}

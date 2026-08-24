@@ -3,7 +3,7 @@
     <div>
       <p>Preferences</p>
       <h1>Settings</h1>
-      <span>Manage security for this device.</span>
+      <span>Manage security and local attendance data.</span>
     </div>
     <svg class="heading-icon" lucideIcon="settings" aria-hidden="true"></svg>
   </header>
@@ -97,6 +97,53 @@
         </button>
       </footer>
     }
+  </section>
+
+  <section class="settings-section data-section" aria-labelledby="attendance-data-title">
+    <header class="section-heading">
+      <svg class="section-icon data-icon" lucideIcon="shield-check" aria-hidden="true"></svg>
+      <div>
+        <h2 id="attendance-data-title">Pro attendance backup</h2>
+        <p>Protect and move your Logger Pro and Calendar Pro history.</p>
+      </div>
+    </header>
+
+    <div class="setting-rows">
+      <div class="setting-row">
+        <span>
+          <strong>Saved attendance</strong>
+          <small
+            >{{ attendanceDatabase.records().length }} private record{{
+              attendanceDatabase.records().length === 1 ? '' : 's'
+            }}
+            on this device</small
+          >
+        </span>
+        <span class="database-status"><svg lucideIcon="save" aria-hidden="true"></svg>On this device</span>
+      </div>
+      <div class="setting-row data-action-row">
+        <span>
+          <strong>Encrypted portability</strong>
+          <small>Export or restore your Pro attendance using a password-protected file.</small>
+        </span>
+        <div class="data-actions">
+          <button class="action-button" type="button" (click)="openBackupDialog()">
+            <svg lucideIcon="download" aria-hidden="true"></svg>
+            Backup
+          </button>
+          <button class="action-button primary" type="button" (click)="chooseRestoreFile(restoreFileInput)">
+            <svg lucideIcon="upload" aria-hidden="true"></svg>
+            Restore
+          </button>
+          <input
+            #restoreFileInput
+            class="file-input"
+            type="file"
+            accept=".officepulse,application/octet-stream"
+            (change)="onRestoreFileSelected($event)" />
+        </div>
+      </div>
+    </div>
   </section>
 </main>
 
@@ -203,4 +250,111 @@
     confirmLabel="Remove PIN"
     (cancelled)="confirmRemove.set(false)"
     (confirmed)="removePin()" />
+}
+
+@if (backupDialogOpen()) {
+  <div class="dialog-backdrop" role="presentation" (click)="closeBackupDialog()" (keydown)="closeBackupDialog()">
+    <section
+      class="pin-dialog data-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="backup-dialog-title"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()">
+      <header>
+        <div>
+          <p>Pro attendance</p>
+          <h2 id="backup-dialog-title">Create encrypted backup</h2>
+        </div>
+        <button class="icon-button" type="button" aria-label="Close backup dialog" (click)="closeBackupDialog()">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
+      </header>
+      <p class="data-dialog-note">This password is required to restore the file. It is not stored by Office Pulse.</p>
+      <div class="data-form">
+        <label for="backup-password">Backup password</label>
+        <input
+          id="backup-password"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          [value]="backupPassword()"
+          (input)="setBackupPassword($event)" />
+        <label for="backup-confirmation">Confirm password</label>
+        <input
+          id="backup-confirmation"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          [value]="backupConfirmation()"
+          (input)="setBackupConfirmation($event)" />
+        @if (portabilityError()) {
+          <p class="form-error" role="alert">{{ portabilityError() }}</p>
+        }
+        <footer>
+          <button class="action-button" type="button" (click)="closeBackupDialog()">Cancel</button>
+          <button
+            class="action-button primary"
+            type="button"
+            [disabled]="portabilityBusy()"
+            (click)="createAttendanceBackup()">
+            <svg lucideIcon="download" aria-hidden="true"></svg>
+            {{ portabilityBusy() ? 'Encrypting...' : 'Create backup' }}
+          </button>
+        </footer>
+      </div>
+    </section>
+  </div>
+}
+
+@if (restoreDialogOpen()) {
+  <div class="dialog-backdrop" role="presentation" (click)="closeRestoreDialog()" (keydown)="closeRestoreDialog()">
+    <section
+      class="pin-dialog data-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="restore-dialog-title"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()">
+      <header>
+        <div>
+          <p>Pro attendance</p>
+          <h2 id="restore-dialog-title">Restore encrypted backup</h2>
+        </div>
+        <button class="icon-button" type="button" aria-label="Close restore dialog" (click)="closeRestoreDialog()">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
+      </header>
+      <p class="selected-file"><svg lucideIcon="file-text" aria-hidden="true"></svg>{{ restoreFile()?.name }}</p>
+      <div class="data-form">
+        <label for="restore-password">Backup password</label>
+        <input
+          id="restore-password"
+          type="password"
+          autocomplete="current-password"
+          minlength="8"
+          [value]="restorePassword()"
+          (input)="setRestorePassword($event)" />
+        @if (portabilityError()) {
+          <p class="form-error" role="alert">{{ portabilityError() }}</p>
+        }
+        <footer>
+          <button class="action-button" type="button" (click)="closeRestoreDialog()">Cancel</button>
+          <button class="action-button primary" type="button" (click)="requestRestore()">
+            <svg lucideIcon="upload" aria-hidden="true"></svg>
+            Continue
+          </button>
+        </footer>
+      </div>
+    </section>
+  </div>
+}
+
+@if (confirmRestore()) {
+  <app-confirmation-popup
+    title="Replace local attendance?"
+    message="All Logger Pro and Calendar Pro records on this device will be replaced by this backup. Existing Logger and Calendar data are not affected."
+    confirmLabel="Restore backup"
+    (cancelled)="confirmRestore.set(false)"
+    (confirmed)="restoreAttendanceBackup()" />
 }

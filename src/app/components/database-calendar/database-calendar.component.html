@@ -1,0 +1,130 @@
+<main class="database-calendar">
+  <header class="page-heading">
+    <div>
+      <p>Private attendance</p>
+      <h1>Calendar Pro</h1>
+    </div>
+  </header>
+
+  <section class="calendar-panel">
+    <header class="month-header">
+      <button type="button" class="icon-button" aria-label="Previous month" (click)="previousMonth()">
+        <svg lucideIcon="chevron-left" aria-hidden="true"></svg>
+      </button>
+      <h2>{{ monthName() }}</h2>
+      <button type="button" class="icon-button" aria-label="Next month" [disabled]="!canGoNext()" (click)="nextMonth()">
+        <svg lucideIcon="chevron-right" aria-hidden="true"></svg>
+      </button>
+    </header>
+
+    <div class="stats-row">
+      <span
+        ><small>Recorded days</small><strong>{{ totalDays() }}</strong></span
+      >
+      <span
+        ><small>Total hours</small><strong>{{ totalHours() }}</strong></span
+      >
+      <button type="button" class="refresh-button" [disabled]="database.loading()" (click)="refresh()">
+        <svg [class.spin]="database.loading()" lucideIcon="refresh-cw" aria-hidden="true"></svg>
+        Refresh
+      </button>
+    </div>
+
+    @if (database.error()) {
+      <div class="message error" role="alert">
+        <svg lucideIcon="triangle-alert" aria-hidden="true"></svg>{{ database.error() }}
+      </div>
+    } @else if (database.loading()) {
+      <div class="message">
+        <svg class="spin" lucideIcon="loader-circle" aria-hidden="true"></svg>Loading attendance history...
+      </div>
+    } @else {
+      <div class="calendar-grid">
+        @for (weekday of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; track weekday) {
+          <strong class="weekday">{{ weekday }}</strong>
+        }
+        @for (day of calendarDays(); track $index) {
+          <button
+            type="button"
+            class="calendar-day"
+            [class.other-month]="!day.currentMonth"
+            [class.today]="day.today"
+            [class.future]="day.future"
+            [class.has-record]="day.record"
+            [class.day-off]="day.record?.status === 'Day Off'"
+            [disabled]="!day.record"
+            (click)="selectDay(day)">
+            <span>{{ day.date }}</span>
+            @if (day.record) {
+              <i [class.complete]="day.record.exitTime" [class.leave]="day.record.status === 'Day Off'"></i>
+            }
+          </button>
+        }
+      </div>
+      @if (!totalDays()) {
+        <div class="empty-state">
+          <svg lucideIcon="calendar-off" aria-hidden="true"></svg><span>No attendance recorded for this month.</span>
+        </div>
+      }
+    }
+  </section>
+</main>
+
+@if (selectedDay(); as day) {
+  <div class="details-backdrop" role="presentation" (click)="selectedDay.set(null)" (keydown)="selectedDay.set(null)">
+    <section
+      class="details-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="record-details-title"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()">
+      <header>
+        <div>
+          <p>Calendar Pro</p>
+          <h2 id="record-details-title">Attendance details</h2>
+        </div>
+        <button type="button" class="icon-button" aria-label="Close" (click)="selectedDay.set(null)">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
+      </header>
+      <dl>
+        <div>
+          <dt><svg lucideIcon="calendar-days" aria-hidden="true"></svg>Date</dt>
+          <dd>{{ day.fullDate }}</dd>
+        </div>
+        <div>
+          <dt><svg lucideIcon="clipboard-list" aria-hidden="true"></svg>Work mode</dt>
+          <dd>{{ statusLabel(day.record!.status) }}</dd>
+        </div>
+        @if (day.record!.companyName) {
+          <div>
+            <dt><svg lucideIcon="building-2" aria-hidden="true"></svg>Company</dt>
+            <dd>{{ day.record!.companyName }}</dd>
+          </div>
+        }
+        @if (day.record!.status !== 'Day Off') {
+          <div>
+            <dt><svg lucideIcon="log-in" aria-hidden="true"></svg>Entry</dt>
+            <dd>{{ formatTime(day.record!.entryTime) }}</dd>
+          </div>
+          <div>
+            <dt><svg lucideIcon="log-out" aria-hidden="true"></svg>Exit</dt>
+            <dd>{{ formatTime(day.record!.exitTime) }}</dd>
+          </div>
+          <div>
+            <dt><svg lucideIcon="timer" aria-hidden="true"></svg>Duration</dt>
+            <dd>{{ duration(day.record!) }}</dd>
+          </div>
+        }
+        @if (day.record!.comments) {
+          <div>
+            <dt><svg lucideIcon="message-circle" aria-hidden="true"></svg>Comments</dt>
+            <dd>{{ day.record!.comments }}</dd>
+          </div>
+        }
+      </dl>
+      <footer><button type="button" class="close-button" (click)="selectedDay.set(null)">Close</button></footer>
+    </section>
+  </div>
+}

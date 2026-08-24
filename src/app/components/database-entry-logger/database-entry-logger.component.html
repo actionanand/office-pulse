@@ -1,0 +1,232 @@
+<main class="database-logger">
+  <header class="page-heading">
+    <div>
+      <p>Private attendance</p>
+      <h1>Logger Pro</h1>
+      <span>Your attendance history stays on this device.</span>
+    </div>
+  </header>
+
+  @if (database.loading()) {
+    <section class="state-panel" aria-live="polite">
+      <svg class="spin" lucideIcon="loader-circle" aria-hidden="true"></svg>
+      Opening attendance history...
+    </section>
+  } @else if (database.error()) {
+    <section class="state-panel error" role="alert">
+      <svg lucideIcon="triangle-alert" aria-hidden="true"></svg>
+      {{ database.error() }}
+    </section>
+  } @else {
+    <section class="attendance-panel">
+      <header>
+        <div class="date-icon"><svg lucideIcon="calendar-days" aria-hidden="true"></svg></div>
+        <div>
+          <span>{{ activeRecord() && activeRecord()!.date !== today() ? 'Active overnight shift' : 'Today' }}</span>
+          <strong>{{ displayedRecord()?.date ?? today() }}</strong>
+        </div>
+        @if (displayedRecord(); as record) {
+          <span class="status-pill" [class.day-off]="record.status === 'Day Off'">{{ record.status }}</span>
+        } @else {
+          <span class="status-pill empty">Not marked</span>
+        }
+      </header>
+
+      @if (displayedRecord(); as record) {
+        @if (record.status === 'Day Off') {
+          <div class="day-off-state">
+            <svg lucideIcon="calendar-off" aria-hidden="true"></svg>
+            <strong>Day off</strong>
+            <span>No working hours recorded today.</span>
+          </div>
+        } @else {
+          <div class="time-grid">
+            <div class="time-block locked-block">
+              <span><svg lucideIcon="log-in" aria-hidden="true"></svg> Entry</span>
+              <strong>{{ formatDateTime(record.entryTime) }}</strong>
+              <small><svg lucideIcon="lock-keyhole" aria-hidden="true"></svg> Locked</small>
+            </div>
+            @if (record.exitTime) {
+              <div class="time-block locked-block">
+                <span><svg lucideIcon="log-out" aria-hidden="true"></svg> Exit</span>
+                <strong>{{ formatDateTime(record.exitTime) }}</strong>
+                <small><svg lucideIcon="lock-keyhole" aria-hidden="true"></svg> Completed</small>
+              </div>
+            } @else {
+              <button type="button" class="time-block exit-block" (click)="openTimeDialog('exit')">
+                <span><svg lucideIcon="log-out" aria-hidden="true"></svg> Exit</span>
+                <strong>Not marked</strong>
+                <small>Confirm attendance</small>
+              </button>
+            }
+          </div>
+          <div class="attendance-details">
+            <div>
+              <span>Company</span><strong>{{ record.companyName || 'Not provided' }}</strong>
+            </div>
+            <div>
+              <span>Work mode</span
+              ><strong>{{
+                record.status === 'Pending'
+                  ? 'Confirm at exit'
+                  : record.status === 'Office'
+                    ? 'Work from office'
+                    : record.status
+              }}</strong>
+            </div>
+            <div class="comments">
+              <span>Comments</span><strong>{{ record.comments || 'No comments' }}</strong>
+            </div>
+          </div>
+          @if (!record.exitTime) {
+            <div class="timer-summary" aria-live="polite">
+              <span class="elapsed"
+                ><svg lucideIcon="timer" aria-hidden="true"></svg>Elapsed: <strong>{{ elapsedTime() }}</strong></span
+              >
+              <span class="remaining"
+                ><svg lucideIcon="clock-3" aria-hidden="true"></svg>Remaining:
+                <strong>{{ remainingTime() }}</strong></span
+              >
+            </div>
+            <div class="logoff-calculator">
+              <div>
+                <h2>Log off time</h2>
+                <p>
+                  You can log off after <strong>{{ formatTargetLogoff() }}</strong>
+                </p>
+              </div>
+              <label for="pro-work-hours">Work hours</label>
+              <div class="work-hours-control">
+                <input
+                  id="pro-work-hours"
+                  type="number"
+                  min="0.5"
+                  max="24"
+                  step="0.5"
+                  [value]="workHours()"
+                  (change)="updateWorkHours(+$any($event.target).value)" />
+                <span>hours</span>
+              </div>
+            </div>
+          }
+          <div class="duration-row">
+            <svg lucideIcon="timer" aria-hidden="true"></svg>
+            <span>Duration</span>
+            <strong>{{ duration(record) }}</strong>
+          </div>
+        }
+        <footer>
+          <button type="button" class="danger-button" (click)="confirmationAction.set('remove')">
+            <svg lucideIcon="trash-2" aria-hidden="true"></svg>
+            Remove
+          </button>
+        </footer>
+      } @else {
+        <div class="empty-attendance">
+          <svg lucideIcon="clock-3" aria-hidden="true"></svg>
+          <strong>No local record for today</strong>
+          <span>Start today’s private attendance record.</span>
+        </div>
+        <footer class="primary-actions">
+          <button type="button" class="secondary-button" (click)="confirmationAction.set('day-off')">
+            <svg lucideIcon="calendar-off" aria-hidden="true"></svg>
+            Day off
+          </button>
+          <button type="button" class="primary-button" (click)="openTimeDialog('entry')">
+            <svg lucideIcon="log-in" aria-hidden="true"></svg>
+            Mark entry
+          </button>
+        </footer>
+      }
+    </section>
+  }
+</main>
+
+@if (timeDialogMode(); as mode) {
+  <div class="dialog-backdrop" role="presentation" (click)="closeTimeDialog()" (keydown)="closeTimeDialog()">
+    <section
+      class="time-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="time-dialog-title"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()">
+      <header>
+        <div class="dialog-icon">
+          <svg [lucideIcon]="mode === 'entry' ? 'log-in' : 'log-out'" aria-hidden="true"></svg>
+        </div>
+        <div>
+          <p>Logger Pro</p>
+          <h2 id="time-dialog-title">{{ mode === 'entry' ? 'Mark entry' : 'Confirm attendance' }}</h2>
+        </div>
+        <button type="button" class="icon-button" aria-label="Close" (click)="closeTimeDialog()">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
+      </header>
+      <label for="attendance-time">{{ mode === 'entry' ? 'Entry date and time' : 'Exit date and time' }}</label>
+      <input id="attendance-time" type="datetime-local" [max]="currentDateTimeMaximum()" [(ngModel)]="timeInput" />
+      <p class="field-note">
+        {{
+          mode === 'entry' ? 'Entry date is fixed to today.' : 'Exit may be on the following day for overnight shifts.'
+        }}
+      </p>
+      @if (mode === 'exit') {
+        <label for="attendance-company">Company name <span class="optional-label">Optional</span></label>
+        <input
+          id="attendance-company"
+          type="text"
+          autocomplete="organization"
+          maxlength="100"
+          [(ngModel)]="companyName" />
+        <label for="attendance-comments">Notes <span class="optional-label">Optional</span></label>
+        <textarea id="attendance-comments" rows="3" maxlength="500" [(ngModel)]="comments"></textarea>
+        <fieldset>
+          <legend>Work mode</legend>
+          <div class="status-options">
+            <label [class.selected]="selectedStatus === 'Office'">
+              <input type="radio" name="pro-status" value="Office" [(ngModel)]="selectedStatus" />
+              Work from office
+            </label>
+            <label [class.selected]="selectedStatus === 'WFH'">
+              <input type="radio" name="pro-status" value="WFH" [(ngModel)]="selectedStatus" />
+              WFH
+            </label>
+            <label [class.selected]="selectedStatus === 'First Half Off'">
+              <input type="radio" name="pro-status" value="First Half Off" [(ngModel)]="selectedStatus" />
+              First half off
+            </label>
+            <label [class.selected]="selectedStatus === 'Second Half Off'">
+              <input type="radio" name="pro-status" value="Second Half Off" [(ngModel)]="selectedStatus" />
+              Second half off
+            </label>
+          </div>
+        </fieldset>
+      }
+      <footer>
+        <button type="button" class="secondary-button" (click)="closeTimeDialog()">Cancel</button>
+        <button type="button" class="primary-button" [disabled]="saving()" (click)="saveTime()">
+          <svg lucideIcon="save" aria-hidden="true"></svg>
+          {{ saving() ? 'Saving...' : mode === 'entry' ? 'Mark entry' : 'Save exit' }}
+        </button>
+      </footer>
+    </section>
+  </div>
+}
+
+@if (confirmationAction()) {
+  <app-confirmation-popup
+    [title]="confirmationTitle()"
+    [message]="confirmationMessage()"
+    [confirmLabel]="confirmationLabel()"
+    (cancelled)="confirmationAction.set(null)"
+    (confirmed)="confirmAction()" />
+}
+
+@if (showNotificationPermissionConfirmation()) {
+  <app-confirmation-popup
+    title="Turn On Reminders?"
+    message="Allow Office Pulse to send log off reminder notifications on this device."
+    confirmLabel="Turn On"
+    (cancelled)="closeNotificationPermissionConfirmation()"
+    (confirmed)="confirmNotificationPermission()" />
+}

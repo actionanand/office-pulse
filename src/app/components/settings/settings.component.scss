@@ -47,6 +47,43 @@
   background: #fff;
 }
 
+.data-section {
+  margin-top: 1rem;
+}
+.data-icon {
+  background: #e7f8ef;
+  color: #137a49;
+}
+.database-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #137a49;
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.database-status svg,
+.data-actions svg,
+.selected-file svg {
+  width: 20px;
+  height: 20px;
+}
+.data-actions {
+  position: relative;
+  display: flex;
+  gap: 0.55rem;
+}
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .section-heading {
   gap: 0.8rem;
   padding: 1rem;
@@ -380,6 +417,52 @@
   }
 }
 
+.data-dialog-note,
+.selected-file {
+  margin-top: 0.8rem;
+  padding: 0.7rem;
+  border-radius: 6px;
+  background: #f2f4f7;
+  color: #475467;
+  line-height: 1.4;
+}
+.selected-file {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-wrap: anywhere;
+}
+.data-form {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.data-form label {
+  margin-top: 0.4rem;
+  color: #344054;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.data-form input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #cfd6e4;
+  border-radius: 8px;
+  font: inherit;
+}
+.data-form input:focus {
+  border-color: #5268c9;
+  outline: 3px solid rgba(82, 104, 201, 0.14);
+}
+.data-form footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
 .icon-button {
   display: grid;
   width: 42px;
@@ -432,6 +515,25 @@
     .action-button {
       width: 100%;
     }
+  }
+
+  .data-action-row {
+    grid-template-columns: 1fr;
+  }
+  .data-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+  .data-actions .action-button {
+    width: 100%;
+  }
+  .data-form footer {
+    flex-direction: column-reverse;
+  }
+  .data-form footer .action-button {
+    width: 100%;
   }
 
   .pin-dialog footer {

@@ -146,7 +146,7 @@
   font-size: 16px;
   font-weight: 600;
   color: white;
-  background: #5268c9;
+  background: var(--theme-primary);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -194,7 +194,7 @@
   margin-top: 0.7rem;
   border: 0;
   background: transparent;
-  color: #5268c9;
+  color: var(--theme-primary);
   cursor: pointer;
   font: inherit;
   font-weight: 700;
@@ -265,8 +265,8 @@
     font: inherit;
 
     &:focus {
-      border-color: #5268c9;
-      outline: 3px solid rgba(82, 104, 201, 0.14);
+      border-color: var(--theme-primary);
+      outline: 3px solid rgba(var(--theme-focus-rgb), 0.14);
     }
   }
 
@@ -317,8 +317,8 @@
 }
 
 .dialog-primary {
-  border-color: #5268c9;
-  background: #5268c9;
+  border-color: var(--theme-primary);
+  background: var(--theme-primary);
   color: #fff;
 }
 

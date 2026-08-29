@@ -18,6 +18,7 @@ import { SecurityService } from '../../services/security.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { AttendanceBackupService } from '../../services/attendance-backup.service';
 import { AttendanceDatabaseService } from '../../services/attendance-database.service';
+import { AppThemeId, ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-settings',
@@ -37,6 +38,7 @@ export class SettingsComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly attendanceBackup = inject(AttendanceBackupService);
   protected readonly attendanceDatabase = inject(AttendanceDatabaseService);
+  protected readonly theme = inject(ThemeService);
 
   protected readonly pinDialogOpen = signal(false);
   protected readonly confirmRemove = signal(false);
@@ -185,6 +187,12 @@ export class SettingsComponent {
     this.settings.update({ autoLockMinutes: value });
     this.closeAutoLockPicker();
     this.snackbar.success('Auto-lock timing updated.');
+  }
+
+  protected selectTheme(theme: AppThemeId): void {
+    if (theme === this.theme.activeTheme()) return;
+    this.theme.setTheme(theme);
+    this.snackbar.success('Theme updated.');
   }
 
   protected onAutoLockBackdropClick(event: MouseEvent): void {

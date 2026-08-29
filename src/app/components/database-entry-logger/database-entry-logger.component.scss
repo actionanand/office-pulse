@@ -18,7 +18,7 @@
 }
 .page-heading p,
 .time-dialog header p {
-  color: #5268c9;
+  color: var(--theme-primary);
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -100,8 +100,8 @@ button svg,
   height: 44px;
   place-items: center;
   border-radius: 8px;
-  background: #eef1ff;
-  color: #5268c9;
+  background: var(--theme-soft);
+  color: var(--theme-primary);
 }
 .status-pill {
   margin-left: auto;
@@ -136,12 +136,16 @@ button svg,
   color: #344054;
   cursor: pointer;
   text-align: left;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
 }
 .time-block span {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: #5268c9;
+  color: var(--theme-primary);
   font-weight: 800;
 }
 .time-block strong {
@@ -192,12 +196,45 @@ button svg,
   cursor: pointer;
 }
 .attendance-details.editable > button:hover {
-  border-color: #f0a25f;
-  background: #fffaf4;
+  border-color: var(--theme-border);
+  background: var(--theme-hover);
 }
 .attendance-details > button:disabled {
   cursor: default;
   opacity: 1;
+}
+.inline-editor {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  background: var(--theme-hover);
+}
+.inline-editor input,
+.inline-editor textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2937;
+  font: inherit;
+}
+.inline-editor textarea {
+  resize: vertical;
+}
+.inline-editor input:focus,
+.inline-editor textarea:focus {
+  border-color: var(--theme-primary);
+  outline: 3px solid rgba(var(--theme-focus-rgb), 0.14);
+}
+.inline-editor small {
+  color: #667085;
+  font-size: 0.72rem;
 }
 .attendance-details .comments {
   grid-column: 1 / -1;
@@ -212,7 +249,7 @@ button svg,
 }
 .time-block:focus-visible,
 button:focus-visible {
-  outline: 3px solid rgba(82, 104, 201, 0.2);
+  outline: 3px solid rgba(var(--theme-focus-rgb), 0.2);
   outline-offset: 2px;
 }
 .duration-row {
@@ -259,7 +296,7 @@ button:focus-visible {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #4f7fea;
+  background: #2787a8;
   transition:
     width 0.3s ease,
     background 0.3s ease;
@@ -306,7 +343,7 @@ button:focus-visible {
   gap: 0.75rem 1rem;
   margin: 0 1rem 1rem;
   padding: 1rem;
-  border-left: 4px solid #3498db;
+  border-left: 4px solid var(--theme-primary);
   border-radius: 8px;
   background: #f7f8fa;
 }
@@ -346,8 +383,8 @@ button:focus-visible {
   font: inherit;
 }
 .work-hours-control input:focus {
-  border-color: #5268c9;
-  outline: 3px solid rgba(82, 104, 201, 0.14);
+  border-color: var(--theme-primary);
+  outline: 3px solid rgba(var(--theme-focus-rgb), 0.14);
 }
 .work-hours-control span {
   color: #667085;
@@ -374,7 +411,7 @@ button:focus-visible {
 .day-off-state svg {
   width: 44px;
   height: 44px;
-  color: #5268c9;
+  color: var(--theme-primary);
 }
 .empty-attendance strong,
 .day-off-state strong {
@@ -409,7 +446,7 @@ button {
   border: 1px solid #cfd6e4;
   border-radius: 8px;
   background: #fff;
-  color: #4055b2;
+  color: var(--theme-primary-strong);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
@@ -424,9 +461,22 @@ button {
   width: 20px;
   height: 20px;
 }
+@media (hover: hover) {
+  .time-block.exit-block:hover {
+    box-shadow: 0 6px 16px rgba(154, 68, 8, 0.12);
+    transform: translateY(-2px);
+  }
+  .primary-button:hover,
+  .secondary-button:hover,
+  .past-entry-button:hover,
+  .second-shift-button:hover {
+    filter: brightness(0.96);
+    transform: translateY(-1px);
+  }
+}
 .primary-button {
-  border: 1px solid #5268c9;
-  background: #5268c9;
+  border: 1px solid var(--theme-primary);
+  background: var(--theme-primary);
   color: #fff;
 }
 .primary-button.exit-submit {
@@ -508,8 +558,8 @@ button:disabled {
 }
 .time-dialog > input:focus,
 .time-dialog > textarea:focus {
-  border-color: #5268c9;
-  outline: 3px solid rgba(82, 104, 201, 0.14);
+  border-color: var(--theme-primary);
+  outline: 3px solid rgba(var(--theme-focus-rgb), 0.14);
 }
 .time-dialog fieldset {
   min-width: 0;
@@ -543,16 +593,16 @@ button:disabled {
   font-weight: 600;
 }
 .status-options label.selected {
-  border-color: #5268c9;
-  background: #eef1ff;
-  color: #4055b2;
+  border-color: var(--theme-primary);
+  background: var(--theme-soft);
+  color: var(--theme-primary-strong);
 }
 .status-options input {
   flex: 0 0 18px;
   width: 18px;
   height: 18px;
   margin: 0;
-  accent-color: #5268c9;
+  accent-color: var(--theme-primary);
 }
 .field-note {
   margin-top: 0.45rem;

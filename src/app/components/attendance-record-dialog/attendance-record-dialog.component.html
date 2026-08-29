@@ -22,14 +22,21 @@
         <span>Attendance date</span>
         <input type="date" [max]="maxDate()" [(ngModel)]="date" [disabled]="!!initialDate() || !!record()" />
       </label>
-      <label>
-        <span>Entry date and time</span>
-        <input type="datetime-local" [(ngModel)]="entryTime" />
-      </label>
-      <label>
-        <span>Exit date and time</span>
-        <input type="datetime-local" [(ngModel)]="exitTime" />
-      </label>
+      @if (status !== 'Day Off') {
+        <label>
+          <span>Entry date and time</span>
+          <input type="datetime-local" [(ngModel)]="entryTime" />
+        </label>
+        <label>
+          <span>Exit date and time</span>
+          <input type="datetime-local" [(ngModel)]="exitTime" />
+        </label>
+      } @else {
+        <div class="day-off-note full-field">
+          <svg lucideIcon="calendar-off" aria-hidden="true"></svg>
+          No entry or exit time is required for a full day off.
+        </div>
+      }
       <label>
         <span>Company <small>Optional</small></span>
         <input type="text" maxlength="100" autocomplete="organization" [(ngModel)]="companyName" />
@@ -49,6 +56,7 @@
             { value: 'WFH', label: 'Work from home' },
             { value: 'First Half Off', label: 'First half leave' },
             { value: 'Second Half Off', label: 'Second half leave' },
+            { value: 'Day Off', label: 'Full day off' },
           ];
           track option.value
         ) {

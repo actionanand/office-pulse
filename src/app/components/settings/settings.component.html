@@ -99,6 +99,41 @@
     }
   </section>
 
+  <section class="settings-section theme-section" aria-labelledby="appearance-title">
+    <header class="section-heading">
+      <svg class="section-icon" lucideIcon="palette" aria-hidden="true"></svg>
+      <div>
+        <h2 id="appearance-title">Appearance</h2>
+        <p>Choose a theme for Office Pulse on this device.</p>
+      </div>
+    </header>
+
+    <div class="theme-options" role="radiogroup" aria-label="App theme">
+      @for (option of theme.themes; track option.id) {
+        <button
+          type="button"
+          class="theme-option"
+          role="radio"
+          [attr.aria-checked]="theme.activeTheme() === option.id"
+          [class.selected]="theme.activeTheme() === option.id"
+          (click)="selectTheme(option.id)">
+          <span class="theme-swatches" aria-hidden="true">
+            @for (swatch of option.swatches; track swatch) {
+              <i [style.background]="swatch"></i>
+            }
+          </span>
+          <span class="theme-copy">
+            <strong>{{ option.name }}</strong>
+            <small>{{ option.description }}</small>
+          </span>
+          @if (theme.activeTheme() === option.id) {
+            <svg lucideIcon="circle-check" aria-hidden="true"></svg>
+          }
+        </button>
+      }
+    </div>
+  </section>
+
   <section class="settings-section data-section" aria-labelledby="attendance-data-title">
     <header class="section-heading">
       <svg class="section-icon data-icon" lucideIcon="shield-check" aria-hidden="true"></svg>

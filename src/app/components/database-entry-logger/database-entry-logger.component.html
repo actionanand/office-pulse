@@ -63,9 +63,25 @@
             }
           </div>
           <div class="attendance-details" [class.editable]="!record.exitTime">
-            <button type="button" [disabled]="!!record.exitTime" (click)="openTimeDialog('exit')">
-              <span>Company</span><strong>{{ record.companyName || 'Not provided' }}</strong>
-            </button>
+            @if (editingMetadata() === 'company') {
+              <label class="inline-editor">
+                <span>Company</span>
+                <input
+                  #companyEditor
+                  type="text"
+                  maxlength="100"
+                  autocomplete="organization"
+                  [(ngModel)]="companyDraft"
+                  [disabled]="metadataSaving()"
+                  (blur)="saveMetadata('company')"
+                  (keydown.enter)="companyEditor.blur()" />
+                <small>{{ metadataSaving() ? 'Saving...' : 'Saved automatically when you leave this field' }}</small>
+              </label>
+            } @else {
+              <button type="button" [disabled]="!!record.exitTime" (click)="startMetadataEdit('company')">
+                <span>Company</span><strong>{{ record.companyName || 'Not provided' }}</strong>
+              </button>
+            }
             <button type="button" [disabled]="!!record.exitTime" (click)="openTimeDialog('exit')">
               <span>Work mode</span
               ><strong>{{
@@ -76,9 +92,27 @@
                     : record.status
               }}</strong>
             </button>
-            <button type="button" class="comments" [disabled]="!!record.exitTime" (click)="openTimeDialog('exit')">
-              <span>Comments</span><strong>{{ record.comments || 'No comments' }}</strong>
-            </button>
+            @if (editingMetadata() === 'comments') {
+              <label class="inline-editor comments">
+                <span>Comments</span>
+                <textarea
+                  #commentsEditor
+                  rows="2"
+                  maxlength="500"
+                  [(ngModel)]="commentsDraft"
+                  [disabled]="metadataSaving()"
+                  (blur)="saveMetadata('comments')"></textarea>
+                <small>{{ metadataSaving() ? 'Saving...' : 'Saved automatically when you leave this field' }}</small>
+              </label>
+            } @else {
+              <button
+                type="button"
+                class="comments"
+                [disabled]="!!record.exitTime"
+                (click)="startMetadataEdit('comments')">
+                <span>Comments</span><strong>{{ record.comments || 'No comments' }}</strong>
+              </button>
+            }
           </div>
           @if (!record.exitTime) {
             <div class="timer-summary" aria-live="polite">

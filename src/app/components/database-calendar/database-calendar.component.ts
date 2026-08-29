@@ -21,6 +21,12 @@ interface DatabaseCalendarDay {
   readonly records: readonly AttendanceDbRecord[];
 }
 
+interface CalendarStatusBadge {
+  readonly label: string;
+  readonly title: string;
+  readonly style: 'wfh' | 'half' | 'off';
+}
+
 @Component({
   selector: 'app-database-calendar',
   imports: [LucideDynamicIcon, AttendanceRecordDialogComponent, ConfirmationPopupComponent, DownloadDialogComponent],
@@ -99,10 +105,6 @@ export class DatabaseCalendarComponent implements OnInit {
   }
 
   protected openEditor(date: string, record: AttendanceDbRecord | null = null): void {
-    if (record?.status === 'Day Off') {
-      this.snackbar.warning('Remove the day-off record before adding attendance for this date.');
-      return;
-    }
     this.editorDate.set(date);
     this.editorRecord.set(record);
     this.selectedDay.set(null);
@@ -171,6 +173,15 @@ export class DatabaseCalendarComponent implements OnInit {
     return status === 'Office' ? 'Work from office' : status;
   }
 
+  protected statusBadges(records: readonly AttendanceDbRecord[]): readonly CalendarStatusBadge[] {
+    const badges = new Map<string, CalendarStatusBadge>();
+    for (const record of records) {
+      const badge = this.statusBadge(record.status);
+      if (badge) badges.set(badge.label, badge);
+    }
+    return [...badges.values()];
+  }
+
   private buildCalendar(): readonly DatabaseCalendarDay[] {
     const year = this.currentYear();
     const month = this.currentMonth();
@@ -219,6 +230,14 @@ export class DatabaseCalendarComponent implements OnInit {
   private durationMinutes(record: AttendanceDbRecord): number {
     if (!record.entryTime || !record.exitTime) return 0;
     return Math.max(0, Math.floor((Date.parse(record.exitTime) - Date.parse(record.entryTime)) / 60_000));
+  }
+
+  private statusBadge(status: AttendanceDbRecord['status']): CalendarStatusBadge | null {
+    if (status === 'WFH') return { label: 'WFH', title: 'Work from home', style: 'wfh' };
+    if (status === 'First Half Off') return { label: 'H1', title: 'First half leave', style: 'half' };
+    if (status === 'Second Half Off') return { label: 'H2', title: 'Second half leave', style: 'half' };
+    if (status === 'Day Off') return { label: 'OFF', title: 'Full day off', style: 'off' };
+    return null;
   }
 
   private toPdfEntry(date: string, records: AttendanceDbRecord[]): SheetEntry {

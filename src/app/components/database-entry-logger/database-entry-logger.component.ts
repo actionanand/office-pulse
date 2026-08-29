@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideDynamicIcon } from '@lucide/angular';
 
@@ -11,6 +22,7 @@ import { AttendanceRecordDialogComponent } from '../attendance-record-dialog/att
 
 type ConfirmationAction = 'day-off' | 'remove' | null;
 type TimeDialogMode = 'entry' | 'exit' | null;
+type MetadataField = 'company' | 'comments';
 
 @Component({
   selector: 'app-database-entry-logger',
@@ -20,6 +32,9 @@ type TimeDialogMode = 'entry' | 'exit' | null;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
+  @ViewChild('companyEditor') private companyEditor?: ElementRef<HTMLInputElement>;
+  @ViewChild('commentsEditor') private commentsEditor?: ElementRef<HTMLTextAreaElement>;
+
   protected readonly database = inject(AttendanceDatabaseService);
   private readonly snackbar = inject(SnackbarService);
   private readonly logoffNotifications = inject(AndroidLogoffNotificationService);
@@ -51,6 +66,8 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
   protected readonly saving = signal(false);
   protected readonly showPastEntryDialog = signal(false);
   protected readonly secondShiftEntry = signal(false);
+  protected readonly editingMetadata = signal<MetadataField | null>(null);
+  protected readonly metadataSaving = signal(false);
   protected readonly showNotificationPermissionConfirmation = signal(false);
   protected readonly currentTimestamp = signal(Date.now());
   protected readonly workHours = signal(this.loadWorkHours());
@@ -93,6 +110,8 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
   protected companyName = '';
   protected comments = '';
   protected selectedStatus: AttendanceDbStatus | null = null;
+  protected companyDraft = '';
+  protected commentsDraft = '';
   private timerId?: number;
   private notificationsOwned = false;
 
@@ -157,8 +176,8 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
 
     const storedTime = mode === 'exit' ? record?.exitTime : undefined;
     this.timeInput = this.toDateTimeInput(storedTime ? new Date(storedTime) : new Date());
-    this.companyName = record?.companyName ?? '';
-    this.comments = record?.comments ?? '';
+    this.companyName = this.editingMetadata() ? this.companyDraft : (record?.companyName ?? '');
+    this.comments = this.editingMetadata() ? this.commentsDraft : (record?.comments ?? '');
     this.selectedStatus =
       record && record.status !== 'Pending' && record.status !== 'Day Off' ? record.status : 'Office';
     this.secondShiftEntry.set(mode === 'entry' && secondShift);
@@ -169,6 +188,42 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
     if (!this.saving()) {
       this.timeDialogMode.set(null);
       this.secondShiftEntry.set(false);
+    }
+  }
+
+  protected startMetadataEdit(field: MetadataField): void {
+    const record = this.activeRecord();
+    if (!record || record.exitTime) return;
+    this.companyDraft = record.companyName ?? '';
+    this.commentsDraft = record.comments ?? '';
+    this.editingMetadata.set(field);
+    window.setTimeout(() => (field === 'company' ? this.companyEditor : this.commentsEditor)?.nativeElement.focus());
+  }
+
+  protected async saveMetadata(field: MetadataField): Promise<void> {
+    if (this.metadataSaving() || this.editingMetadata() !== field) return;
+    const record = this.activeRecord();
+    if (!record || record.exitTime) {
+      this.editingMetadata.set(null);
+      return;
+    }
+
+    const companyName = this.companyDraft.trim() || undefined;
+    const comments = this.commentsDraft.trim() || undefined;
+    if (companyName === record.companyName && comments === record.comments) {
+      this.editingMetadata.set(null);
+      return;
+    }
+
+    this.metadataSaving.set(true);
+    try {
+      await this.database.save({ ...record, companyName, comments, updatedAt: new Date().toISOString() });
+      this.editingMetadata.set(null);
+      this.snackbar.success(`${field === 'company' ? 'Company' : 'Comments'} saved.`);
+    } catch (error) {
+      this.snackbar.error(this.message(error, 'Attendance details could not be saved.'));
+    } finally {
+      this.metadataSaving.set(false);
     }
   }
 

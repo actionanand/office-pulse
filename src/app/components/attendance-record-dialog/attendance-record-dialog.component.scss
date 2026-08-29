@@ -28,7 +28,7 @@ header {
   border-bottom: 1px solid #e8ecf2;
 }
 header p {
-  color: #5268c9;
+  color: var(--theme-primary);
   font-size: 0.76rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -44,8 +44,8 @@ h2 {
   height: 44px;
   place-items: center;
   border-radius: 8px;
-  background: #eef1ff;
-  color: #5268c9;
+  background: var(--theme-soft);
+  color: var(--theme-primary);
 }
 .icon-button {
   display: grid;
@@ -103,10 +103,27 @@ input:disabled {
 textarea {
   resize: vertical;
 }
+.day-off-note {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  background: var(--theme-hover);
+  color: var(--theme-primary-strong);
+  font-weight: 600;
+}
+.day-off-note svg {
+  flex: 0 0 21px;
+  width: 21px;
+  height: 21px;
+}
 input:focus,
 textarea:focus {
-  border-color: #5268c9;
-  outline: 3px solid rgba(82, 104, 201, 0.14);
+  border-color: var(--theme-primary);
+  outline: 3px solid rgba(var(--theme-focus-rgb), 0.14);
 }
 fieldset {
   min-width: 0;
@@ -137,9 +154,20 @@ legend {
   font-weight: 600;
 }
 .mode-grid label.selected {
-  border-color: #5268c9;
-  background: #eef1ff;
-  color: #4055b2;
+  border-color: var(--theme-primary);
+  background: var(--theme-soft);
+  color: var(--theme-primary-strong);
+}
+@media (hover: hover) {
+  .mode-grid label:hover {
+    border-color: var(--theme-border);
+    background: var(--theme-hover);
+  }
+  .primary-button:hover,
+  .secondary-button:hover {
+    filter: brightness(0.96);
+    transform: translateY(-1px);
+  }
 }
 .mode-grid input {
   flex: 0 0 18px;
@@ -147,7 +175,7 @@ legend {
   min-height: 18px;
   height: 18px;
   margin: 0;
-  accent-color: #5268c9;
+  accent-color: var(--theme-primary);
 }
 footer {
   justify-content: flex-end;
@@ -167,8 +195,8 @@ footer {
   cursor: pointer;
 }
 .primary-button {
-  border: 1px solid #5268c9;
-  background: #5268c9;
+  border: 1px solid var(--theme-primary);
+  background: var(--theme-primary);
   color: #fff;
 }
 .secondary-button {

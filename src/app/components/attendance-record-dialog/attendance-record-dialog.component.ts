@@ -8,7 +8,7 @@ import { AttendanceDatabaseService } from '../../services/attendance-database.se
 import { HolidayService } from '../../services/holiday.service';
 import { SnackbarService } from '../../services/snackbar.service';
 
-type EditableStatus = Extract<AttendanceDbStatus, 'Office' | 'WFH' | 'First Half Off' | 'Second Half Off'>;
+type EditableStatus = Extract<AttendanceDbStatus, 'Office' | 'WFH' | 'First Half Off' | 'Second Half Off' | 'Day Off'>;
 
 @Component({
   selector: 'app-attendance-record-dialog',
@@ -56,9 +56,10 @@ export class AttendanceRecordDialogComponent {
     const date = this.date || this.initialDate();
     const entry = new Date(this.entryTime);
     const exit = new Date(this.exitTime);
+    const isDayOff = this.status === 'Day Off';
 
-    if (!date || Number.isNaN(entry.getTime()) || Number.isNaN(exit.getTime())) {
-      this.snackbar.warning('Choose a valid date, entry time and exit time.');
+    if (!date || (!isDayOff && (Number.isNaN(entry.getTime()) || Number.isNaN(exit.getTime())))) {
+      this.snackbar.warning(isDayOff ? 'Choose a valid date.' : 'Choose a valid date, entry time and exit time.');
       return;
     }
     if (date > this.maxDate()) {
@@ -69,15 +70,15 @@ export class AttendanceRecordDialogComponent {
       this.snackbar.warning('Use Logger Pro to record today. Past attendance must be before today.');
       return;
     }
-    if (this.localDate(entry) !== date) {
+    if (!isDayOff && this.localDate(entry) !== date) {
       this.snackbar.warning('Entry time must be on the selected attendance date.');
       return;
     }
-    if (exit.getTime() < entry.getTime()) {
+    if (!isDayOff && exit.getTime() < entry.getTime()) {
       this.snackbar.warning('Exit time cannot be before entry time.');
       return;
     }
-    if (exit.getTime() > Date.now() + 60_000) {
+    if (!isDayOff && exit.getTime() > Date.now() + 60_000) {
       this.snackbar.warning('Exit time cannot be in the future.');
       return;
     }
@@ -93,7 +94,7 @@ export class AttendanceRecordDialogComponent {
             : 'Attendance already exists for that date.',
         );
       }
-      if (!existing && (await this.isHoliday(date))) {
+      if (!existing && !isDayOff && (await this.isHoliday(date))) {
         throw new Error('Attendance cannot be added on an office holiday.');
       }
 
@@ -101,8 +102,8 @@ export class AttendanceRecordDialogComponent {
       await this.database.save({
         id: existing?.id ?? crypto.randomUUID(),
         date,
-        entryTime: entry.toISOString(),
-        exitTime: exit.toISOString(),
+        entryTime: isDayOff ? undefined : entry.toISOString(),
+        exitTime: isDayOff ? undefined : exit.toISOString(),
         status: this.status,
         companyName: this.companyName.trim() || undefined,
         comments: this.comments.trim() || undefined,
@@ -145,7 +146,13 @@ export class AttendanceRecordDialogComponent {
   }
 
   private isEditableStatus(status?: AttendanceDbStatus): status is EditableStatus {
-    return status === 'Office' || status === 'WFH' || status === 'First Half Off' || status === 'Second Half Off';
+    return (
+      status === 'Office' ||
+      status === 'WFH' ||
+      status === 'First Half Off' ||
+      status === 'Second Half Off' ||
+      status === 'Day Off'
+    );
   }
 
   private defaultWorkHours(): number {

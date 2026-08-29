@@ -59,7 +59,17 @@
             (click)="selectDay(day)">
             <span>{{ day.date }}</span>
             @if (day.record) {
-              <i [class.complete]="day.record.exitTime" [class.leave]="day.record.status === 'Day Off'"></i>
+              @if (statusBadges(day.records); as badges) {
+                @if (badges.length) {
+                  <span class="day-badges" aria-label="Attendance status">
+                    @for (badge of badges; track badge.label) {
+                      <b [class]="badge.style" [title]="badge.title">{{ badge.label }}</b>
+                    }
+                  </span>
+                } @else {
+                  <i [class.complete]="day.record.exitTime"></i>
+                }
+              }
             }
           </button>
         }
@@ -144,12 +154,10 @@
           <span class="today-hint">Use Logger Pro to mark today</span>
         } @else {
           @for (record of day.records; track record.id; let shiftIndex = $index) {
-            @if (record.status !== 'Day Off') {
-              <button type="button" class="edit-button" (click)="openEditor(day.fullDate, record)">
-                <svg lucideIcon="pencil" aria-hidden="true"></svg>Edit
-                {{ day.records.length > 1 ? 'shift ' + (shiftIndex + 1) : '' }}
-              </button>
-            }
+            <button type="button" class="edit-button" (click)="openEditor(day.fullDate, record)">
+              <svg lucideIcon="pencil" aria-hidden="true"></svg>Edit
+              {{ day.records.length > 1 ? 'shift ' + (shiftIndex + 1) : '' }}
+            </button>
             <button type="button" class="delete-button" (click)="deleteRecord.set(record)">
               <svg lucideIcon="trash-2" aria-hidden="true"></svg>Delete
               {{ day.records.length > 1 ? 'shift ' + (shiftIndex + 1) : '' }}

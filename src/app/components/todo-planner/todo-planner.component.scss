@@ -28,7 +28,7 @@
 }
 .page-heading p,
 .editor-sheet header p {
-  color: #5268c9;
+  color: var(--theme-primary);
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -54,8 +54,8 @@
   cursor: pointer;
 }
 .primary-button {
-  border: 1px solid #5268c9;
-  background: #5268c9;
+  border: 1px solid var(--theme-primary);
+  background: var(--theme-primary);
   color: #fff;
 }
 .secondary-button {
@@ -92,7 +92,7 @@ button svg,
 }
 .view-tabs button.active {
   background: #fff;
-  color: #4055b2;
+  color: var(--theme-primary-strong);
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
 }
 .day-toolbar {
@@ -113,7 +113,7 @@ button svg,
 .day-toolbar div button {
   border: 0;
   background: transparent;
-  color: #5268c9;
+  color: var(--theme-primary);
   cursor: pointer;
   font: inherit;
   font-size: 0.82rem;
@@ -129,7 +129,7 @@ button svg,
   border-radius: 50%;
   place-items: center;
   background: #fff;
-  color: #5268c9;
+  color: var(--theme-primary);
   cursor: pointer;
 }
 .progress-row {
@@ -183,7 +183,7 @@ button svg,
   border: 0;
   place-items: center;
   background: transparent;
-  color: #5268c9;
+  color: var(--theme-primary);
   cursor: pointer;
 }
 .complete-button svg {
@@ -197,8 +197,8 @@ button svg,
   height: 42px;
   border-radius: 8px;
   place-items: center;
-  background: #eef1ff;
-  color: #5268c9;
+  background: var(--theme-soft);
+  color: var(--theme-primary);
 }
 .task-content {
   min-width: 0;
@@ -214,7 +214,7 @@ button svg,
 }
 .task-content time {
   margin-left: auto;
-  color: #5268c9;
+  color: var(--theme-primary);
   font-weight: 800;
 }
 .task-content p {
@@ -361,8 +361,8 @@ button svg,
 }
 .editor-body input:focus,
 .editor-body textarea:focus {
-  border-color: #5268c9;
-  outline: 3px solid rgba(82, 104, 201, 0.14);
+  border-color: var(--theme-primary);
+  outline: 3px solid rgba(var(--theme-focus-rgb), 0.14);
 }
 fieldset {
   min-width: 0;
@@ -397,9 +397,9 @@ legend {
 }
 .choice-grid button.selected,
 .weekday-grid button.selected {
-  border-color: #5268c9;
-  background: #eef1ff;
-  color: #4055b2;
+  border-color: var(--theme-primary);
+  background: var(--theme-soft);
+  color: var(--theme-primary-strong);
 }
 .weekday-grid {
   display: grid;
@@ -448,7 +448,7 @@ legend {
   transition: transform 0.16s;
 }
 .switch.on {
-  background: #5268c9;
+  background: var(--theme-primary);
 }
 .switch.on i {
   transform: translateX(20px);
@@ -467,7 +467,7 @@ legend {
   opacity: 0.55;
 }
 button:focus-visible {
-  outline: 3px solid rgba(82, 104, 201, 0.22);
+  outline: 3px solid rgba(var(--theme-focus-rgb), 0.22);
   outline-offset: 2px;
 }
 @media (max-width: 600px) {

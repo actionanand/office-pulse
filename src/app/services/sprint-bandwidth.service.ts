@@ -1,11 +1,13 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { SprintConfig, SprintTask, BandwidthSummary, TaskStatus } from '../models/sprint-bandwidth.model';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SprintBandwidthService {
   private readonly STORAGE_KEY = 'sprint_bandwidth_config';
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
 
   private readonly defaultConfig: SprintConfig = {
     sprintName: 'Sprint 1',
@@ -29,7 +31,7 @@ export class SprintBandwidthService {
 
   private loadConfig(): SprintConfig {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
+      const stored = this.appLocalData.getItem(this.STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         // Ensure all tasks have required fields (for backward compatibility)
@@ -55,7 +57,7 @@ export class SprintBandwidthService {
 
   private saveConfig(): void {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.config()));
+      this.appLocalData.setItem(this.STORAGE_KEY, JSON.stringify(this.config()));
     } catch (e) {
       console.error('Error saving sprint config:', e);
     }

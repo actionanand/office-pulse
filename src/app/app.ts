@@ -7,6 +7,7 @@ import { AttendanceStateService } from './services/attendance-state.service';
 import { LockScreenComponent } from './lock-screen/lock-screen.component';
 import { LockScreenService } from './lock-screen/lock-screen.service';
 import { LoggerService } from './logger/logger.service';
+import { AppLocalDataDatabaseService } from './services/app-local-data-database.service';
 import { ThemeService } from './services/theme.service';
 
 @Component({
@@ -26,6 +27,7 @@ export class App implements OnInit {
   private readonly lockService = inject(LockScreenService);
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   private readonly theme = inject(ThemeService);
   private attendanceFetchScheduled = false;
 
@@ -42,6 +44,7 @@ export class App implements OnInit {
   }
 
   ngOnInit(): void {
+    void this.appLocalData.initialize();
     this.theme.activeTheme();
     // Logger is automatically initialized
     // It checks localStorage['enableLog'] === 'ON' to enable logs

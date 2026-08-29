@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { TodoDbRecord } from '../models/todo-db.model';
 import { formatTodoDate, nextTodoOccurrences } from '../utils/todo-recurrence';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 interface LocalNotificationsPlugin {
   checkPermissions?: () => Promise<{ display?: string }>;
@@ -39,6 +40,7 @@ interface CapacitorBridge {
 @Injectable({ providedIn: 'root' })
 export class TodoReminderService {
   private readonly channelId = 'office-pulse-todo-reminders';
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   private readonly timers = new Map<string, number[]>();
 
   async shouldRequestPermission(): Promise<boolean> {
@@ -165,7 +167,7 @@ export class TodoReminderService {
 
   private readIds(todoId: string): number[] {
     try {
-      const value = JSON.parse(localStorage.getItem(`office_pulse_todo_reminders_${todoId}`) ?? '[]');
+      const value = JSON.parse(this.appLocalData.getItem(`office_pulse_todo_reminders_${todoId}`) ?? '[]');
       return Array.isArray(value) ? value.filter((id): id is number => Number.isInteger(id)) : [];
     } catch {
       return [];
@@ -175,8 +177,8 @@ export class TodoReminderService {
   private writeIds(todoId: string, ids: readonly number[]): void {
     try {
       const key = `office_pulse_todo_reminders_${todoId}`;
-      if (ids.length) localStorage.setItem(key, JSON.stringify(ids));
-      else localStorage.removeItem(key);
+      if (ids.length) this.appLocalData.setItem(key, JSON.stringify(ids));
+      else this.appLocalData.removeItem(key);
     } catch {
       /* Reminders still work for the current session. */
     }

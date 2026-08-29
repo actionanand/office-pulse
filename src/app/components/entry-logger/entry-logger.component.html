@@ -68,6 +68,15 @@
               Remaining: <strong>{{ remainingTime() }}</strong>
             </p>
           </div>
+          <div class="legacy-progress" [class]="elapsedProgressState()">
+            <div class="legacy-progress-header">
+              <span><svg lucideIcon="timer" aria-hidden="true"></svg> Progress</span>
+              <strong>{{ elapsedProgressPercent() }}%</strong>
+            </div>
+            <div class="legacy-progress-track">
+              <span [style.width.%]="elapsedProgressPercent()"></span>
+            </div>
+          </div>
           @if (hasExitedToday()) {
             <p class="small-text exit-time">
               Exit marked at: <strong class="exit-highlight">{{ exitTimeDisplay() }}</strong>
@@ -117,6 +126,15 @@
               Remaining: <strong>{{ remainingTime() }}</strong>
             </p>
           </div>
+          <div class="legacy-progress" [class]="elapsedProgressState()">
+            <div class="legacy-progress-header">
+              <span><svg lucideIcon="timer" aria-hidden="true"></svg> Progress</span>
+              <strong>{{ elapsedProgressPercent() }}%</strong>
+            </div>
+            <div class="legacy-progress-track">
+              <span [style.width.%]="elapsedProgressPercent()"></span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="exit-calculator">
@@ -163,6 +181,29 @@
       }
     }
   </div>
+
+  @if (hasEnteredToday() && !isSubmittedToday()) {
+    <section class="legacy-meta-section" aria-label="Attendance details">
+      <label class="legacy-meta-field" for="legacyCompanyName">
+        <span>Company Name</span>
+        <input
+          id="legacyCompanyName"
+          type="text"
+          [value]="companyName()"
+          (input)="updateCompanyName($any($event.target).value)"
+          placeholder="Add company name" />
+      </label>
+      <label class="legacy-meta-field legacy-meta-comments" for="legacyComments">
+        <span>Comments</span>
+        <textarea
+          id="legacyComments"
+          rows="3"
+          [value]="comments()"
+          (input)="updateComments($any($event.target).value)"
+          placeholder="Add exit notes or handover comments"></textarea>
+      </label>
+    </section>
+  }
 
   <div class="action-buttons">
     @if (canRemoveLocalEntry()) {
@@ -216,19 +257,21 @@
     </button>
   </div>
 
-  <!-- Todo List Toggle (Always Visible) -->
-  <div class="todo-toggle-section">
-    <div class="toggle-container">
-      <span class="toggle-label">Show Todo List</span>
-      <label class="toggle-switch">
-        <input type="checkbox" [checked]="showTodoList()" (change)="toggleTodoList()" />
-        <span class="toggle-slider"></span>
-      </label>
+  @if (showLegacyTodoSection) {
+    <!-- Todo List Toggle (kept behind a local flag for easy restore) -->
+    <div class="todo-toggle-section">
+      <div class="toggle-container">
+        <span class="toggle-label">Show Todo List</span>
+        <label class="toggle-switch">
+          <input type="checkbox" [checked]="showTodoList()" (change)="toggleTodoList()" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
     </div>
-  </div>
 
-  @if (showTodoList()) {
-    <app-todo-list />
+    @if (showTodoList()) {
+      <app-todo-list />
+    }
   }
 
   <!-- Entry Dialog -->
@@ -334,8 +377,8 @@
                 entryTime: exitEntryTime(),
                 exitDate: exitExitDate(),
                 exitTime: exitExitTime(),
-                companyName: companyName.value,
-                comment: comment.value,
+                companyName: companyNameInput.value,
+                comment: commentInput.value,
                 status: selectedExitStatus(),
               })
             ">
@@ -391,12 +434,23 @@
 
             <div class="form-group">
               <label for="companyName">Company Name:</label>
-              <input type="text" id="companyName" #companyName required />
+              <input
+                type="text"
+                id="companyName"
+                #companyNameInput
+                [value]="companyName()"
+                (input)="updateCompanyName(companyNameInput.value)"
+                required />
             </div>
 
             <div class="form-group">
               <label for="comment">Comments:</label>
-              <textarea id="comment" #comment rows="4"></textarea>
+              <textarea
+                id="comment"
+                #commentInput
+                rows="4"
+                [value]="comments()"
+                (input)="updateComments(commentInput.value)"></textarea>
             </div>
 
             <div class="form-group">
@@ -462,8 +516,8 @@
                     entryTime: exitEntryTime(),
                     exitDate: exitExitDate(),
                     exitTime: exitExitTime(),
-                    companyName: companyName.value,
-                    comment: comment.value,
+                    companyName: companyNameInput.value,
+                    comment: commentInput.value,
                     status: selectedExitStatus(),
                   })
                 "

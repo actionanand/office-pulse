@@ -113,6 +113,11 @@
       }
     }
 
+    .legacy-meta-section {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+
     .action-buttons {
       flex-direction: column;
       gap: 0.85rem;

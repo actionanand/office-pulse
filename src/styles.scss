@@ -387,6 +387,106 @@ svg[lucideIcon] {
   stroke-width: 2;
 }
 
+.legacy-progress {
+  width: min(520px, 100%);
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 8px;
+  background: #f6f8fb;
+}
+.legacy-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.45rem;
+  color: #475569;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.legacy-progress-header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.legacy-progress-header svg {
+  width: 1rem;
+  height: 1rem;
+}
+.legacy-progress-track {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+.legacy-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition:
+    width 0.35s ease,
+    background 0.2s ease;
+}
+.legacy-progress.starting .legacy-progress-track span {
+  background: #60a5fa;
+}
+.legacy-progress.steady .legacy-progress-track span {
+  background: var(--theme-primary);
+}
+.legacy-progress.near .legacy-progress-track span {
+  background: #f59e0b;
+}
+.legacy-progress.complete .legacy-progress-track span {
+  background: #16a34a;
+}
+.legacy-meta-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+  gap: 0.9rem;
+  margin: -0.8rem 0 1.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(var(--theme-focus-rgb), 0.16);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+.legacy-meta-field {
+  display: grid;
+  gap: 0.35rem;
+  color: #344054;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.legacy-meta-field input,
+.legacy-meta-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.72rem 0.8rem;
+  border: 1px solid #d7deea;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  font: inherit;
+  font-weight: 500;
+  resize: vertical;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+.legacy-meta-field input:hover,
+.legacy-meta-field textarea:hover {
+  border-color: var(--theme-border);
+  background: var(--theme-hover);
+}
+.legacy-meta-field input:focus,
+.legacy-meta-field textarea:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 3px rgba(var(--theme-focus-rgb), 0.15);
+  background: #fff;
+}
+
 .lucide-spin {
   animation: lucide-spin 0.85s linear infinite;
 }

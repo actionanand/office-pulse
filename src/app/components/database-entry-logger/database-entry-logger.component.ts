@@ -16,6 +16,7 @@ import { LucideDynamicIcon } from '@lucide/angular';
 import { AttendanceDbRecord, AttendanceDbStatus } from '../../models/attendance-db.model';
 import { AttendanceDatabaseService } from '../../services/attendance-database.service';
 import { AndroidLogoffNotificationService } from '../../services/android-logoff-notification.service';
+import { AppLocalDataDatabaseService } from '../../services/app-local-data-database.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ConfirmationPopupComponent } from '../confirmation-popup/confirmation-popup.component';
 import { AttendanceRecordDialogComponent } from '../attendance-record-dialog/attendance-record-dialog.component';
@@ -38,6 +39,7 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
   protected readonly database = inject(AttendanceDatabaseService);
   private readonly snackbar = inject(SnackbarService);
   private readonly logoffNotifications = inject(AndroidLogoffNotificationService);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
 
   protected readonly today = signal(this.localDate(new Date()));
   protected readonly todayRecords = computed(() =>
@@ -435,16 +437,12 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
   }
 
   private loadWorkHours(): number {
-    const stored = Number(localStorage.getItem('office_pulse_pro_work_hours'));
+    const stored = Number(this.appLocalData.getItem('office_pulse_pro_work_hours'));
     return Number.isFinite(stored) && stored >= 0.5 && stored <= 24 ? stored : 6;
   }
 
   private saveWorkHours(hours: number): void {
-    try {
-      localStorage.setItem('office_pulse_pro_work_hours', String(hours));
-    } catch {
-      // The active record still retains the selected value when preferences cannot be persisted.
-    }
+    this.appLocalData.setItem('office_pulse_pro_work_hours', String(hours));
   }
 
   private formatMinutes(minutes: number): string {

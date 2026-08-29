@@ -4,6 +4,7 @@ import { LucideDynamicIcon } from '@lucide/angular';
 import { firstValueFrom } from 'rxjs';
 
 import { AttendanceDbRecord, AttendanceDbStatus } from '../../models/attendance-db.model';
+import { AppLocalDataDatabaseService } from '../../services/app-local-data-database.service';
 import { AttendanceDatabaseService } from '../../services/attendance-database.service';
 import { HolidayService } from '../../services/holiday.service';
 import { SnackbarService } from '../../services/snackbar.service';
@@ -19,6 +20,7 @@ type EditableStatus = Extract<AttendanceDbStatus, 'Office' | 'WFH' | 'First Half
 })
 export class AttendanceRecordDialogComponent {
   private readonly database = inject(AttendanceDatabaseService);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   private readonly holidays = inject(HolidayService);
   private readonly snackbar = inject(SnackbarService);
 
@@ -156,7 +158,7 @@ export class AttendanceRecordDialogComponent {
   }
 
   private defaultWorkHours(): number {
-    const stored = Number(localStorage.getItem('office_pulse_pro_work_hours'));
+    const stored = Number(this.appLocalData.getItem('office_pulse_pro_work_hours'));
     return Number.isFinite(stored) && stored >= 0.5 && stored <= 24 ? stored : 6;
   }
 

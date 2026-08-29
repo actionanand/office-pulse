@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 export type AppThemeId = 'premium-green' | 'classic-purple' | 'ocean-blue' | 'rose' | 'graphite';
 
@@ -47,6 +49,7 @@ const STORAGE_KEY = 'office_pulse_theme';
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   readonly themes = APP_THEMES;
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   readonly activeTheme = signal<AppThemeId>(this.loadTheme());
 
   constructor() {
@@ -57,20 +60,12 @@ export class ThemeService {
     if (!this.themes.some(option => option.id === theme)) return;
     this.activeTheme.set(theme);
     this.applyTheme(theme);
-    try {
-      localStorage.setItem(STORAGE_KEY, theme);
-    } catch {
-      // The selected theme still applies for the current session.
-    }
+    this.appLocalData.setItem(STORAGE_KEY, theme);
   }
 
   private loadTheme(): AppThemeId {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as AppThemeId | null;
-      if (stored && APP_THEMES.some(theme => theme.id === stored)) return stored;
-    } catch {
-      // Use the default theme when browser storage is unavailable.
-    }
+    const stored = this.appLocalData.getItem(STORAGE_KEY) as AppThemeId | null;
+    if (stored && APP_THEMES.some(theme => theme.id === stored)) return stored;
     return 'classic-purple';
   }
 

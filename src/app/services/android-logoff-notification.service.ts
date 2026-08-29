@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { EntryLog } from '../models/entry-log.model';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 interface CapacitorLocalNotification {
   id: number;
@@ -87,6 +88,7 @@ export class AndroidLogoffNotificationService {
   ];
   private readonly channelId = 'office-pulse-logoff-reminders';
   private readonly stateKey = 'office_pulse_logoff_reminder_state';
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
 
   async shouldRequestNotificationPermission(): Promise<boolean> {
     try {
@@ -564,7 +566,7 @@ export class AndroidLogoffNotificationService {
 
   private readState(): ReminderState | null {
     try {
-      const raw = localStorage.getItem(this.stateKey);
+      const raw = this.appLocalData.getItem(this.stateKey);
       if (!raw) return null;
 
       const state = JSON.parse(raw) as { sessionKey?: unknown; notifiedMinutes?: unknown; scheduledKey?: unknown };
@@ -584,7 +586,7 @@ export class AndroidLogoffNotificationService {
 
   private writeState(state: ReminderState): void {
     try {
-      localStorage.setItem(this.stateKey, JSON.stringify(state));
+      this.appLocalData.setItem(this.stateKey, JSON.stringify(state));
     } catch {
       // Ignore storage errors; notifications still remain best-effort.
     }
@@ -592,7 +594,7 @@ export class AndroidLogoffNotificationService {
 
   private clearState(): void {
     try {
-      localStorage.removeItem(this.stateKey);
+      this.appLocalData.removeItem(this.stateKey);
     } catch {
       // Ignore storage errors.
     }

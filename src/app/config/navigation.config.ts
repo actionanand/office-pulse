@@ -1,3 +1,5 @@
+import { environment } from '../../environments/environment';
+
 export type NavigationSection = 'primary' | 'more';
 
 export interface NavigationItem {
@@ -253,13 +255,22 @@ export const NAVIGATION_ITEMS: readonly NavigationItem[] = [
 const hiddenRoutes = new Set(HIDDEN_NAVIGATION_ROUTES.map(normalizeRoute));
 
 export function isNavigationRouteVisible(route: string): boolean {
-  return normalizeRoute(route) === 'settings' || !hiddenRoutes.has(normalizeRoute(route));
+  const normalized = normalizeRoute(route);
+  if (normalized === 'settings') return true;
+  if (hiddenRoutes.has(normalized)) return false;
+  if (environment.LOGGER_MODE === 'legacy') return normalized !== 'calendar-pro' && normalized !== 'logger-pro';
+  if (environment.LOGGER_MODE === 'pro') return normalized !== 'calendar' && normalized !== 'logger';
+  return true;
 }
 
 export function visibleNavigationItems(section?: NavigationSection): readonly NavigationItem[] {
-  return NAVIGATION_ITEMS.filter(
-    item => (!section || item.section === section) && isNavigationRouteVisible(item.route),
-  );
+  return NAVIGATION_ITEMS.filter(item => isNavigationRouteVisible(item.route))
+    .map(item => {
+      const proPrimary =
+        environment.LOGGER_MODE === 'pro' && (item.route === 'calendar-pro' || item.route === 'logger-pro');
+      return proPrimary ? { ...item, section: 'primary' as const } : item;
+    })
+    .filter(item => !section || item.section === section);
 }
 
 function normalizeRoute(route: string): string {

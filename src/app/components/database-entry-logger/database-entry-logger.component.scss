@@ -164,8 +164,12 @@ button svg,
   background: #f4f5f7;
 }
 .time-block.exit-block {
-  border-color: #b9c5f5;
-  background: #f4f6ff;
+  border-color: #f0a25f;
+  background: #fff4e8;
+  color: #9a4408;
+}
+.time-block.exit-block span {
+  color: #d95f0b;
 }
 .attendance-details {
   display: grid;
@@ -173,13 +177,27 @@ button svg,
   gap: 0.65rem;
   margin: 0 1rem 1rem;
 }
-.attendance-details > div {
+.attendance-details > button {
   display: grid;
   gap: 0.2rem;
   min-width: 0;
   padding: 0.75rem;
   border: 1px solid #e3e7ee;
   border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+}
+.attendance-details.editable > button {
+  cursor: pointer;
+}
+.attendance-details.editable > button:hover {
+  border-color: #f0a25f;
+  background: #fffaf4;
+}
+.attendance-details > button:disabled {
+  cursor: default;
+  opacity: 1;
 }
 .attendance-details .comments {
   grid-column: 1 / -1;
@@ -208,6 +226,52 @@ button:focus-visible {
 .duration-row strong {
   margin-left: auto;
   color: #1f2937;
+}
+.duration-progress {
+  margin: 0 1rem 1rem;
+  padding: 0.8rem;
+  border-radius: 8px;
+  background: #f2f4f7;
+}
+.progress-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #475467;
+}
+.progress-heading span {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.progress-heading strong {
+  color: #1f2937;
+}
+.progress-track {
+  height: 10px;
+  margin-top: 0.65rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dfe4eb;
+}
+.progress-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #4f7fea;
+  transition:
+    width 0.3s ease,
+    background 0.3s ease;
+}
+.duration-progress.half .progress-track i {
+  background: #e5a11a;
+}
+.duration-progress.near .progress-track i {
+  background: #e66b24;
+}
+.duration-progress.complete .progress-track i {
+  background: #159455;
 }
 .timer-summary {
   display: grid;
@@ -333,10 +397,41 @@ button {
   cursor: pointer;
   font-weight: 700;
 }
+.past-entry-button,
+.second-shift-button {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 1rem auto;
+  padding: 0.65rem 1rem;
+  border: 1px solid #cfd6e4;
+  border-radius: 8px;
+  background: #fff;
+  color: #4055b2;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.second-shift-button {
+  border-color: #9bc7b0;
+  background: #effaf4;
+  color: #157347;
+}
+.past-entry-button svg,
+.second-shift-button svg {
+  width: 20px;
+  height: 20px;
+}
 .primary-button {
   border: 1px solid #5268c9;
   background: #5268c9;
   color: #fff;
+}
+.primary-button.exit-submit {
+  border-color: #d95f0b;
+  background: #d95f0b;
 }
 .secondary-button {
   border: 1px solid #cfd6e4;
@@ -532,5 +627,10 @@ button:disabled {
   }
   .primary-actions {
     flex-direction: column-reverse;
+  }
+  .progress-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.3rem;
   }
 }

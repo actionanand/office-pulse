@@ -28,7 +28,8 @@ interface CapacitorBridge {
 }
 
 const DATABASE_NAME = 'office-pulse-attendance-v1';
-const RECORD_STORE = 'attendance-records-v3';
+const RECORD_STORE = 'attendance-records-v4';
+const PREVIOUS_RECORD_STORE = 'attendance-records-v3';
 const LEGACY_RECORD_STORE = 'attendance-records';
 const SQLITE_DATABASE = 'office_pulse_attendance';
 
@@ -64,9 +65,13 @@ export class AttendanceDatabaseService {
   }
 
   async getByDate(date: string): Promise<AttendanceDbRecord | null> {
+    return (await this.getByDateRecords(date))[0] ?? null;
+  }
+
+  async getByDateRecords(date: string): Promise<readonly AttendanceDbRecord[]> {
     await this.initialize();
     if (!this.records().length) await this.refresh();
-    return this.records().find(record => record.date === date) ?? null;
+    return this.records().filter(record => record.date === date);
   }
 
   async save(record: AttendanceDbRecord): Promise<void> {
@@ -75,12 +80,15 @@ export class AttendanceDatabaseService {
     const activeRecord = this.records().find(existing =>
       Boolean(existing.entryTime && !existing.exitTime && existing.status !== 'Day Off'),
     );
-    if (!existingRecord && activeRecord)
+    const createsActiveShift = Boolean(record.entryTime && !record.exitTime && record.status !== 'Day Off');
+    if (!existingRecord && activeRecord && createsActiveShift)
       throw new Error(`Finish or remove the active ${activeRecord.date} shift first.`);
-    const conflictingRecord = this.records().find(
-      existing => existing.date === record.date && existing.id !== record.id,
-    );
-    if (conflictingRecord) throw new Error('Attendance is already recorded for this entry date.');
+    const dateRecords = this.records().filter(existing => existing.date === record.date && existing.id !== record.id);
+    if (!existingRecord && dateRecords.length >= 2) throw new Error('Two shifts are already recorded for this date.');
+    if (dateRecords.some(existing => existing.status === 'Day Off'))
+      throw new Error('That date is already marked as day off.');
+    if (record.status === 'Day Off' && dateRecords.length)
+      throw new Error('Day off cannot be combined with a work shift.');
     if (this.sqlite) await this.putSqlite(record);
     else await this.putIndexedDb(record);
     this.records.update(records =>
@@ -99,15 +107,14 @@ export class AttendanceDatabaseService {
       });
     } else {
       const database = await this.openIndexedDb();
-      const record = this.records().find(existing => existing.id === id);
-      if (record) await this.transactionComplete(database, 'readwrite', store => store.delete(record.date));
+      await this.transactionComplete(database, 'readwrite', store => store.delete(id));
     }
     this.records.update(records => records.filter(record => record.id !== id));
   }
 
   async replaceAll(records: readonly AttendanceDbRecord[]): Promise<void> {
     await this.initialize();
-    this.assertUniqueDates(records);
+    this.assertValidDateGroups(records);
     if (this.sqlite) {
       await this.sqlite.execute({
         database: SQLITE_DATABASE,
@@ -173,7 +180,7 @@ export class AttendanceDatabaseService {
           transaction: true,
         });
         await this.ensureSqliteWorkHoursColumn(nativeSqlite);
-        await this.ensureSqliteUniqueDates(nativeSqlite);
+        await this.ensureSqliteShiftSupport(nativeSqlite);
         this.storageKind.set('SQLite');
       } catch {
         this.sqlite = undefined;
@@ -280,24 +287,12 @@ export class AttendanceDatabaseService {
     });
   }
 
-  private async ensureSqliteUniqueDates(sqlite: CapacitorSqlitePlugin): Promise<void> {
+  private async ensureSqliteShiftSupport(sqlite: CapacitorSqlitePlugin): Promise<void> {
     await sqlite.execute({
       database: SQLITE_DATABASE,
       statements: `
-        DELETE FROM attendance_records
-        WHERE rowid NOT IN (
-          SELECT selected.rowid
-          FROM attendance_records AS selected
-          WHERE selected.rowid = (
-            SELECT candidate.rowid
-            FROM attendance_records AS candidate
-            WHERE candidate.date = selected.date
-            ORDER BY candidate.updated_at DESC, candidate.rowid DESC
-            LIMIT 1
-          )
-        );
         DROP INDEX IF EXISTS attendance_records_date_idx;
-        CREATE UNIQUE INDEX IF NOT EXISTS attendance_records_date_idx ON attendance_records(date);
+        CREATE INDEX IF NOT EXISTS attendance_records_date_idx ON attendance_records(date);
       `,
       transaction: true,
     });
@@ -310,25 +305,21 @@ export class AttendanceDatabaseService {
 
   private openIndexedDb(): Promise<IDBDatabase> {
     this.indexedDatabase ??= new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open(DATABASE_NAME, 3);
+      const request = indexedDB.open(DATABASE_NAME, 4);
       request.onupgradeneeded = () => {
         const database = request.result;
         if (database.objectStoreNames.contains(RECORD_STORE)) return;
 
-        const store = database.createObjectStore(RECORD_STORE, { keyPath: 'date' });
-        store.createIndex('id', 'id', { unique: true });
-        if (!database.objectStoreNames.contains(LEGACY_RECORD_STORE)) return;
-
-        const legacyRequest = request.transaction!.objectStore(LEGACY_RECORD_STORE).getAll();
-        legacyRequest.onsuccess = () => {
-          const newestByDate = new Map<string, StoredAttendanceRecord>();
-          for (const record of legacyRequest.result as StoredAttendanceRecord[]) {
-            const existing = newestByDate.get(record.date);
-            if (!existing || record.updatedAt > existing.updatedAt) newestByDate.set(record.date, record);
-          }
-          for (const record of newestByDate.values()) store.put(record);
-          database.deleteObjectStore(LEGACY_RECORD_STORE);
-        };
+        const store = database.createObjectStore(RECORD_STORE, { keyPath: 'id' });
+        store.createIndex('date', 'date', { unique: false });
+        for (const sourceName of [PREVIOUS_RECORD_STORE, LEGACY_RECORD_STORE]) {
+          if (!database.objectStoreNames.contains(sourceName)) continue;
+          const legacyRequest = request.transaction!.objectStore(sourceName).getAll();
+          legacyRequest.onsuccess = () => {
+            for (const record of legacyRequest.result as StoredAttendanceRecord[]) store.put(record);
+            database.deleteObjectStore(sourceName);
+          };
+        }
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -357,11 +348,17 @@ export class AttendanceDatabaseService {
     );
   }
 
-  private assertUniqueDates(records: readonly AttendanceDbRecord[]): void {
-    const dates = new Set<string>();
+  private assertValidDateGroups(records: readonly AttendanceDbRecord[]): void {
+    const dates = new Map<string, AttendanceDbRecord[]>();
     for (const record of records) {
-      if (dates.has(record.date)) throw new Error(`The backup contains more than one entry for ${record.date}.`);
-      dates.add(record.date);
+      const group = dates.get(record.date) ?? [];
+      group.push(record);
+      dates.set(record.date, group);
+    }
+    for (const [date, group] of dates) {
+      if (group.length > 2) throw new Error(`The backup contains more than two shifts for ${date}.`);
+      if (group.some(record => record.status === 'Day Off') && group.length > 1)
+        throw new Error(`The backup combines day off and attendance for ${date}.`);
     }
   }
 }

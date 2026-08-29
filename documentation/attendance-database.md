@@ -39,8 +39,9 @@ The password is never stored. Restore validates the file, decrypts it, and repla
 
 ## Attendance rules
 
-- The entry date is the attendance date and can have only one record.
+- The entry date is the attendance date. A date can have one normal shift and one explicitly added optional second shift.
+- A day-off record cannot share a date with a work shift, and no date can contain more than two shifts.
 - Entry details are locked after saving. Removing the record unlocks that date.
 - An unfinished shift remains active after midnight and can exit on a later date.
-- A new day becomes available only after the active shift is exited or removed.
+- A new day becomes available after the active shift is exited or removed. Finishing an overnight shift does not consume the new day's normal entry.
 - Company, work mode, comments, work hours, and overnight exit time are retained with the record and included in encrypted backups.

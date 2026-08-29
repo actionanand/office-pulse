@@ -7,13 +7,14 @@ import { AttendanceDatabaseService } from '../../services/attendance-database.se
 import { AndroidLogoffNotificationService } from '../../services/android-logoff-notification.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ConfirmationPopupComponent } from '../confirmation-popup/confirmation-popup.component';
+import { AttendanceRecordDialogComponent } from '../attendance-record-dialog/attendance-record-dialog.component';
 
 type ConfirmationAction = 'day-off' | 'remove' | null;
 type TimeDialogMode = 'entry' | 'exit' | null;
 
 @Component({
   selector: 'app-database-entry-logger',
-  imports: [FormsModule, LucideDynamicIcon, ConfirmationPopupComponent],
+  imports: [FormsModule, LucideDynamicIcon, ConfirmationPopupComponent, AttendanceRecordDialogComponent],
   templateUrl: './database-entry-logger.component.html',
   styleUrl: './database-entry-logger.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,9 +25,13 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
   private readonly logoffNotifications = inject(AndroidLogoffNotificationService);
 
   protected readonly today = signal(this.localDate(new Date()));
-  protected readonly todayRecord = computed(
-    () => this.database.records().find(record => record.date === this.today()) ?? null,
+  protected readonly todayRecords = computed(() =>
+    this.database
+      .records()
+      .filter(record => record.date === this.today())
+      .sort((a, b) => (a.entryTime ?? a.createdAt).localeCompare(b.entryTime ?? b.createdAt)),
   );
+  protected readonly todayRecord = computed(() => this.todayRecords().at(-1) ?? null);
   protected readonly activeRecord = computed(
     () =>
       this.database
@@ -35,9 +40,17 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
   );
   protected readonly displayedRecord = computed(() => this.activeRecord() ?? this.todayRecord());
   protected readonly canCreateToday = computed(() => !this.activeRecord() && !this.todayRecord());
+  protected readonly canCreateSecondShift = computed(() => {
+    const records = this.todayRecords();
+    return (
+      !this.activeRecord() && records.length === 1 && records[0].status !== 'Day Off' && Boolean(records[0].exitTime)
+    );
+  });
   protected readonly timeDialogMode = signal<TimeDialogMode>(null);
   protected readonly confirmationAction = signal<ConfirmationAction>(null);
   protected readonly saving = signal(false);
+  protected readonly showPastEntryDialog = signal(false);
+  protected readonly secondShiftEntry = signal(false);
   protected readonly showNotificationPermissionConfirmation = signal(false);
   protected readonly currentTimestamp = signal(Date.now());
   protected readonly workHours = signal(this.loadWorkHours());
@@ -60,6 +73,21 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
     const minutes = Math.max(0, Math.ceil((target.getTime() - Date.now()) / 60_000));
     if (minutes <= 0) return 'Time to log off!';
     return this.formatMinutes(minutes);
+  });
+  protected readonly progressPercent = computed(() => {
+    const record = this.displayedRecord();
+    this.currentTimestamp();
+    if (!record?.entryTime) return 0;
+    const end = record.exitTime ? Date.parse(record.exitTime) : Date.now();
+    const targetMinutes = Math.max(30, (record.workHours ?? this.workHours()) * 60);
+    return Math.max(0, Math.round(((end - Date.parse(record.entryTime)) / 60_000 / targetMinutes) * 100));
+  });
+  protected readonly progressClass = computed(() => {
+    const progress = this.progressPercent();
+    if (progress >= 100) return 'complete';
+    if (progress >= 80) return 'near';
+    if (progress >= 50) return 'half';
+    return 'early';
   });
   protected timeInput = '';
   protected companyName = '';
@@ -107,10 +135,16 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
     if (this.timerId !== undefined) window.clearInterval(this.timerId);
   }
 
-  protected openTimeDialog(mode: Exclude<TimeDialogMode, null>): void {
-    if (mode === 'entry' && !this.canCreateToday()) {
+  protected openTimeDialog(mode: Exclude<TimeDialogMode, null>, secondShift = false): void {
+    if (mode === 'entry' && secondShift && !this.canCreateSecondShift()) {
+      this.snackbar.warning('A second shift is not available for today.');
+      return;
+    }
+    if (mode === 'entry' && !secondShift && !this.canCreateToday()) {
       this.snackbar.warning(
-        this.activeRecord() ? 'Finish or remove the active shift first.' : 'Attendance is already recorded for today.',
+        this.activeRecord()
+          ? 'Finish or remove the active shift first.'
+          : 'Use Add second shift for another entry today.',
       );
       return;
     }
@@ -125,12 +159,17 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
     this.timeInput = this.toDateTimeInput(storedTime ? new Date(storedTime) : new Date());
     this.companyName = record?.companyName ?? '';
     this.comments = record?.comments ?? '';
-    this.selectedStatus = record && record.status !== 'Pending' && record.status !== 'Day Off' ? record.status : null;
+    this.selectedStatus =
+      record && record.status !== 'Pending' && record.status !== 'Day Off' ? record.status : 'Office';
+    this.secondShiftEntry.set(mode === 'entry' && secondShift);
     this.timeDialogMode.set(mode);
   }
 
   protected closeTimeDialog(): void {
-    if (!this.saving()) this.timeDialogMode.set(null);
+    if (!this.saving()) {
+      this.timeDialogMode.set(null);
+      this.secondShiftEntry.set(false);
+    }
   }
 
   protected async saveTime(): Promise<void> {
@@ -158,7 +197,8 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
     try {
       const now = new Date().toISOString();
       if (mode === 'entry') {
-        if (!this.canCreateToday()) throw new Error('Attendance is already recorded for today.');
+        if (this.secondShiftEntry() ? !this.canCreateSecondShift() : !this.canCreateToday())
+          throw new Error('Another entry is not available for today.');
         await this.database.save({
           id: crypto.randomUUID(),
           date: this.today(),
@@ -189,6 +229,7 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
         this.snackbar.success('Exit saved.');
       }
       this.timeDialogMode.set(null);
+      this.secondShiftEntry.set(false);
     } catch (error) {
       this.snackbar.error(this.message(error, 'Attendance could not be saved.'));
     } finally {
@@ -223,6 +264,10 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
     }
   }
 
+  protected pastEntrySaved(): void {
+    this.showPastEntryDialog.set(false);
+  }
+
   protected formatDateTime(value?: string): string {
     if (!value) return 'Not marked';
     return new Date(value).toLocaleString('en-IN', {
@@ -239,6 +284,13 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
     if (!record.entryTime || !record.exitTime) return 'In progress';
     const minutes = Math.max(0, Math.floor((Date.parse(record.exitTime) - Date.parse(record.entryTime)) / 60_000));
     return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  }
+
+  protected displayedShiftNumber(): number {
+    const displayed = this.displayedRecord();
+    if (!displayed || displayed.date !== this.today()) return 1;
+    const index = this.todayRecords().findIndex(record => record.id === displayed.id);
+    return index >= 0 ? index + 1 : 1;
   }
 
   protected formatTargetLogoff(): string {

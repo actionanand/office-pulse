@@ -93,7 +93,11 @@ button:disabled {
   font-size: 1.15rem;
 }
 .refresh-button,
-.close-button {
+.download-button,
+.close-button,
+.add-button,
+.edit-button,
+.delete-button {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
@@ -108,6 +112,12 @@ button:disabled {
   cursor: pointer;
   font: inherit;
   font-weight: 700;
+}
+.download-button {
+  margin-left: 0;
+  border-color: #cfd6e4;
+  background: #fff;
+  color: #4055b2;
 }
 .calendar-grid {
   display: grid;
@@ -148,6 +158,9 @@ button:disabled {
 }
 .calendar-day.has-record {
   background: #e7f8ef;
+  cursor: pointer;
+}
+.calendar-day:not(.has-record):not(.future):not(.other-month) {
   cursor: pointer;
 }
 .calendar-day.day-off {
@@ -208,6 +221,9 @@ button:focus-visible {
   background: rgba(15, 23, 42, 0.55);
 }
 .details-sheet {
+  display: flex;
+  max-height: calc(100dvh - 2rem);
+  flex-direction: column;
   width: min(500px, 100%);
   overflow: hidden;
   border-radius: 8px;
@@ -224,8 +240,19 @@ button:focus-visible {
   font-size: 1.2rem;
 }
 .details-sheet dl {
+  overflow-y: auto;
   margin: 0;
   padding: 0.5rem 1rem;
+}
+.details-sheet dl > .shift-divider {
+  margin: 0.35rem -0.35rem 0;
+  padding: 0.7rem 0.35rem;
+  border-bottom-color: #dce3ee;
+  border-radius: 6px;
+  background: #f4f6fa;
+}
+.details-sheet dl > .shift-divider:first-child {
+  margin-top: 0;
 }
 .details-sheet dl > div {
   display: grid;
@@ -249,7 +276,32 @@ button:focus-visible {
 }
 .details-sheet footer {
   justify-content: flex-end;
+  gap: 0.55rem;
   padding: 1rem;
+}
+.add-button,
+.edit-button {
+  margin-left: 0;
+}
+.delete-button {
+  margin-left: 0;
+  border-color: #fecdd6;
+  background: #fff1f3;
+  color: #be123c;
+}
+.today-hint {
+  color: #667085;
+  font-size: 0.88rem;
+}
+.empty-detail {
+  grid-template-columns: 1fr !important;
+  text-align: center;
+}
+.empty-detail dt {
+  justify-content: center;
+}
+.empty-detail dd {
+  text-align: center;
 }
 @media (max-width: 600px) {
   .database-calendar {
@@ -273,8 +325,9 @@ button:focus-visible {
   .stats-row > span {
     flex: 1;
   }
-  .refresh-button {
-    width: 100%;
+  .refresh-button,
+  .download-button {
+    flex: 1 1 calc(50% - 0.3rem);
     margin: 0.25rem 0 0;
   }
   .calendar-grid {
@@ -292,8 +345,16 @@ button:focus-visible {
     padding: 0;
   }
   .details-sheet {
+    max-height: 94dvh;
     border-radius: 8px 8px 0 0;
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  .details-sheet footer {
+    flex-wrap: wrap;
+  }
+  .details-sheet footer button {
+    flex: 1 1 44%;
+    margin-left: 0;
   }
   .close-button {
     width: 100%;

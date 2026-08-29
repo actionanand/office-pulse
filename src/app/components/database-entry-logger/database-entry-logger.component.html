@@ -26,7 +26,9 @@
           <strong>{{ displayedRecord()?.date ?? today() }}</strong>
         </div>
         @if (displayedRecord(); as record) {
-          <span class="status-pill" [class.day-off]="record.status === 'Day Off'">{{ record.status }}</span>
+          <span class="status-pill" [class.day-off]="record.status === 'Day Off'">
+            {{ todayRecords().length > 1 ? 'Shift ' + displayedShiftNumber() + ' · ' : '' }}{{ record.status }}
+          </span>
         } @else {
           <span class="status-pill empty">Not marked</span>
         }
@@ -60,11 +62,11 @@
               </button>
             }
           </div>
-          <div class="attendance-details">
-            <div>
+          <div class="attendance-details" [class.editable]="!record.exitTime">
+            <button type="button" [disabled]="!!record.exitTime" (click)="openTimeDialog('exit')">
               <span>Company</span><strong>{{ record.companyName || 'Not provided' }}</strong>
-            </div>
-            <div>
+            </button>
+            <button type="button" [disabled]="!!record.exitTime" (click)="openTimeDialog('exit')">
               <span>Work mode</span
               ><strong>{{
                 record.status === 'Pending'
@@ -73,10 +75,10 @@
                     ? 'Work from office'
                     : record.status
               }}</strong>
-            </div>
-            <div class="comments">
+            </button>
+            <button type="button" class="comments" [disabled]="!!record.exitTime" (click)="openTimeDialog('exit')">
               <span>Comments</span><strong>{{ record.comments || 'No comments' }}</strong>
-            </div>
+            </button>
           </div>
           @if (!record.exitTime) {
             <div class="timer-summary" aria-live="polite">
@@ -109,10 +111,19 @@
               </div>
             </div>
           }
-          <div class="duration-row">
-            <svg lucideIcon="timer" aria-hidden="true"></svg>
-            <span>Duration</span>
-            <strong>{{ duration(record) }}</strong>
+          <div class="duration-progress" [class]="'duration-progress ' + progressClass()">
+            <div class="progress-heading">
+              <span><svg lucideIcon="timer" aria-hidden="true"></svg>Duration</span>
+              <strong>{{ duration(record) }} · {{ progressPercent() }}%</strong>
+            </div>
+            <div
+              class="progress-track"
+              role="progressbar"
+              [attr.aria-valuenow]="progressPercent()"
+              aria-valuemin="0"
+              aria-valuemax="100">
+              <i [style.width.%]="progressPercent() > 100 ? 100 : progressPercent()"></i>
+            </div>
           </div>
         }
         <footer>
@@ -139,8 +150,20 @@
         </footer>
       }
     </section>
+    @if (canCreateSecondShift()) {
+      <button type="button" class="second-shift-button" (click)="openTimeDialog('entry', true)">
+        <svg lucideIcon="plus" aria-hidden="true"></svg>Add optional second shift
+      </button>
+    }
+    <button type="button" class="past-entry-button" (click)="showPastEntryDialog.set(true)">
+      <svg lucideIcon="calendar-plus" aria-hidden="true"></svg>Add past date entry
+    </button>
   }
 </main>
+
+@if (showPastEntryDialog()) {
+  <app-attendance-record-dialog (closed)="showPastEntryDialog.set(false)" (saved)="pastEntrySaved()" />
+}
 
 @if (timeDialogMode(); as mode) {
   <div class="dialog-backdrop" role="presentation" (click)="closeTimeDialog()" (keydown)="closeTimeDialog()">
@@ -157,7 +180,9 @@
         </div>
         <div>
           <p>Logger Pro</p>
-          <h2 id="time-dialog-title">{{ mode === 'entry' ? 'Mark entry' : 'Confirm attendance' }}</h2>
+          <h2 id="time-dialog-title">
+            {{ mode === 'entry' ? (secondShiftEntry() ? 'Mark second shift' : 'Mark entry') : 'Confirm attendance' }}
+          </h2>
         </div>
         <button type="button" class="icon-button" aria-label="Close" (click)="closeTimeDialog()">
           <svg lucideIcon="x" aria-hidden="true"></svg>
@@ -204,9 +229,22 @@
       }
       <footer>
         <button type="button" class="secondary-button" (click)="closeTimeDialog()">Cancel</button>
-        <button type="button" class="primary-button" [disabled]="saving()" (click)="saveTime()">
+        <button
+          type="button"
+          class="primary-button"
+          [class.exit-submit]="mode === 'exit'"
+          [disabled]="saving()"
+          (click)="saveTime()">
           <svg lucideIcon="save" aria-hidden="true"></svg>
-          {{ saving() ? 'Saving...' : mode === 'entry' ? 'Mark entry' : 'Save exit' }}
+          {{
+            saving()
+              ? 'Saving...'
+              : mode === 'entry'
+                ? secondShiftEntry()
+                  ? 'Start second shift'
+                  : 'Mark entry'
+                : 'Save exit'
+          }}
         </button>
       </footer>
     </section>

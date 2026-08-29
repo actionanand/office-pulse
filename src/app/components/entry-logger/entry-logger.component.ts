@@ -351,7 +351,8 @@ export class EntryLoggerComponent implements OnInit {
     const entryDate = new Date(log.entryTime);
     const endDate = log.exitTime ? new Date(log.exitTime) : new Date();
     const elapsedMs = Math.max(0, endDate.getTime() - entryDate.getTime());
-    const allowedMs = Math.max(0.5, this.workHours()) * 60 * 60 * 1000;
+    const allowedMs = this.workHours() * 60 * 60 * 1000;
+    if (allowedMs <= 0) return this.remainingTime() === 'Time to log off!' ? 100 : 0;
     return Math.min(100, Math.round((elapsedMs / allowedMs) * 100));
   });
 

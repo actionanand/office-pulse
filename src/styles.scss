@@ -441,9 +441,11 @@ svg[lucideIcon] {
 }
 .legacy-meta-section {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
-  gap: 0.9rem;
-  margin: -0.8rem 0 1.5rem;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.4fr);
+  align-items: start;
+  gap: 1rem;
+  max-width: 1040px;
+  margin: -0.8rem auto 1.5rem;
   padding: 1rem;
   border: 1px solid rgba(var(--theme-focus-rgb), 0.16);
   border-radius: 8px;
@@ -452,14 +454,20 @@ svg[lucideIcon] {
 }
 .legacy-meta-field {
   display: grid;
+  grid-template-rows: auto 62px;
   gap: 0.35rem;
   color: #344054;
   font-size: 0.86rem;
   font-weight: 700;
 }
+.legacy-meta-comments {
+  grid-template-rows: auto 80px;
+}
 .legacy-meta-field input,
 .legacy-meta-field textarea {
+  box-sizing: border-box;
   width: 100%;
+  height: 100%;
   min-width: 0;
   padding: 0.72rem 0.8rem;
   border: 1px solid #d7deea;
@@ -468,7 +476,7 @@ svg[lucideIcon] {
   color: #1f2937;
   font: inherit;
   font-weight: 500;
-  resize: vertical;
+  resize: none;
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease,
@@ -485,6 +493,24 @@ svg[lucideIcon] {
   border-color: var(--theme-primary);
   box-shadow: 0 0 0 3px rgba(var(--theme-focus-rgb), 0.15);
   background: #fff;
+}
+
+@media (max-width: 700px) {
+  .legacy-meta-section {
+    grid-template-columns: 1fr;
+    margin-top: -0.4rem;
+  }
+  .legacy-meta-field,
+  .legacy-meta-comments {
+    grid-template-rows: auto auto;
+  }
+  .legacy-meta-field input {
+    min-height: 52px;
+  }
+  .legacy-meta-field textarea {
+    min-height: 86px;
+    resize: vertical;
+  }
 }
 
 .lucide-spin {

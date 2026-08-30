@@ -240,7 +240,8 @@ jobs:
         if: github.ref == 'refs/heads/main-android'
         run: |
           mkdir -p releases
-          rm -f "releases/${RELEASE_BASENAME}"-*.apk "releases/${RELEASE_BASENAME}"-*.aab
+          rm -f "releases/${RELEASE_BASENAME}.apk" "releases/${RELEASE_BASENAME}.aab" \
+            "releases/${RELEASE_BASENAME}"-*.apk "releases/${RELEASE_BASENAME}"-*.aab
           cp "android/app/build/outputs/apk/release/${RELEASE_FILE_BASENAME}.apk" "releases/${RELEASE_FILE_BASENAME}.apk"
           cp "android/app/build/outputs/bundle/release/${RELEASE_FILE_BASENAME}.aab" "releases/${RELEASE_FILE_BASENAME}.aab"
           git config user.name "github-actions[bot]"

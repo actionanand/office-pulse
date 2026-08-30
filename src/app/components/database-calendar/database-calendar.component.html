@@ -111,11 +111,13 @@
         @for (record of day.records; track record.id; let shiftIndex = $index) {
           <div class="shift-divider">
             <dt><svg lucideIcon="briefcase-business" aria-hidden="true"></svg>Shift {{ shiftIndex + 1 }}</dt>
-            <dd>{{ day.fullDate }}</dd>
+            <dd class="date-value">{{ day.fullDate + 'T00:00:00' | date: 'MMM d, y' }}</dd>
           </div>
           <div>
             <dt><svg lucideIcon="clipboard-list" aria-hidden="true"></svg>Work mode</dt>
-            <dd>{{ statusLabel(record.status) }}</dd>
+            <dd>
+              <span class="detail-pill mode-pill">{{ statusLabel(record.status) }}</span>
+            </dd>
           </div>
           @if (record.companyName) {
             <div>
@@ -134,7 +136,9 @@
             </div>
             <div>
               <dt><svg lucideIcon="timer" aria-hidden="true"></svg>Duration</dt>
-              <dd>{{ duration(record) }}</dd>
+              <dd>
+                <span class="detail-pill duration-pill">{{ duration(record) }}</span>
+              </dd>
             </div>
           }
           @if (record.comments) {

@@ -8,10 +8,11 @@ const VALID_STATUSES = new Set(['Pending', 'Office', 'WFH', 'Day Off', 'First Ha
 
 const args = parseArgs(process.argv.slice(2));
 if (!args.input && !args.url) {
-  fail('Provide --input pasted-response.txt or --url "https://docs.google.com/.../gviz/..."');
+  fail('Provide --input pasted-response.txt or --url "https://docs.google.com/.../edit?gid=..."');
 }
 
-const source = args.input ? await readFile(resolve(args.input), 'utf8') : await fetchText(args.url);
+const sourceUrl = args.url ? normalizeSheetUrl(args.url, args.gid) : undefined;
+const source = args.input ? await readFile(resolve(args.input), 'utf8') : await fetchText(sourceUrl);
 const rows = parseGvizRows(source);
 const conversion = convertRows(rows);
 const records = conversion.records;
@@ -48,9 +49,42 @@ function parseArgs(values) {
 }
 
 async function fetchText(url) {
+  if (!url) fail('Provide a valid Google Sheet or GViz URL.');
+  console.log(`Fetching: ${url}`);
   const response = await fetch(url);
   if (!response.ok) fail(`Unable to fetch API response: ${response.status} ${response.statusText}`);
   return response.text();
+}
+
+function normalizeSheetUrl(value, gid) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    fail('The --url value is not a valid URL.');
+  }
+
+  if (url.hostname !== 'docs.google.com') return value;
+  if (!url.pathname.includes('/spreadsheets/d/')) return value;
+  if (url.pathname.includes('/gviz/')) return value;
+
+  const sheetId = url.pathname.match(/\/spreadsheets\/d\/([^/]+)/)?.[1];
+  if (!sheetId) fail('Unable to find the Google Sheet id in the URL.');
+
+  const resolvedGid = gid ?? url.searchParams.get('gid') ?? new URLSearchParams(url.hash.replace(/^#/, '')).get('gid');
+  if (!resolvedGid) fail('Unable to find gid in the Sheet URL. Pass it with --gid 2129265715.');
+
+  const query = args.query ?? 'SELECT A, B, C, D, E, F ORDER BY A DESC';
+  const limit = args.limit ? ` LIMIT ${Number(args.limit)}` : '';
+  if (args.limit && (!Number.isInteger(Number(args.limit)) || Number(args.limit) <= 0)) {
+    fail('--limit must be a positive number.');
+  }
+
+  const gvizUrl = new URL(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq`);
+  gvizUrl.searchParams.set('tq', `${query}${limit}`);
+  gvizUrl.searchParams.set('gid', resolvedGid);
+  gvizUrl.searchParams.set('headers', '1');
+  return gvizUrl.toString();
 }
 
 function parseGvizRows(text) {
@@ -59,7 +93,14 @@ function parseGvizRows(text) {
     .replace(/^\/\*O_o\*\/\s*/, '')
     .replace(/^google\.visualization\.Query\.setResponse\(/, '')
     .replace(/\);\s*$/, '');
-  const parsed = JSON.parse(jsonText);
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch {
+    fail(
+      'The response is not GViz JSON. Check that the Sheet is public, or use --input with a saved GViz API response.',
+    );
+  }
   const rows = parsed?.table?.rows;
   if (!Array.isArray(rows)) fail('GViz response does not contain table rows.');
   return rows;
@@ -178,7 +219,7 @@ function defaultOutput(encrypted) {
 function fail(message) {
   console.error(`Error: ${message}`);
   console.error(
-    `Example: node ${basename(process.argv[1])} --input pasted-response.txt --passphrase "your passphrase"`,
+    `Example: node ${basename(process.argv[1])} --url "https://docs.google.com/spreadsheets/d/.../edit?gid=2129265715#gid=2129265715" --passphrase "your passphrase"`,
   );
   process.exit(1);
 }

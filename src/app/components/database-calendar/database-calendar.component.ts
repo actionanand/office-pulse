@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { LucideDynamicIcon } from '@lucide/angular';
 
 import { AttendanceDbRecord } from '../../models/attendance-db.model';
@@ -29,7 +30,13 @@ interface CalendarStatusBadge {
 
 @Component({
   selector: 'app-database-calendar',
-  imports: [LucideDynamicIcon, AttendanceRecordDialogComponent, ConfirmationPopupComponent, DownloadDialogComponent],
+  imports: [
+    DatePipe,
+    LucideDynamicIcon,
+    AttendanceRecordDialogComponent,
+    ConfirmationPopupComponent,
+    DownloadDialogComponent,
+  ],
   templateUrl: './database-calendar.component.html',
   styleUrl: './database-calendar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

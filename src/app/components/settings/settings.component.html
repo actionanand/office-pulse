@@ -308,21 +308,39 @@
       <p class="data-dialog-note">This password is required to restore the file. It is not stored by Office Pulse.</p>
       <div class="data-form">
         <label for="backup-password">Backup password</label>
-        <input
-          id="backup-password"
-          type="password"
-          autocomplete="new-password"
-          minlength="8"
-          [value]="backupPassword()"
-          (input)="setBackupPassword($event)" />
+        <div class="password-field">
+          <input
+            id="backup-password"
+            [type]="showBackupPassword() ? 'text' : 'password'"
+            autocomplete="new-password"
+            minlength="8"
+            [value]="backupPassword()"
+            (input)="setBackupPassword($event)" />
+          <button
+            type="button"
+            class="password-toggle"
+            [attr.aria-label]="showBackupPassword() ? 'Hide backup password' : 'Show backup password'"
+            (click)="toggleBackupPasswordVisibility()">
+            <svg [lucideIcon]="showBackupPassword() ? 'eye-off' : 'eye'" aria-hidden="true"></svg>
+          </button>
+        </div>
         <label for="backup-confirmation">Confirm password</label>
-        <input
-          id="backup-confirmation"
-          type="password"
-          autocomplete="new-password"
-          minlength="8"
-          [value]="backupConfirmation()"
-          (input)="setBackupConfirmation($event)" />
+        <div class="password-field">
+          <input
+            id="backup-confirmation"
+            [type]="showBackupConfirmation() ? 'text' : 'password'"
+            autocomplete="new-password"
+            minlength="8"
+            [value]="backupConfirmation()"
+            (input)="setBackupConfirmation($event)" />
+          <button
+            type="button"
+            class="password-toggle"
+            [attr.aria-label]="showBackupConfirmation() ? 'Hide confirmation password' : 'Show confirmation password'"
+            (click)="toggleBackupConfirmationVisibility()">
+            <svg [lucideIcon]="showBackupConfirmation() ? 'eye-off' : 'eye'" aria-hidden="true"></svg>
+          </button>
+        </div>
         @if (portabilityError()) {
           <p class="form-error" role="alert">{{ portabilityError() }}</p>
         }
@@ -363,34 +381,26 @@
       <p class="selected-file"><svg lucideIcon="file-text" aria-hidden="true"></svg>{{ restoreFile()?.name }}</p>
       <div class="data-form">
         <label for="restore-password">Backup password</label>
-        <input
-          id="restore-password"
-          type="password"
-          autocomplete="current-password"
-          minlength="8"
-          [value]="restorePassword()"
-          (input)="setRestorePassword($event)" />
-        <p class="data-dialog-note">Leave blank for a plain converted Sheet backup.</p>
-        <div class="restore-mode" role="radiogroup" aria-label="Restore mode">
+        <div class="password-field">
+          <input
+            id="restore-password"
+            [type]="showRestorePassword() ? 'text' : 'password'"
+            autocomplete="current-password"
+            minlength="8"
+            [value]="restorePassword()"
+            (input)="setRestorePassword($event)" />
           <button
             type="button"
-            role="radio"
-            [attr.aria-checked]="restoreMode() === 'merge'"
-            [class.selected]="restoreMode() === 'merge'"
-            (click)="restoreMode.set('merge')">
-            Merge
-            <small>Keep current data</small>
-          </button>
-          <button
-            type="button"
-            role="radio"
-            [attr.aria-checked]="restoreMode() === 'replace'"
-            [class.selected]="restoreMode() === 'replace'"
-            (click)="restoreMode.set('replace')">
-            Replace
-            <small>Overwrite Pro history</small>
+            class="password-toggle"
+            [attr.aria-label]="showRestorePassword() ? 'Hide backup password' : 'Show backup password'"
+            (click)="toggleRestorePasswordVisibility()">
+            <svg [lucideIcon]="showRestorePassword() ? 'eye-off' : 'eye'" aria-hidden="true"></svg>
           </button>
         </div>
+        <p class="data-dialog-note">
+          Leave blank for a plain converted Sheet backup. The next step will verify the backup and ask how to restore
+          it.
+        </p>
         @if (portabilityError()) {
           <p class="form-error" role="alert">{{ portabilityError() }}</p>
         }
@@ -406,11 +416,47 @@
   </div>
 }
 
-@if (confirmRestore()) {
-  <app-confirmation-popup
-    [title]="restoreConfirmationTitle()"
-    [message]="restoreConfirmationMessage()"
-    confirmLabel="Restore backup"
-    (cancelled)="confirmRestore.set(false)"
-    (confirmed)="restoreAttendanceBackup()" />
+@if (restoreChoiceOpen()) {
+  <div class="dialog-backdrop" role="presentation" (click)="cancelRestoreChoice()" (keydown)="cancelRestoreChoice()">
+    <section
+      class="pin-dialog data-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="restore-choice-title"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()">
+      <header>
+        <div>
+          <p>Verified backup</p>
+          <h2 id="restore-choice-title">Choose restore method</h2>
+        </div>
+        <button class="icon-button" type="button" aria-label="Cancel restore" (click)="cancelRestoreChoice()">
+          <svg lucideIcon="x" aria-hidden="true"></svg>
+        </button>
+      </header>
+      <p class="data-dialog-note">{{ restoreChoiceSummary() }}</p>
+      @if (portabilityError()) {
+        <p class="form-error" role="alert">{{ portabilityError() }}</p>
+      }
+      <div class="restore-mode restore-actions" role="group" aria-label="Restore choices">
+        <button type="button" [disabled]="portabilityBusy()" (click)="restoreAttendanceBackup('merge')">
+          Merge
+          <small>Keep current data</small>
+        </button>
+        <button
+          type="button"
+          class="danger-choice"
+          [disabled]="portabilityBusy()"
+          (click)="restoreAttendanceBackup('replace')">
+          Replace
+          <small>Overwrite Pro history</small>
+        </button>
+      </div>
+      <footer>
+        <button class="action-button" type="button" [disabled]="portabilityBusy()" (click)="cancelRestoreChoice()">
+          Cancel
+        </button>
+      </footer>
+    </section>
+  </div>
 }

@@ -353,8 +353,10 @@ export class EntryLoggerComponent implements OnInit {
     const elapsedMs = Math.max(0, endDate.getTime() - entryDate.getTime());
     const allowedMs = this.workHours() * 60 * 60 * 1000;
     if (allowedMs <= 0) return this.remainingTime() === 'Time to log off!' ? 100 : 0;
-    return Math.min(100, Math.round((elapsedMs / allowedMs) * 100));
+    return Math.max(0, Math.round((elapsedMs / allowedMs) * 100));
   });
+
+  elapsedProgressWidth = computed(() => Math.min(100, this.elapsedProgressPercent()));
 
   elapsedProgressState = computed<'starting' | 'steady' | 'near' | 'complete'>(() => {
     const percent = this.elapsedProgressPercent();

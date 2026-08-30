@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 
 import { AttendanceDbBackupSnapshot, AttendanceDbRecord, AttendanceDbStatus } from '../models/attendance-db.model';
 import { AttendanceDatabaseService } from './attendance-database.service';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 interface EncryptedBackupEnvelope {
   readonly format: 'office-pulse-attendance-backup';
@@ -50,6 +51,7 @@ const VALID_STATUSES = new Set<AttendanceDbStatus>([
 @Injectable({ providedIn: 'root' })
 export class AttendanceBackupService {
   private readonly database = inject(AttendanceDatabaseService);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
 
   async createEncryptedBackup(passphrase: string): Promise<number> {
     this.validatePassphrase(passphrase);
@@ -67,16 +69,28 @@ export class AttendanceBackupService {
     const decrypted = await this.decrypt(envelope, passphrase);
     const records = this.parseSnapshot(decrypted);
     await this.database.replaceAll(records);
+    this.clearLegacySheetArtifacts();
     return records.length;
   }
 
   async restoreBackup(file: File, passphrase: string, mode: 'merge' | 'replace' = 'merge'): Promise<number> {
-    const records = await this.readBackupRecords(file, passphrase);
+    const records = await this.prepareRestore(file, passphrase);
+    return this.restoreRecords(records, mode);
+  }
+
+  async prepareRestore(file: File, passphrase: string): Promise<readonly AttendanceDbRecord[]> {
+    return this.readBackupRecords(file, passphrase);
+  }
+
+  async restoreRecords(records: readonly AttendanceDbRecord[], mode: 'merge' | 'replace'): Promise<number> {
     if (mode === 'replace') {
       await this.database.replaceAll(records);
+      this.clearLegacySheetArtifacts();
       return records.length;
     }
-    return this.database.mergeAll(records);
+    const count = await this.database.mergeAll(records);
+    this.clearLegacySheetArtifacts();
+    return count;
   }
 
   private async readBackupRecords(file: File, passphrase: string): Promise<readonly AttendanceDbRecord[]> {
@@ -232,6 +246,11 @@ export class AttendanceBackupService {
 
   private validatePassphrase(passphrase: string): void {
     if (passphrase.length < 8) throw new Error('Use a backup password with at least 8 characters.');
+  }
+
+  private clearLegacySheetArtifacts(): void {
+    this.appLocalData.removeItem('office_entry_log');
+    this.appLocalData.removeItem('office_pulse_attendance_cache');
   }
 
   private localDate(): string {

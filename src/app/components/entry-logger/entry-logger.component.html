@@ -74,7 +74,7 @@
               <strong>{{ elapsedProgressPercent() }}%</strong>
             </div>
             <div class="legacy-progress-track">
-              <span [style.width.%]="elapsedProgressPercent()"></span>
+              <span [style.width.%]="elapsedProgressWidth()"></span>
             </div>
           </div>
           @if (hasExitedToday()) {
@@ -132,7 +132,7 @@
               <strong>{{ elapsedProgressPercent() }}%</strong>
             </div>
             <div class="legacy-progress-track">
-              <span [style.width.%]="elapsedProgressPercent()"></span>
+              <span [style.width.%]="elapsedProgressWidth()"></span>
             </div>
           </div>
         </div>

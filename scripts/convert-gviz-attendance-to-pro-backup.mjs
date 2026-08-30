@@ -13,7 +13,8 @@ if (!args.input && !args.url) {
 
 const source = args.input ? await readFile(resolve(args.input), 'utf8') : await fetchText(args.url);
 const rows = parseGvizRows(source);
-const records = rows.map(toRecord).filter(Boolean);
+const conversion = convertRows(rows);
+const records = conversion.records;
 const snapshot = { records };
 const output = resolve(args.output ?? defaultOutput(args.passphrase));
 
@@ -25,9 +26,11 @@ if (args.passphrase) {
 }
 
 console.log(`Converted ${records.length} attendance record${records.length === 1 ? '' : 's'}.`);
+if (conversion.skipped)
+  console.log(`Skipped ${conversion.skipped} row${conversion.skipped === 1 ? '' : 's'} without entry data.`);
 console.log(`Created: ${output}`);
 if (!args.passphrase) {
-  console.log('Plain JSON snapshots are for inspection. Use --passphrase to create a Settings restore file.');
+  console.log('Plain JSON snapshots can be restored from Settings. Use --passphrase when you want an encrypted file.');
 }
 
 function parseArgs(values) {
@@ -88,6 +91,35 @@ function toRecord(row, index) {
     createdAt: createdAt.toISOString(),
     updatedAt: createdAt.toISOString(),
   };
+}
+
+function convertRows(rows) {
+  const records = [];
+  let skipped = 0;
+  const seen = new Set();
+
+  rows.forEach((row, index) => {
+    const record = toRecord(row, index);
+    if (!record) {
+      skipped += 1;
+      return;
+    }
+
+    const duplicateKey = [
+      record.date,
+      record.status,
+      record.entryTime ?? '',
+      record.exitTime ?? '',
+      record.companyName ?? '',
+      record.comments ?? '',
+    ].join('|');
+    if (seen.has(duplicateKey)) return;
+
+    seen.add(duplicateKey);
+    records.push(record);
+  });
+
+  return { records, skipped };
 }
 
 function parseGvizDate(cell) {

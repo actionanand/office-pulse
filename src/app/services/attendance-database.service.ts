@@ -137,6 +137,30 @@ export class AttendanceDatabaseService {
     this.records.set(this.sortRecords(records));
   }
 
+  async mergeAll(records: readonly AttendanceDbRecord[]): Promise<number> {
+    await this.initialize();
+
+    const existing = this.records();
+    const merged = new Map(existing.map(record => [record.id, record]));
+    let added = 0;
+
+    for (const record of this.sortRecords(records)) {
+      if (merged.has(record.id)) continue;
+      if (this.hasMatchingRecord([...merged.values()], record)) continue;
+
+      const dateRecords = [...merged.values()].filter(existingRecord => existingRecord.date === record.date);
+      if (dateRecords.length >= 2) continue;
+      if (record.status === 'Day Off' && dateRecords.length) continue;
+      if (dateRecords.some(existingRecord => existingRecord.status === 'Day Off')) continue;
+
+      merged.set(record.id, record);
+      added += 1;
+    }
+
+    await this.replaceAll([...merged.values()]);
+    return added;
+  }
+
   private async initializeStorage(): Promise<void> {
     const capacitor = (window as Window & { Capacitor?: CapacitorBridge }).Capacitor;
     const isAndroid = capacitor?.getPlatform?.() === 'android' || capacitor?.isNativePlatform?.();
@@ -345,6 +369,16 @@ export class AttendanceDatabaseService {
   private sortRecords(records: readonly AttendanceDbRecord[]): readonly AttendanceDbRecord[] {
     return [...records].sort((left, right) =>
       right.date === left.date ? right.updatedAt.localeCompare(left.updatedAt) : right.date.localeCompare(left.date),
+    );
+  }
+
+  private hasMatchingRecord(records: readonly AttendanceDbRecord[], candidate: AttendanceDbRecord): boolean {
+    return records.some(
+      record =>
+        record.date === candidate.date &&
+        record.status === candidate.status &&
+        (record.entryTime ?? '') === (candidate.entryTime ?? '') &&
+        (record.exitTime ?? '') === (candidate.exitTime ?? ''),
     );
   }
 

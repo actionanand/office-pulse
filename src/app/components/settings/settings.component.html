@@ -174,7 +174,7 @@
             #restoreFileInput
             class="file-input"
             type="file"
-            accept=".officepulse,application/octet-stream"
+            accept=".officepulse,.json,application/json,application/octet-stream"
             (change)="onRestoreFileSelected($event)" />
         </div>
       </div>
@@ -354,7 +354,7 @@
       <header>
         <div>
           <p>Pro attendance</p>
-          <h2 id="restore-dialog-title">Restore encrypted backup</h2>
+          <h2 id="restore-dialog-title">Restore attendance backup</h2>
         </div>
         <button class="icon-button" type="button" aria-label="Close restore dialog" (click)="closeRestoreDialog()">
           <svg lucideIcon="x" aria-hidden="true"></svg>
@@ -370,6 +370,27 @@
           minlength="8"
           [value]="restorePassword()"
           (input)="setRestorePassword($event)" />
+        <p class="data-dialog-note">Leave blank for a plain converted Sheet backup.</p>
+        <div class="restore-mode" role="radiogroup" aria-label="Restore mode">
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="restoreMode() === 'merge'"
+            [class.selected]="restoreMode() === 'merge'"
+            (click)="restoreMode.set('merge')">
+            Merge
+            <small>Keep current data</small>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="restoreMode() === 'replace'"
+            [class.selected]="restoreMode() === 'replace'"
+            (click)="restoreMode.set('replace')">
+            Replace
+            <small>Overwrite Pro history</small>
+          </button>
+        </div>
         @if (portabilityError()) {
           <p class="form-error" role="alert">{{ portabilityError() }}</p>
         }
@@ -387,8 +408,8 @@
 
 @if (confirmRestore()) {
   <app-confirmation-popup
-    title="Replace local attendance?"
-    message="All Logger Pro and Calendar Pro records on this device will be replaced by this backup. Existing Logger and Calendar data are not affected."
+    [title]="restoreConfirmationTitle()"
+    [message]="restoreConfirmationMessage()"
     confirmLabel="Restore backup"
     (cancelled)="confirmRestore.set(false)"
     (confirmed)="restoreAttendanceBackup()" />

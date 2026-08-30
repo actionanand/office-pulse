@@ -70,6 +70,27 @@ export class AttendanceBackupService {
     return records.length;
   }
 
+  async restoreBackup(file: File, passphrase: string, mode: 'merge' | 'replace' = 'merge'): Promise<number> {
+    const records = await this.readBackupRecords(file, passphrase);
+    if (mode === 'replace') {
+      await this.database.replaceAll(records);
+      return records.length;
+    }
+    return this.database.mergeAll(records);
+  }
+
+  private async readBackupRecords(file: File, passphrase: string): Promise<readonly AttendanceDbRecord[]> {
+    const contents = await file.text();
+    const parsed = this.parseJson(contents, 'This is not a valid Office Pulse backup file.');
+    const envelope = parsed as Partial<EncryptedBackupEnvelope>;
+    if (envelope.format === 'office-pulse-attendance-backup') {
+      if (passphrase.length < 8) throw new Error('Enter the backup password used when this file was created.');
+      const decrypted = await this.decrypt(this.validateEnvelope(envelope), passphrase);
+      return this.parseSnapshot(decrypted);
+    }
+    return this.parseSnapshot(contents);
+  }
+
   private async encrypt(plaintext: string, passphrase: string): Promise<EncryptedBackupEnvelope> {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -118,14 +139,14 @@ export class AttendanceBackupService {
   }
 
   private parseEnvelope(value: string): EncryptedBackupEnvelope {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(value);
-    } catch {
-      throw new Error('This is not a valid Office Pulse backup file.');
-    }
+    const envelope = this.parseJson(
+      value,
+      'This is not a valid Office Pulse backup file.',
+    ) as Partial<EncryptedBackupEnvelope>;
+    return this.validateEnvelope(envelope);
+  }
 
-    const envelope = parsed as Partial<EncryptedBackupEnvelope>;
+  private validateEnvelope(envelope: Partial<EncryptedBackupEnvelope>): EncryptedBackupEnvelope {
     if (
       envelope.format !== 'office-pulse-attendance-backup' ||
       envelope.version !== 1 ||
@@ -140,18 +161,21 @@ export class AttendanceBackupService {
   }
 
   private parseSnapshot(value: string): readonly AttendanceDbRecord[] {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(value);
-    } catch {
-      throw new Error('The decrypted backup data is invalid.');
-    }
+    const parsed = this.parseJson(value, 'The backup data is invalid.');
 
     const records = (parsed as Partial<AttendanceDbBackupSnapshot>)?.records;
     if (!Array.isArray(records) || !records.every(record => this.isAttendanceRecord(record))) {
       throw new Error('The backup does not contain valid attendance records.');
     }
     return records;
+  }
+
+  private parseJson(value: string, message: string): unknown {
+    try {
+      return JSON.parse(value);
+    } catch {
+      throw new Error(message);
+    }
   }
 
   private isAttendanceRecord(value: unknown): value is AttendanceDbRecord {

@@ -54,6 +54,15 @@ export class SettingsComponent {
   protected readonly backupConfirmation = signal('');
   protected readonly restorePassword = signal('');
   protected readonly restoreFile = signal<File | null>(null);
+  protected readonly restoreMode = signal<'merge' | 'replace'>('merge');
+  protected readonly restoreConfirmationTitle = computed(() =>
+    this.restoreMode() === 'replace' ? 'Replace local attendance?' : 'Merge attendance backup?',
+  );
+  protected readonly restoreConfirmationMessage = computed(() =>
+    this.restoreMode() === 'replace'
+      ? 'All Logger Pro and Calendar Pro records on this device will be replaced by this backup. Existing Logger and Calendar data are not affected.'
+      : 'Records from this backup will be added without removing existing Logger Pro and Calendar Pro records. Matching records and invalid day conflicts are skipped.',
+  );
   protected readonly pinForm = this.formBuilder.nonNullable.group({
     pin: ['', [Validators.required, Validators.pattern(/^\d{4,8}$/)]],
     confirmation: ['', [Validators.required, Validators.pattern(/^\d{4,8}$/)]],
@@ -283,6 +292,7 @@ export class SettingsComponent {
     if (!file) return;
     this.restoreFile.set(file);
     this.restorePassword.set('');
+    this.restoreMode.set('merge');
     this.portabilityError.set('');
     this.restoreDialogOpen.set(true);
   }
@@ -292,8 +302,8 @@ export class SettingsComponent {
   }
 
   protected requestRestore(): void {
-    if (this.restorePassword().length < 8) {
-      this.portabilityError.set('Enter the password used when this backup was created.');
+    if (this.restorePassword() && this.restorePassword().length < 8) {
+      this.portabilityError.set('Backup passwords must be at least 8 characters.');
       return;
     }
     this.restoreDialogOpen.set(false);
@@ -307,9 +317,10 @@ export class SettingsComponent {
 
     this.portabilityBusy.set(true);
     try {
-      const count = await this.attendanceBackup.restoreEncryptedBackup(file, this.restorePassword());
+      const count = await this.attendanceBackup.restoreBackup(file, this.restorePassword(), this.restoreMode());
       this.restoreFile.set(null);
-      this.snackbar.success(`Restored ${count} attendance record${count === 1 ? '' : 's'}.`);
+      const action = this.restoreMode() === 'replace' ? 'Restored' : 'Merged';
+      this.snackbar.success(`${action} ${count} attendance record${count === 1 ? '' : 's'}.`);
     } catch (error) {
       this.portabilityError.set(this.errorMessage(error, 'Unable to restore the attendance backup.'));
       this.restoreDialogOpen.set(true);

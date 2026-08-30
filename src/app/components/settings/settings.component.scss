@@ -527,6 +527,37 @@
   border-color: var(--theme-primary);
   outline: 3px solid rgba(var(--theme-focus-rgb), 0.14);
 }
+.restore-mode {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.4rem;
+}
+.restore-mode button {
+  display: grid;
+  min-height: 62px;
+  align-content: center;
+  gap: 0.18rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #cfd6e4;
+  border-radius: 8px;
+  background: #fff;
+  color: #344054;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+}
+.restore-mode button small {
+  color: #667085;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.restore-mode button.selected {
+  border-color: var(--theme-primary);
+  background: var(--theme-soft);
+  color: var(--theme-primary-strong);
+}
 .data-form footer {
   display: flex;
   justify-content: flex-end;
@@ -609,6 +640,9 @@
   }
   .data-form footer .action-button {
     width: 100%;
+  }
+  .restore-mode {
+    grid-template-columns: 1fr;
   }
 
   .pin-dialog footer {

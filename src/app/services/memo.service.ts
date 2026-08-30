@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map, catchError, of, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment.development';
 import { Memo, MemoData, MemoStatusOverride, MemoColorOverride, LocalMemo } from '../models/memo.model';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 interface GVizResponse {
   version: string;
@@ -22,6 +23,7 @@ interface GVizResponse {
 })
 export class MemoService {
   private http = inject(HttpClient);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
 
   private readonly MEMO_STATUS_OVERRIDES_KEY = 'memo_status_overrides';
   private readonly MEMO_COLOR_OVERRIDES_KEY = 'memo_color_overrides';
@@ -121,7 +123,7 @@ export class MemoService {
 
   // Status override methods
   private getStatusOverrides(): MemoStatusOverride[] {
-    const data = localStorage.getItem(this.MEMO_STATUS_OVERRIDES_KEY);
+    const data = this.appLocalData.getItem(this.MEMO_STATUS_OVERRIDES_KEY);
     if (!data) return [];
 
     try {
@@ -147,12 +149,12 @@ export class MemoService {
       overrides.push(override);
     }
 
-    localStorage.setItem(this.MEMO_STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
+    this.appLocalData.setItem(this.MEMO_STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
   }
 
   // Color override methods
   private getColorOverrides(): MemoColorOverride[] {
-    const data = localStorage.getItem(this.MEMO_COLOR_OVERRIDES_KEY);
+    const data = this.appLocalData.getItem(this.MEMO_COLOR_OVERRIDES_KEY);
     if (!data) return [];
 
     try {
@@ -178,7 +180,7 @@ export class MemoService {
       overrides.push(override);
     }
 
-    localStorage.setItem(this.MEMO_COLOR_OVERRIDES_KEY, JSON.stringify(overrides));
+    this.appLocalData.setItem(this.MEMO_COLOR_OVERRIDES_KEY, JSON.stringify(overrides));
     this.clearCache(); // Clear cache to refresh
   }
 
@@ -193,7 +195,7 @@ export class MemoService {
       (o: MemoStatusOverride) => o.sno >= this.LOCAL_MEMO_START_SNO || apiSNos.includes(o.sno),
     );
     if (validStatusOverrides.length !== statusOverrides.length) {
-      localStorage.setItem(this.MEMO_STATUS_OVERRIDES_KEY, JSON.stringify(validStatusOverrides));
+      this.appLocalData.setItem(this.MEMO_STATUS_OVERRIDES_KEY, JSON.stringify(validStatusOverrides));
     }
 
     // Cleanup color overrides
@@ -202,13 +204,13 @@ export class MemoService {
       (o: MemoColorOverride) => o.sno >= this.LOCAL_MEMO_START_SNO || apiSNos.includes(o.sno),
     );
     if (validColorOverrides.length !== colorOverrides.length) {
-      localStorage.setItem(this.MEMO_COLOR_OVERRIDES_KEY, JSON.stringify(validColorOverrides));
+      this.appLocalData.setItem(this.MEMO_COLOR_OVERRIDES_KEY, JSON.stringify(validColorOverrides));
     }
   }
 
   // Local memos management
   getLocalMemos(): LocalMemo[] {
-    const data = localStorage.getItem(this.LOCAL_MEMOS_KEY);
+    const data = this.appLocalData.getItem(this.LOCAL_MEMOS_KEY);
     if (!data) return [];
 
     try {
@@ -219,7 +221,7 @@ export class MemoService {
   }
 
   private saveLocalMemos(memos: LocalMemo[]): void {
-    localStorage.setItem(this.LOCAL_MEMOS_KEY, JSON.stringify(memos));
+    this.appLocalData.setItem(this.LOCAL_MEMOS_KEY, JSON.stringify(memos));
   }
 
   createLocalMemo(title: string, description: string, color: string = '#ffffff'): LocalMemo {

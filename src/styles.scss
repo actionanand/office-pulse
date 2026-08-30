@@ -1,5 +1,83 @@
 /* You can add global styles to this file, and also import other style files */
 
+:root {
+  --theme-primary: #667eea;
+  --theme-primary-dark: #5b3f91;
+  --theme-primary-strong: #4055b2;
+  --theme-gradient-start: #667eea;
+  --theme-gradient-end: #764ba2;
+  --theme-soft: #eef1ff;
+  --theme-hover: #f7f8ff;
+  --theme-border: #aab5ec;
+  --theme-focus-rgb: 82, 104, 201;
+  --theme-page-bg: #f5f7fa;
+}
+
+:root[data-theme='premium-green'] {
+  --theme-primary: #176b50;
+  --theme-primary-dark: #0b4433;
+  --theme-primary-strong: #12543f;
+  --theme-gradient-start: #23906b;
+  --theme-gradient-end: #0b4433;
+  --theme-soft: #e9f5ef;
+  --theme-hover: #f5fbf8;
+  --theme-border: #69a58d;
+  --theme-focus-rgb: 23, 107, 80;
+  --theme-page-bg: #f4f7f5;
+}
+
+:root[data-theme='classic-purple'] {
+  --theme-primary: #667eea;
+  --theme-primary-dark: #5b3f91;
+  --theme-primary-strong: #4055b2;
+  --theme-gradient-start: #667eea;
+  --theme-gradient-end: #764ba2;
+  --theme-soft: #eef1ff;
+  --theme-hover: #f7f8ff;
+  --theme-border: #aab5ec;
+  --theme-focus-rgb: 82, 104, 201;
+  --theme-page-bg: #f5f7fa;
+}
+
+:root[data-theme='ocean-blue'] {
+  --theme-primary: #146c94;
+  --theme-primary-dark: #0a465f;
+  --theme-primary-strong: #0d5575;
+  --theme-gradient-start: #247ba0;
+  --theme-gradient-end: #0a465f;
+  --theme-soft: #e8f4f8;
+  --theme-hover: #f3f9fb;
+  --theme-border: #77aec3;
+  --theme-focus-rgb: 20, 108, 148;
+  --theme-page-bg: #f3f7fa;
+}
+
+:root[data-theme='rose'] {
+  --theme-primary: #a64768;
+  --theme-primary-dark: #6e2943;
+  --theme-primary-strong: #843652;
+  --theme-gradient-start: #c15d7d;
+  --theme-gradient-end: #762f4b;
+  --theme-soft: #f9edf1;
+  --theme-hover: #fcf6f8;
+  --theme-border: #d497aa;
+  --theme-focus-rgb: 166, 71, 104;
+  --theme-page-bg: #faf6f7;
+}
+
+:root[data-theme='graphite'] {
+  --theme-primary: #52606d;
+  --theme-primary-dark: #303a43;
+  --theme-primary-strong: #3d4852;
+  --theme-gradient-start: #647482;
+  --theme-gradient-end: #303a43;
+  --theme-soft: #edf0f2;
+  --theme-hover: #f6f7f8;
+  --theme-border: #9da8b1;
+  --theme-focus-rgb: 82, 96, 109;
+  --theme-page-bg: #f4f5f6;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -8,7 +86,8 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f5f7fa;
+  background: var(--theme-page-bg);
+  transition: background-color 180ms ease;
   min-height: 100vh;
   min-height: 100dvh;
   padding: 0;
@@ -306,6 +385,132 @@ svg[lucideIcon] {
   flex: 0 0 auto;
   vertical-align: -0.14em;
   stroke-width: 2;
+}
+
+.legacy-progress {
+  width: min(520px, 100%);
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 8px;
+  background: #f6f8fb;
+}
+.legacy-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.45rem;
+  color: #475569;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.legacy-progress-header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.legacy-progress-header svg {
+  width: 1rem;
+  height: 1rem;
+}
+.legacy-progress-track {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+.legacy-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition:
+    width 0.35s ease,
+    background 0.2s ease;
+}
+.legacy-progress.starting .legacy-progress-track span {
+  background: #60a5fa;
+}
+.legacy-progress.steady .legacy-progress-track span {
+  background: #0ea5e9;
+}
+.legacy-progress.near .legacy-progress-track span {
+  background: #f59e0b;
+}
+.legacy-progress.complete .legacy-progress-track span {
+  background: #16a34a;
+}
+.legacy-meta-section {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.4fr);
+  align-items: start;
+  gap: 1rem;
+  max-width: 1040px;
+  margin: -0.8rem auto 1.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(var(--theme-focus-rgb), 0.16);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+.legacy-meta-field {
+  display: grid;
+  grid-template-rows: auto 62px;
+  gap: 0.35rem;
+  color: #344054;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.legacy-meta-comments {
+  grid-template-rows: auto 80px;
+}
+.legacy-meta-field input,
+.legacy-meta-field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0.72rem 0.8rem;
+  border: 1px solid #d7deea;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  font: inherit;
+  font-weight: 500;
+  resize: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+.legacy-meta-field input:hover,
+.legacy-meta-field textarea:hover {
+  border-color: var(--theme-border);
+  background: var(--theme-hover);
+}
+.legacy-meta-field input:focus,
+.legacy-meta-field textarea:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 3px rgba(var(--theme-focus-rgb), 0.15);
+  background: #fff;
+}
+
+@media (max-width: 700px) {
+  .legacy-meta-section {
+    grid-template-columns: 1fr;
+    margin-top: -0.4rem;
+  }
+  .legacy-meta-field,
+  .legacy-meta-comments {
+    grid-template-rows: auto auto;
+  }
+  .legacy-meta-field input {
+    min-height: 52px;
+  }
+  .legacy-meta-field textarea {
+    min-height: 86px;
+    resize: vertical;
+  }
 }
 
 .lucide-spin {

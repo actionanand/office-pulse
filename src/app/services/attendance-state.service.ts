@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { GvizService, SheetEntry } from './gviz.service';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 import { StorageService } from './storage.service';
 import { environment as env } from '../../environments/environment';
 
@@ -15,6 +16,7 @@ interface AttendanceCache {
 })
 export class AttendanceStateService {
   private gvizService = inject(GvizService);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   private storageService = inject(StorageService);
   private readonly cacheKey = 'office_pulse_attendance_cache';
   private readonly cacheVersion = 2;
@@ -71,7 +73,7 @@ export class AttendanceStateService {
 
     // Check local storage - entry exists but not yet submitted to API
     const localEntry = this.storageService.getEntryLog();
-    if (localEntry && localEntry.entryTime) {
+    if (localEntry && this.isRelevantLocalEntry(localEntry)) {
       const entryDate = this.getDateFromTimeString(localEntry.entryTime);
       if (entryDate === today) {
         return true;
@@ -94,7 +96,7 @@ export class AttendanceStateService {
 
     // Check local storage first - exit marked but not yet submitted
     const localEntry = this.storageService.getEntryLog();
-    if (localEntry && localEntry.entryTime) {
+    if (localEntry && this.isRelevantLocalEntry(localEntry)) {
       const entryDate = this.getDateFromTimeString(localEntry.entryTime);
       if (entryDate === today && localEntry.exitTime) {
         return true;
@@ -119,7 +121,7 @@ export class AttendanceStateService {
 
     // Check local storage submission flag
     const localEntry = this.storageService.getEntryLog();
-    if (localEntry && localEntry.entryTime) {
+    if (localEntry && this.isRelevantLocalEntry(localEntry)) {
       const entryDate = this.getDateFromTimeString(localEntry.entryTime);
       if (entryDate === today && localEntry.isSubmitted === true) {
         return true;
@@ -212,40 +214,69 @@ export class AttendanceStateService {
     if (apiHasEntry) return true;
 
     const localEntry = this.storageService.getEntryLog();
-    if (!localEntry?.entryTime) return false;
+    if (!localEntry?.entryTime || !this.isRelevantLocalEntry(localEntry)) return false;
 
     return this.getDateFromTimeString(localEntry.entryTime) === dateStr;
   }
 
+  private isRelevantLocalEntry(localEntry: { entryTime?: string; exitTime?: string; isSubmitted?: boolean }): boolean {
+    if (!localEntry.entryTime) return false;
+
+    const entryDateTime = new Date(localEntry.entryTime);
+    if (isNaN(entryDateTime.getTime())) return false;
+
+    const today = this.getTodayDateString();
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterday = this.formatDateString(yesterdayDate);
+    const entryDate = this.getDateFromTimeString(localEntry.entryTime);
+
+    if (entryDate === today) return true;
+
+    if (localEntry.exitTime) {
+      const exitDateTime = new Date(localEntry.exitTime);
+      if (isNaN(exitDateTime.getTime())) return false;
+
+      return this.getDateFromTimeString(localEntry.exitTime) === today && localEntry.isSubmitted !== true;
+    }
+
+    const ageHours = (Date.now() - entryDateTime.getTime()) / (1000 * 60 * 60);
+    return entryDate === yesterday && ageHours <= 36 && localEntry.isSubmitted !== true;
+  }
+
   private getTodayDateString(): string {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
+    return this.formatDateString(today);
+  }
+
+  private formatDateString(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
 
   private loadCachedEntries(): void {
     try {
-      const cached = localStorage.getItem(this.cacheKey);
+      const cached = this.appLocalData.getItem(this.cacheKey);
       if (!cached) return;
 
       const cache = JSON.parse(cached) as AttendanceCache;
       if (cache.version !== this.cacheVersion || !Array.isArray(cache.entries)) {
-        localStorage.removeItem(this.cacheKey);
+        this.appLocalData.removeItem(this.cacheKey);
         return;
       }
 
       const fetchedAt = cache.fetchedAt ? new Date(cache.fetchedAt) : null;
       if (!fetchedAt || isNaN(fetchedAt.getTime()) || Date.now() - fetchedAt.getTime() > this.cacheMaxAgeMs) {
-        localStorage.removeItem(this.cacheKey);
+        this.appLocalData.removeItem(this.cacheKey);
         return;
       }
 
       this.allEntries.set(cache.entries);
       this.lastFetchTime.set(fetchedAt);
     } catch {
-      localStorage.removeItem(this.cacheKey);
+      this.appLocalData.removeItem(this.cacheKey);
     }
   }
 
@@ -256,7 +287,7 @@ export class AttendanceStateService {
         entries,
         fetchedAt: new Date().toISOString(),
       };
-      localStorage.setItem(this.cacheKey, JSON.stringify(cache));
+      this.appLocalData.setItem(this.cacheKey, JSON.stringify(cache));
     } catch {
       // Ignore storage quota/private-mode errors. Fresh API data is already in memory.
     }

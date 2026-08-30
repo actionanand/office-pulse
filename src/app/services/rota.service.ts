@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Rota, RotaMeta, RotaResponse } from '../models/rota.model';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface SheetRow {
@@ -15,6 +16,7 @@ interface SheetRow {
 })
 export class RotaService {
   private http = inject(HttpClient);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   private cache: RotaResponse | null = null;
   private readonly CACHE_KEY = 'office_rota_cache';
   private readonly CACHE_DURATION = 3600000; // 1 hour in milliseconds
@@ -149,7 +151,7 @@ export class RotaService {
 
   clearCache(): void {
     this.cache = null;
-    localStorage.removeItem(this.CACHE_KEY);
+    this.appLocalData.removeItem(this.CACHE_KEY);
   }
 
   private saveToLocalStorage(data: RotaResponse): void {
@@ -157,7 +159,7 @@ export class RotaService {
       data,
       timestamp: Date.now(),
     };
-    localStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
+    this.appLocalData.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
   }
 
   private loadFromLocalStorage(): void {
@@ -168,7 +170,7 @@ export class RotaService {
   }
 
   private getFromLocalStorage(): RotaResponse | null {
-    const cached = localStorage.getItem(this.CACHE_KEY);
+    const cached = this.appLocalData.getItem(this.CACHE_KEY);
     if (!cached) return null;
 
     try {
@@ -178,7 +180,7 @@ export class RotaService {
       if (age < this.CACHE_DURATION) {
         return data;
       } else {
-        localStorage.removeItem(this.CACHE_KEY);
+        this.appLocalData.removeItem(this.CACHE_KEY);
         return null;
       }
     } catch {

@@ -113,6 +113,11 @@
       }
     }
 
+    .legacy-meta-section {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+
     .action-buttons {
       flex-direction: column;
       gap: 0.85rem;
@@ -1144,7 +1149,7 @@
 
 .entry-time-eyebrow {
   display: block;
-  color: #5268c9;
+  color: var(--theme-primary);
   font-size: 0.72rem;
   font-weight: 800;
   line-height: 1;
@@ -1250,7 +1255,7 @@
 .option-chevron {
   width: 20px;
   height: 20px;
-  color: #5268c9;
+  color: var(--theme-primary);
 }
 
 .entry-time-divider {
@@ -1328,11 +1333,11 @@
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   background: #fff;
-  color: #5268c9;
+  color: var(--theme-primary);
 
   &:focus-within {
-    border-color: #5268c9;
-    box-shadow: 0 0 0 3px rgba(82, 104, 201, 0.13);
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 3px rgba(var(--theme-focus-rgb), 0.13);
   }
 
   svg {
@@ -1358,9 +1363,9 @@
   width: 100%;
   min-height: 46px;
   padding: 0.7rem 0.95rem;
-  border: 1px solid #5268c9;
+  border: 1px solid var(--theme-primary);
   border-radius: 8px;
-  background: #5268c9;
+  background: var(--theme-primary);
   color: #fff;
   font-weight: 750;
   white-space: nowrap;

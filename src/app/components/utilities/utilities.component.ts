@@ -5,6 +5,7 @@ import { LucideDynamicIcon } from '@lucide/angular';
 import { CopyService } from '../../services/copy.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
+import { AppLocalDataDatabaseService } from '../../services/app-local-data-database.service';
 import { CopyItem, CopyFormData, StopwatchState, MemoItem } from '../../models/utilities.model';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
@@ -20,6 +21,7 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
   private copyService = inject(CopyService);
   private snackbarService = inject(SnackbarService);
   private confirmationService = inject(ConfirmationDialogService);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   private stopwatchInterval: ReturnType<typeof setInterval> | null = null;
 
   // Storage keys
@@ -258,11 +260,11 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
 
   private saveStopwatchState(): void {
     const state = this.stopwatch();
-    localStorage.setItem(this.STOPWATCH_KEY, JSON.stringify(state));
+    this.appLocalData.setItem(this.STOPWATCH_KEY, JSON.stringify(state));
   }
 
   private loadStopwatchState(): void {
-    const saved = localStorage.getItem(this.STOPWATCH_KEY);
+    const saved = this.appLocalData.getItem(this.STOPWATCH_KEY);
     if (saved) {
       try {
         const state = JSON.parse(saved) as StopwatchState;
@@ -342,11 +344,11 @@ export class UtilitiesComponent implements OnInit, OnDestroy {
   }
 
   private saveMemoItems(): void {
-    localStorage.setItem(this.MEMO_KEY, JSON.stringify(this.memoItems()));
+    this.appLocalData.setItem(this.MEMO_KEY, JSON.stringify(this.memoItems()));
   }
 
   private loadMemoItems(): void {
-    const saved = localStorage.getItem(this.MEMO_KEY);
+    const saved = this.appLocalData.getItem(this.MEMO_KEY);
     if (saved) {
       try {
         const items = JSON.parse(saved) as MemoItem[];

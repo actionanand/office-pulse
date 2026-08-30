@@ -16,6 +16,10 @@ import { LockScreenService } from '../../lock-screen/lock-screen.service';
 import { SecuritySettingsService } from '../../services/security-settings.service';
 import { SecurityService } from '../../services/security.service';
 import { SnackbarService } from '../../services/snackbar.service';
+import { AttendanceBackupService } from '../../services/attendance-backup.service';
+import { AttendanceDatabaseService } from '../../services/attendance-database.service';
+import { AppThemeId, ThemeService } from '../../services/theme.service';
+import { AttendanceDbRecord } from '../../models/attendance-db.model';
 
 @Component({
   selector: 'app-settings',
@@ -33,12 +37,34 @@ export class SettingsComponent {
   private readonly lockScreen = inject(LockScreenService);
   private readonly snackbar = inject(SnackbarService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly attendanceBackup = inject(AttendanceBackupService);
+  protected readonly attendanceDatabase = inject(AttendanceDatabaseService);
+  protected readonly theme = inject(ThemeService);
 
   protected readonly pinDialogOpen = signal(false);
   protected readonly confirmRemove = signal(false);
   protected readonly savingPin = signal(false);
   protected readonly formError = signal('');
   protected readonly autoLockPickerOpen = signal(false);
+  protected readonly backupDialogOpen = signal(false);
+  protected readonly restoreDialogOpen = signal(false);
+  protected readonly portabilityBusy = signal(false);
+  protected readonly portabilityError = signal('');
+  protected readonly backupPassword = signal('');
+  protected readonly backupConfirmation = signal('');
+  protected readonly restorePassword = signal('');
+  protected readonly showBackupPassword = signal(false);
+  protected readonly showBackupConfirmation = signal(false);
+  protected readonly showRestorePassword = signal(false);
+  protected readonly restoreFile = signal<File | null>(null);
+  protected readonly restoreChoiceOpen = signal(false);
+  protected readonly pendingRestoreRecords = signal<readonly AttendanceDbRecord[]>([]);
+  protected readonly pendingRestoreCount = computed(() => this.pendingRestoreRecords().length);
+  protected readonly currentAttendanceCount = computed(() => this.attendanceDatabase.records().length);
+  protected readonly restoreChoiceSummary = computed(
+    () =>
+      `${this.pendingRestoreCount()} backup record${this.pendingRestoreCount() === 1 ? '' : 's'} verified. ${this.currentAttendanceCount()} record${this.currentAttendanceCount() === 1 ? '' : 's'} currently exist on this device.`,
+  );
   protected readonly pinForm = this.formBuilder.nonNullable.group({
     pin: ['', [Validators.required, Validators.pattern(/^\d{4,8}$/)]],
     confirmation: ['', [Validators.required, Validators.pattern(/^\d{4,8}$/)]],
@@ -68,6 +94,7 @@ export class SettingsComponent {
   private readonly autoLockSheet = viewChild<ElementRef<HTMLElement>>('autoLockSheet');
 
   constructor() {
+    void this.attendanceDatabase.initialize();
     effect(onCleanup => {
       if (!this.autoLockPickerOpen()) return;
 
@@ -173,6 +200,12 @@ export class SettingsComponent {
     this.snackbar.success('Auto-lock timing updated.');
   }
 
+  protected selectTheme(theme: AppThemeId): void {
+    if (theme === this.theme.activeTheme()) return;
+    this.theme.setTheme(theme);
+    this.snackbar.success('Theme updated.');
+  }
+
   protected onAutoLockBackdropClick(event: MouseEvent): void {
     if (event.target === event.currentTarget) {
       this.closeAutoLockPicker();
@@ -217,5 +250,141 @@ export class SettingsComponent {
     this.lockScreen.pinRemoved();
     this.confirmRemove.set(false);
     this.snackbar.success('PIN protection removed.');
+  }
+
+  protected openBackupDialog(): void {
+    this.portabilityError.set('');
+    this.backupPassword.set('');
+    this.backupConfirmation.set('');
+    this.showBackupPassword.set(false);
+    this.showBackupConfirmation.set(false);
+    this.backupDialogOpen.set(true);
+  }
+
+  protected closeBackupDialog(): void {
+    if (!this.portabilityBusy()) this.backupDialogOpen.set(false);
+  }
+
+  protected async createAttendanceBackup(): Promise<void> {
+    const password = this.backupPassword();
+    if (password.length < 8 || password !== this.backupConfirmation()) {
+      this.portabilityError.set('Use at least 8 characters and enter the same password twice.');
+      return;
+    }
+
+    this.portabilityBusy.set(true);
+    this.portabilityError.set('');
+    try {
+      const count = await this.attendanceBackup.createEncryptedBackup(password);
+      this.backupDialogOpen.set(false);
+      this.snackbar.success(`Encrypted backup created with ${count} attendance record${count === 1 ? '' : 's'}.`);
+    } catch (error) {
+      this.portabilityError.set(this.errorMessage(error, 'Unable to create the attendance backup.'));
+    } finally {
+      this.portabilityBusy.set(false);
+    }
+  }
+
+  protected chooseRestoreFile(input: HTMLInputElement): void {
+    input.value = '';
+    input.click();
+  }
+
+  protected onRestoreFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (!file) return;
+    this.restoreFile.set(file);
+    this.restorePassword.set('');
+    this.showRestorePassword.set(false);
+    this.pendingRestoreRecords.set([]);
+    this.portabilityError.set('');
+    this.restoreDialogOpen.set(true);
+  }
+
+  protected closeRestoreDialog(): void {
+    if (!this.portabilityBusy()) this.restoreDialogOpen.set(false);
+  }
+
+  protected async requestRestore(): Promise<void> {
+    if (this.restorePassword() && this.restorePassword().length < 8) {
+      this.portabilityError.set('Backup passwords must be at least 8 characters.');
+      return;
+    }
+    const file = this.restoreFile();
+    if (!file) return;
+
+    this.portabilityBusy.set(true);
+    this.portabilityError.set('');
+    try {
+      const records = await this.attendanceBackup.prepareRestore(file, this.restorePassword());
+      this.pendingRestoreRecords.set(records);
+      this.restoreDialogOpen.set(false);
+      this.restoreChoiceOpen.set(true);
+    } catch (error) {
+      this.portabilityError.set(this.errorMessage(error, 'Unable to read the attendance backup.'));
+      this.snackbar.error(this.portabilityError());
+    } finally {
+      this.portabilityBusy.set(false);
+    }
+  }
+
+  protected cancelRestoreChoice(): void {
+    if (this.portabilityBusy()) return;
+    this.restoreChoiceOpen.set(false);
+    this.restoreFile.set(null);
+    this.pendingRestoreRecords.set([]);
+    this.restorePassword.set('');
+  }
+
+  protected async restoreAttendanceBackup(mode: 'merge' | 'replace'): Promise<void> {
+    const records = this.pendingRestoreRecords();
+    this.restoreDialogOpen.set(false);
+    this.restoreChoiceOpen.set(false);
+    if (!records.length) return;
+
+    this.portabilityBusy.set(true);
+    try {
+      const count = await this.attendanceBackup.restoreRecords(records, mode);
+      this.restoreFile.set(null);
+      this.pendingRestoreRecords.set([]);
+      this.restorePassword.set('');
+      const action = mode === 'replace' ? 'Restored' : 'Merged';
+      this.snackbar.success(`${action} ${count} attendance record${count === 1 ? '' : 's'}.`);
+    } catch (error) {
+      this.portabilityError.set(this.errorMessage(error, 'Unable to restore the attendance backup.'));
+      this.restoreChoiceOpen.set(true);
+      this.snackbar.error(this.portabilityError());
+    } finally {
+      this.portabilityBusy.set(false);
+    }
+  }
+
+  protected setBackupPassword(event: Event): void {
+    this.backupPassword.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setBackupConfirmation(event: Event): void {
+    this.backupConfirmation.set((event.target as HTMLInputElement).value);
+  }
+
+  protected setRestorePassword(event: Event): void {
+    this.restorePassword.set((event.target as HTMLInputElement).value);
+  }
+
+  protected toggleBackupPasswordVisibility(): void {
+    this.showBackupPassword.update(value => !value);
+  }
+
+  protected toggleBackupConfirmationVisibility(): void {
+    this.showBackupConfirmation.update(value => !value);
+  }
+
+  protected toggleRestorePasswordVisibility(): void {
+    this.showRestorePassword.update(value => !value);
+  }
+
+  private errorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error ? error.message : fallback;
   }
 }

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, catchError, map } from 'rxjs';
 import { JiraTicket, JiraTicketData, JiraTicketStatusOverride } from '../models/jira-ticket.model';
 import { environment } from '../../environments/environment';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,7 @@ export class JiraTicketService {
   private readonly TICKETS_BY_ME_SHEET_GID = environment.TICKETS_BY_ME_SHEET_GID;
   private readonly STATUS_OVERRIDES_KEY = 'jira_ticket_status_overrides';
   private http = inject(HttpClient);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
 
   // Cache for ticket data
   private cachedData = signal<JiraTicketData | null>(null);
@@ -156,7 +158,7 @@ export class JiraTicketService {
    * Get status overrides from local storage
    */
   private getStatusOverrides(): JiraTicketStatusOverride[] {
-    const data = localStorage.getItem(this.STATUS_OVERRIDES_KEY);
+    const data = this.appLocalData.getItem(this.STATUS_OVERRIDES_KEY);
     if (!data) return [];
 
     try {
@@ -185,7 +187,7 @@ export class JiraTicketService {
       overrides.push(override);
     }
 
-    localStorage.setItem(this.STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
+    this.appLocalData.setItem(this.STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
 
     // Update cached data if exists
     const cached = this.cachedData();
@@ -214,7 +216,7 @@ export class JiraTicketService {
     const validOverrides = statusOverrides.filter((o: JiraTicketStatusOverride) => apiUrls.includes(o.url));
 
     if (validOverrides.length !== statusOverrides.length) {
-      localStorage.setItem(this.STATUS_OVERRIDES_KEY, JSON.stringify(validOverrides));
+      this.appLocalData.setItem(this.STATUS_OVERRIDES_KEY, JSON.stringify(validOverrides));
     }
   }
 

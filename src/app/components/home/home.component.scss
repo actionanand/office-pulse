@@ -7,7 +7,7 @@
 // ============ Hero Section ============
 .hero {
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
   padding: 3rem 2rem;
   text-align: center;
   overflow: hidden;
@@ -136,7 +136,7 @@
   border-radius: 16px;
   text-decoration: none;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid var(--card-color, #667eea);
+  border-left: 4px solid var(--card-color, var(--theme-primary));
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
@@ -162,7 +162,7 @@
   width: 2.5rem;
   height: 2.5rem;
   flex-shrink: 0;
-  color: var(--card-color, #667eea);
+  color: var(--card-color, var(--theme-primary));
   stroke-width: 1.8;
   transition: transform 0.3s ease;
 }
@@ -189,7 +189,7 @@
 .card-arrow {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--card-color, #667eea);
+  color: var(--card-color, var(--theme-primary));
   opacity: 0.5;
   transition: all 0.3s ease;
   flex-shrink: 0;

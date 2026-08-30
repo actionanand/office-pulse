@@ -1,0 +1,78 @@
+<div class="record-dialog-backdrop" role="presentation" (click)="close()" (keydown)="close()">
+  <section
+    class="record-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="record-editor-title"
+    (click)="$event.stopPropagation()"
+    (keydown)="$event.stopPropagation()">
+    <header>
+      <div class="dialog-icon"><svg lucideIcon="calendar-clock" aria-hidden="true"></svg></div>
+      <div>
+        <p>Calendar Pro</p>
+        <h2 id="record-editor-title">{{ record() ? 'Edit attendance' : 'Add past attendance' }}</h2>
+      </div>
+      <button type="button" class="icon-button" aria-label="Close" (click)="close()">
+        <svg lucideIcon="x" aria-hidden="true"></svg>
+      </button>
+    </header>
+
+    <div class="form-grid">
+      <label class="full-field">
+        <span>Attendance date</span>
+        <input type="date" [max]="maxDate()" [(ngModel)]="date" [disabled]="!!initialDate() || !!record()" />
+      </label>
+      @if (status !== 'Day Off') {
+        <label>
+          <span>Entry date and time</span>
+          <input type="datetime-local" [(ngModel)]="entryTime" />
+        </label>
+        <label>
+          <span>Exit date and time</span>
+          <input type="datetime-local" [(ngModel)]="exitTime" />
+        </label>
+      } @else {
+        <div class="day-off-note full-field">
+          <svg lucideIcon="calendar-off" aria-hidden="true"></svg>
+          No entry or exit time is required for a full day off.
+        </div>
+      }
+      <label>
+        <span>Company <small>Optional</small></span>
+        <input type="text" maxlength="100" autocomplete="organization" [(ngModel)]="companyName" />
+      </label>
+      <label class="full-field">
+        <span>Comments <small>Optional</small></span>
+        <textarea rows="3" maxlength="500" [(ngModel)]="comments"></textarea>
+      </label>
+    </div>
+
+    <fieldset>
+      <legend>Work mode</legend>
+      <div class="mode-grid">
+        @for (
+          option of [
+            { value: 'Office', label: 'Work from office' },
+            { value: 'WFH', label: 'Work from home' },
+            { value: 'First Half Off', label: 'First half leave' },
+            { value: 'Second Half Off', label: 'Second half leave' },
+            { value: 'Day Off', label: 'Full day off' },
+          ];
+          track option.value
+        ) {
+          <label [class.selected]="status === option.value">
+            <input type="radio" name="record-status" [value]="option.value" [(ngModel)]="status" />
+            {{ option.label }}
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <footer>
+      <button type="button" class="secondary-button" (click)="close()">Cancel</button>
+      <button type="button" class="primary-button" [disabled]="saving()" (click)="save()">
+        <svg lucideIcon="save" aria-hidden="true"></svg>{{ saving() ? 'Saving...' : 'Save attendance' }}
+      </button>
+    </footer>
+  </section>
+</div>

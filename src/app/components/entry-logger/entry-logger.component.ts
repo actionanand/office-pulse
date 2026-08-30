@@ -38,7 +38,7 @@ interface AttendanceFormData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EntryLoggerComponent implements OnInit {
-  private storageService = new StorageService();
+  private storageService = inject(StorageService);
   private attendanceState = inject(AttendanceStateService);
   private snackbarService = inject(SnackbarService);
   private logoffNotifications = inject(AndroidLogoffNotificationService);
@@ -72,6 +72,9 @@ export class EntryLoggerComponent implements OnInit {
   exitExitTime = signal<string>('');
   showLeaveConfirmation = signal<boolean>(false);
   leaveConfirmationDate = signal<string>('');
+  showLegacyTodoSection = false;
+  companyName = signal<string>('');
+  comments = signal<string>('');
 
   leaveConfirmationMessage = computed(() => {
     const date = this.leaveConfirmationDate();
@@ -340,6 +343,29 @@ export class EntryLoggerComponent implements OnInit {
     return `${minutes} min`;
   });
 
+  elapsedProgressPercent = computed(() => {
+    const log = this.entryLog();
+    if (!log?.entryTime) return 0;
+
+    this.currentTime();
+    const entryDate = new Date(log.entryTime);
+    const endDate = log.exitTime ? new Date(log.exitTime) : new Date();
+    const elapsedMs = Math.max(0, endDate.getTime() - entryDate.getTime());
+    const allowedMs = this.workHours() * 60 * 60 * 1000;
+    if (allowedMs <= 0) return this.remainingTime() === 'Time to log off!' ? 100 : 0;
+    return Math.max(0, Math.round((elapsedMs / allowedMs) * 100));
+  });
+
+  elapsedProgressWidth = computed(() => Math.min(100, this.elapsedProgressPercent()));
+
+  elapsedProgressState = computed<'starting' | 'steady' | 'near' | 'complete'>(() => {
+    const percent = this.elapsedProgressPercent();
+    if (percent >= 100) return 'complete';
+    if (percent >= 75) return 'near';
+    if (percent >= 35) return 'steady';
+    return 'starting';
+  });
+
   constructor() {
     effect(() => {
       this.currentTime();
@@ -374,15 +400,33 @@ export class EntryLoggerComponent implements OnInit {
     // NOTE: Entry date is determined by entry time, not exit time (supports night shift)
     // Local storage holds pending entries that haven't been submitted to API yet
     // Once submitted to API (via Google Form), the entry includes both entry & exit times
-    // Always load the entry from localStorage, regardless of date
-    if (log && log.entryTime) {
+    // Keep only today's pending entry, a reasonable overnight shift, or a complete offline entry for today.
+    if (log && log.entryTime && this.isRelevantLocalEntry(log)) {
       this.entryLog.set(log);
+      this.companyName.set(log.companyName ?? '');
+      this.comments.set(log.comments ?? '');
     } else {
+      if (log?.entryTime) {
+        this.storageService.clearEntryLog();
+        this.attendanceState.notifyLocalStorageChanged();
+      }
       this.entryLog.set(null);
+      this.companyName.set('');
+      this.comments.set('');
     }
 
     this.workHours.set(settings.defaultWorkHours);
     this.showTodoList.set(settings.showTodoList);
+  }
+
+  updateCompanyName(value: string): void {
+    this.companyName.set(value);
+    this.persistLocalMetadata();
+  }
+
+  updateComments(value: string): void {
+    this.comments.set(value);
+    this.persistLocalMetadata();
   }
 
   loadOfflineEntry(): void {
@@ -544,6 +588,8 @@ export class EntryLoggerComponent implements OnInit {
     const log: EntryLog = {
       entryTime: entryTime.toISOString(),
       date: istDateString,
+      companyName: this.companyName().trim() || undefined,
+      comments: this.comments().trim() || undefined,
     };
 
     this.storageService.saveEntryLog(log);
@@ -870,6 +916,30 @@ export class EntryLoggerComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  private isRelevantLocalEntry(log: EntryLog): boolean {
+    const entryTime = new Date(log.entryTime);
+    if (isNaN(entryTime.getTime())) return false;
+
+    const today = this.getISTDateStringFromDate(new Date());
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterday = this.getISTDateStringFromDate(yesterdayDate);
+    const entryDate = this.getISTDateStringFromDate(entryTime);
+
+    if (entryDate === today) return true;
+
+    if (log.exitTime) {
+      const exitTime = new Date(log.exitTime);
+      if (isNaN(exitTime.getTime())) return false;
+
+      const exitDate = this.getISTDateStringFromDate(exitTime);
+      return exitDate === today && log.isSubmitted !== true;
+    }
+
+    const ageHours = (Date.now() - entryTime.getTime()) / (1000 * 60 * 60);
+    return entryDate === yesterday && ageHours <= 36 && log.isSubmitted !== true;
+  }
+
   private setAttendanceDialogTimes(entryTime: Date, exitTime: Date): void {
     this.exitEntryDate.set(this.formatDateForInput(entryTime));
     this.exitEntryTime.set(this.formatTimeForInput(entryTime));
@@ -901,7 +971,23 @@ export class EntryLoggerComponent implements OnInit {
       entryTime: entryTime.toISOString(),
       exitTime: exitTime.toISOString(),
       date: this.getISTDateStringFromDate(entryTime),
+      companyName: formData.companyName.trim() || undefined,
+      comments: formData.comment.trim() || undefined,
     };
+  }
+
+  private persistLocalMetadata(): void {
+    const log = this.entryLog();
+    if (!log?.entryTime || log.isSubmitted) return;
+
+    const nextLog: EntryLog = {
+      ...log,
+      companyName: this.companyName().trim() || undefined,
+      comments: this.comments().trim() || undefined,
+    };
+    this.entryLog.set(nextLog);
+    this.storageService.saveEntryLog(nextLog);
+    this.attendanceState.notifyLocalStorageChanged();
   }
 
   private formatDateForInput(date: Date): string {

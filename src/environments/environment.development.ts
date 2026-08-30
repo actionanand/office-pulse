@@ -1,5 +1,10 @@
 export const environment = {
   production: false,
+  // Attendance navigation: 'both' keeps legacy primary and Pro under More;
+  // 'legacy' shows only /calendar and /logger; 'pro' shows only /calendar-pro and /logger-pro as primary links.
+  // Example to activate Pro only: LOGGER_MODE: 'pro' as 'both' | 'legacy' | 'pro',
+  // LOGGER_MODE: 'both' as 'both' | 'legacy' | 'pro'
+  LOGGER_MODE: 'both' as 'both' | 'legacy' | 'pro',
   YOUR_FORM_ID: '1FAIpQLScIsEo4T_94FyMU5q73l0206-ZREHok9ocfDpBI_knFCzxOwg',
   ACHIEVEMENT_FORM_ID: '1FAIpQLSc6R3WMpgpARFaCTDtKLgdlh9v6tEm97ezi96qm4M_S-9MSiA',
   COPY_FORM_ID: '1FAIpQLSeZcoA781WH17KE84fciVDYsEufrVkvHDXxes0QyQtz4ysRjQ',

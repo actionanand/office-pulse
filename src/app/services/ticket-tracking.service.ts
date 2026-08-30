@@ -13,6 +13,7 @@ import {
   TrackedTicketData,
   TicketStatusOverride,
 } from '../models/ticket-tracking.model';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 interface GVizResponse {
   version: string;
@@ -32,6 +33,7 @@ interface GVizResponse {
 })
 export class TicketTrackingService {
   private http = inject(HttpClient);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
 
   private readonly DEMO_STATUS_OVERRIDES_KEY = 'demo_ticket_status_overrides';
   private readonly TRACKED_STATUS_OVERRIDES_KEY = 'tracked_ticket_status_overrides';
@@ -276,7 +278,7 @@ export class TicketTrackingService {
 
   // Status override methods for Demo Tickets
   private getDemoStatusOverrides(): TicketStatusOverride[] {
-    const data = localStorage.getItem(this.DEMO_STATUS_OVERRIDES_KEY);
+    const data = this.appLocalData.getItem(this.DEMO_STATUS_OVERRIDES_KEY);
     if (!data) return [];
 
     try {
@@ -302,12 +304,12 @@ export class TicketTrackingService {
       overrides.push(override);
     }
 
-    localStorage.setItem(this.DEMO_STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
+    this.appLocalData.setItem(this.DEMO_STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
   }
 
   // Status override methods for Tracked Tickets
   private getTrackedStatusOverrides(): TicketStatusOverride[] {
-    const data = localStorage.getItem(this.TRACKED_STATUS_OVERRIDES_KEY);
+    const data = this.appLocalData.getItem(this.TRACKED_STATUS_OVERRIDES_KEY);
     if (!data) return [];
 
     try {
@@ -333,7 +335,7 @@ export class TicketTrackingService {
       overrides.push(override);
     }
 
-    localStorage.setItem(this.TRACKED_STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
+    this.appLocalData.setItem(this.TRACKED_STATUS_OVERRIDES_KEY, JSON.stringify(overrides));
   }
 
   /**
@@ -350,7 +352,7 @@ export class TicketTrackingService {
     });
 
     if (validOverrides.length !== statusOverrides.length) {
-      localStorage.setItem(this.DEMO_STATUS_OVERRIDES_KEY, JSON.stringify(validOverrides));
+      this.appLocalData.setItem(this.DEMO_STATUS_OVERRIDES_KEY, JSON.stringify(validOverrides));
     }
   }
 
@@ -368,7 +370,7 @@ export class TicketTrackingService {
     });
 
     if (validOverrides.length !== statusOverrides.length) {
-      localStorage.setItem(this.TRACKED_STATUS_OVERRIDES_KEY, JSON.stringify(validOverrides));
+      this.appLocalData.setItem(this.TRACKED_STATUS_OVERRIDES_KEY, JSON.stringify(validOverrides));
     }
   }
 }

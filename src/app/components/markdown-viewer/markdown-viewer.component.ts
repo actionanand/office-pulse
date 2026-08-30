@@ -5,6 +5,7 @@ import { MarkdownModule, MarkdownService } from 'ngx-markdown';
 import { HttpClient } from '@angular/common/http';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { SnackbarService } from '../../services/snackbar.service';
+import { AppLocalDataDatabaseService } from '../../services/app-local-data-database.service';
 import { getISTDate } from '../../utils/date-utils';
 
 interface ViewedFile {
@@ -38,6 +39,7 @@ declare global {
 export class MarkdownViewerComponent implements AfterViewInit {
   private http = inject(HttpClient);
   private snackbarService = inject(SnackbarService);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   markdownService = inject(MarkdownService);
 
   readonly markdownContent = signal<string>('');
@@ -222,11 +224,11 @@ export class MarkdownViewerComponent implements AfterViewInit {
       files = files.slice(0, 5);
     }
     this.viewedFiles.set(files);
-    localStorage.setItem('markdownViewedFiles', JSON.stringify(files));
+    this.appLocalData.setItem('markdownViewedFiles', JSON.stringify(files));
   }
 
   loadViewedFiles(): ViewedFile[] {
-    const raw = localStorage.getItem('markdownViewedFiles');
+    const raw = this.appLocalData.getItem('markdownViewedFiles');
     if (!raw) return [];
     try {
       return JSON.parse(raw);
@@ -237,13 +239,13 @@ export class MarkdownViewerComponent implements AfterViewInit {
 
   clearViewedFiles(): void {
     this.viewedFiles.set([]);
-    localStorage.removeItem('markdownViewedFiles');
+    this.appLocalData.removeItem('markdownViewedFiles');
   }
 
   removeViewedFile(filePath: string): void {
     const files = this.viewedFiles().filter(f => f.filePath !== filePath);
     this.viewedFiles.set(files);
-    localStorage.setItem('markdownViewedFiles', JSON.stringify(files));
+    this.appLocalData.setItem('markdownViewedFiles', JSON.stringify(files));
   }
 
   showInstructionsView(): void {

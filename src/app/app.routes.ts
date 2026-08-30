@@ -20,6 +20,25 @@ export const routes: Routes = [
     canActivate: [lockGuard],
   },
   {
+    path: 'calendar-pro',
+    loadComponent: () =>
+      import('./components/database-calendar/database-calendar.component').then(m => m.DatabaseCalendarComponent),
+    canActivate: [lockGuard],
+  },
+  {
+    path: 'logger-pro',
+    loadComponent: () =>
+      import('./components/database-entry-logger/database-entry-logger.component').then(
+        m => m.DatabaseEntryLoggerComponent,
+      ),
+    canActivate: [lockGuard],
+  },
+  {
+    path: 'tasks',
+    loadComponent: () => import('./components/todo-planner/todo-planner.component').then(m => m.TodoPlannerComponent),
+    canActivate: [lockGuard],
+  },
+  {
     path: 'bandwidth',
     loadComponent: () =>
       import('./components/sprint-bandwidth/sprint-bandwidth.component').then(m => m.SprintBandwidthComponent),

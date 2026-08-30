@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { LOGGER_CONFIG, LoggerConfig } from './logger.config';
+import { AppLocalDataDatabaseService } from '../services/app-local-data-database.service';
 
 /**
  * Logger Service
@@ -22,6 +23,7 @@ import { LOGGER_CONFIG, LoggerConfig } from './logger.config';
 })
 export class LoggerService {
   private readonly config: LoggerConfig = LOGGER_CONFIG;
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   private isEnabled: boolean = false;
 
   constructor() {
@@ -33,7 +35,7 @@ export class LoggerService {
    */
   private checkLogStatus(): void {
     try {
-      const storedValue = localStorage.getItem(this.config.storageKey);
+      const storedValue = this.appLocalData.getItem(this.config.storageKey);
       this.isEnabled = storedValue === this.config.enableValue;
     } catch {
       this.isEnabled = false;
@@ -152,7 +154,7 @@ export class LoggerService {
    */
   enableLogging(): void {
     try {
-      localStorage.setItem(this.config.storageKey, this.config.enableValue);
+      this.appLocalData.setItem(this.config.storageKey, this.config.enableValue);
       this.isEnabled = true;
       console.log(this.config.logPrefix, 'Logging enabled');
     } catch (error) {
@@ -165,7 +167,7 @@ export class LoggerService {
    */
   disableLogging(): void {
     try {
-      localStorage.removeItem(this.config.storageKey);
+      this.appLocalData.removeItem(this.config.storageKey);
       this.isEnabled = false;
     } catch (error) {
       console.error('Failed to disable logging:', error);

@@ -1,4 +1,10 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  inject,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import { PreloadAllModules, provideRouter, withPreloading } from '@angular/router';
 import { HttpClient, provideHttpClient, withFetch } from '@angular/common/http';
 import {
@@ -6,6 +12,7 @@ import {
   LucideArrowLeft,
   LucideArrowRight,
   LucideBan,
+  LucideBell,
   LucideBookOpen,
   LucideBookOpenText,
   LucideBookmark,
@@ -80,6 +87,7 @@ import {
   LucideMoveRight,
   LucideNotebookPen,
   LucidePaintbrush,
+  LucidePalette,
   LucidePalmtree,
   LucidePanelTop,
   LucidePartyPopper,
@@ -130,11 +138,13 @@ import {
 import { MERMAID_OPTIONS, provideMarkdown, MARKED_OPTIONS } from 'ngx-markdown';
 
 import { routes } from './app.routes';
+import { AppLocalDataDatabaseService } from './services/app-local-data-database.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
+    provideAppInitializer(() => inject(AppLocalDataDatabaseService).initialize()),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(withFetch()),
     provideLucideIcons(
@@ -142,6 +152,7 @@ export const appConfig: ApplicationConfig = {
       LucideArrowLeft,
       LucideArrowRight,
       LucideBan,
+      LucideBell,
       LucideBookOpen,
       LucideBookOpenText,
       LucideBookmark,
@@ -216,6 +227,7 @@ export const appConfig: ApplicationConfig = {
       LucideMoveRight,
       LucideNotebookPen,
       LucidePaintbrush,
+      LucidePalette,
       LucidePalmtree,
       LucidePanelTop,
       LucidePartyPopper,

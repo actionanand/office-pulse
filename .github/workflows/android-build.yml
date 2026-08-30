@@ -12,7 +12,8 @@ permissions:
 
 env:
   MIN_SDK_VERSION: 24
-  TARGET_SDK_VERSION: 35
+  COMPILE_SDK_VERSION: 36
+  TARGET_SDK_VERSION: 36
   RELEASE_BASENAME: office-pulse-release
 
 jobs:
@@ -36,6 +37,9 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+
+      - name: Install Android 16 SDK
+        run: sdkmanager "platforms;android-$COMPILE_SDK_VERSION"
 
       - name: Install dependencies
         run: npm ci
@@ -73,6 +77,7 @@ jobs:
             's/versionName "[^"]*"/versionName project.hasProperty("versionName") ? project.versionName : "1.0.0"/' \
             build.gradle
           sed -i "s/minSdkVersion = .*/minSdkVersion = $MIN_SDK_VERSION/" ../variables.gradle
+          sed -i "s/compileSdkVersion = .*/compileSdkVersion = $COMPILE_SDK_VERSION/" ../variables.gradle
           sed -i "s/targetSdkVersion = .*/targetSdkVersion = $TARGET_SDK_VERSION/" ../variables.gradle
 
       - name: Sync web assets
@@ -112,6 +117,13 @@ jobs:
           git add android-version.json
           git diff --cached --quiet || git commit -m "chore: auto-bump android versionCode [skip ci]"
           git push
+
+      - name: Set versioned release filename
+        run: |
+          VERSION_NAME=$(node -p "require('./android-version.json').versionName")
+          VERSION_SUFFIX=${VERSION_NAME//./-}
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          echo "RELEASE_FILE_BASENAME=${RELEASE_BASENAME}-${VERSION_SUFFIX}" >> "$GITHUB_ENV"
 
       - name: Build APK and AAB
         working-directory: android
@@ -157,7 +169,7 @@ jobs:
           KEY_PASSWORD: ${{ steps.keystore_type.outputs.type == 'PKCS12' && secrets.KEYSTORE_PASSWORD || secrets.KEY_PASSWORD }}
         run: |
           UNSIGNED_APK=$(find android/app/build -name "*-release-unsigned.apk" | head -1)
-          ALIGNED_APK="android/app/build/outputs/apk/release/${RELEASE_BASENAME}.apk"
+          ALIGNED_APK="android/app/build/outputs/apk/release/${RELEASE_FILE_BASENAME}.apk"
           BUILD_TOOLS_DIR="${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools/" | sort -V | tail -1)"
           "$BUILD_TOOLS_DIR/zipalign" -v 4 "$UNSIGNED_APK" "$ALIGNED_APK"
           "$BUILD_TOOLS_DIR/apksigner" sign \
@@ -172,8 +184,8 @@ jobs:
         if: steps.keystore.outputs.available != 'true' || steps.sign_apk.outcome == 'failure'
         run: |
           UNSIGNED_APK=$(find android/app/build -name "*-release-unsigned.apk" | head -1)
-          cp "$UNSIGNED_APK" "android/app/build/outputs/apk/release/${RELEASE_BASENAME}.apk"
-          echo "::warning title=⚠️ Unsigned APK produced::⚠️ Unsigned APK produced at android/app/build/outputs/apk/release/${RELEASE_BASENAME}.apk because keystore secrets are missing or signing failed."
+          cp "$UNSIGNED_APK" "android/app/build/outputs/apk/release/${RELEASE_FILE_BASENAME}.apk"
+          echo "::warning title=⚠️ Unsigned APK produced::⚠️ Unsigned APK produced at android/app/build/outputs/apk/release/${RELEASE_FILE_BASENAME}.apk because keystore secrets are missing or signing failed."
 
       - name: Sign AAB
         id: sign_aab
@@ -185,7 +197,7 @@ jobs:
           KEY_PASSWORD: ${{ steps.keystore_type.outputs.type == 'PKCS12' && secrets.KEYSTORE_PASSWORD || secrets.KEY_PASSWORD }}
         run: |
           UNSIGNED_AAB=$(find android/app/build -name "*-release.aab" | head -1)
-          SIGNED_AAB="android/app/build/outputs/bundle/release/${RELEASE_BASENAME}.aab"
+          SIGNED_AAB="android/app/build/outputs/bundle/release/${RELEASE_FILE_BASENAME}.aab"
           STORE_PASS_FILE=$(mktemp)
           KEY_PASS_FILE=$(mktemp)
           trap 'rm -f "$STORE_PASS_FILE" "$KEY_PASS_FILE"' EXIT
@@ -204,13 +216,13 @@ jobs:
         if: steps.keystore.outputs.available != 'true' || steps.sign_aab.outcome == 'failure'
         run: |
           UNSIGNED_AAB=$(find android/app/build -name "*-release.aab" | head -1)
-          cp "$UNSIGNED_AAB" "android/app/build/outputs/bundle/release/${RELEASE_BASENAME}.aab"
-          echo "::warning title=⚠️ Unsigned AAB produced::⚠️ Unsigned AAB produced at android/app/build/outputs/bundle/release/${RELEASE_BASENAME}.aab because keystore secrets are missing or signing failed."
+          cp "$UNSIGNED_AAB" "android/app/build/outputs/bundle/release/${RELEASE_FILE_BASENAME}.aab"
+          echo "::warning title=⚠️ Unsigned AAB produced::⚠️ Unsigned AAB produced at android/app/build/outputs/bundle/release/${RELEASE_FILE_BASENAME}.aab because keystore secrets are missing or signing failed."
 
       - name: Summarize Android artifacts
         run: |
-          APK_PATH="android/app/build/outputs/apk/release/${RELEASE_BASENAME}.apk"
-          AAB_PATH="android/app/build/outputs/bundle/release/${RELEASE_BASENAME}.aab"
+          APK_PATH="android/app/build/outputs/apk/release/${RELEASE_FILE_BASENAME}.apk"
+          AAB_PATH="android/app/build/outputs/bundle/release/${RELEASE_FILE_BASENAME}.aab"
 
           if [[ "${{ steps.keystore.outputs.available }}" == "true" && "${{ steps.sign_apk.outcome }}" == "success" ]]; then
             echo "✅ Signed APK created: $APK_PATH"
@@ -228,9 +240,9 @@ jobs:
         if: github.ref == 'refs/heads/main-android'
         run: |
           mkdir -p releases
-          rm -f "releases/${RELEASE_BASENAME}.apk" "releases/${RELEASE_BASENAME}.aab"
-          cp "android/app/build/outputs/apk/release/${RELEASE_BASENAME}.apk" "releases/${RELEASE_BASENAME}.apk"
-          cp "android/app/build/outputs/bundle/release/${RELEASE_BASENAME}.aab" "releases/${RELEASE_BASENAME}.aab"
+          rm -f "releases/${RELEASE_BASENAME}"-*.apk "releases/${RELEASE_BASENAME}"-*.aab
+          cp "android/app/build/outputs/apk/release/${RELEASE_FILE_BASENAME}.apk" "releases/${RELEASE_FILE_BASENAME}.apk"
+          cp "android/app/build/outputs/bundle/release/${RELEASE_FILE_BASENAME}.aab" "releases/${RELEASE_FILE_BASENAME}.aab"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase --autostash
@@ -241,15 +253,15 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: office-pulse-release-apk
-          path: android/app/build/outputs/apk/release/office-pulse-release.apk
+          name: office-pulse-release-${{ env.VERSION_NAME }}-apk
+          path: android/app/build/outputs/apk/release/${{ env.RELEASE_FILE_BASENAME }}.apk
           retention-days: 30
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: office-pulse-release-aab
-          path: android/app/build/outputs/bundle/release/office-pulse-release.aab
+          name: office-pulse-release-${{ env.VERSION_NAME }}-aab
+          path: android/app/build/outputs/bundle/release/${{ env.RELEASE_FILE_BASENAME }}.aab
           retention-days: 30
 
       - name: Create GitHub Release
@@ -257,5 +269,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            android/app/build/outputs/apk/release/office-pulse-release.apk
-            android/app/build/outputs/bundle/release/office-pulse-release.aab
+            android/app/build/outputs/apk/release/${{ env.RELEASE_FILE_BASENAME }}.apk
+            android/app/build/outputs/bundle/release/${{ env.RELEASE_FILE_BASENAME }}.aab

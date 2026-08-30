@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { CueCard, CueCardSheetColumn, CueCardTable, cueCardSheetColumns } from '../models/cue-card.model';
+import { AppLocalDataDatabaseService } from './app-local-data-database.service';
 
 interface GVizCell {
   v: string | number | boolean | null;
@@ -49,6 +50,7 @@ export class CueCardService {
   }));
 
   private readonly http = inject(HttpClient);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   private readonly offlineStorageKey = 'office_pulse_offline_cue_cards';
 
   fetchCueCards(): Observable<CueCard[]> {
@@ -65,7 +67,7 @@ export class CueCardService {
 
   getOfflineCueCards(): CueCard[] {
     try {
-      const saved = localStorage.getItem(this.offlineStorageKey);
+      const saved = this.appLocalData.getItem(this.offlineStorageKey);
       if (!saved) return [];
 
       const cards = JSON.parse(saved) as CueCard[];
@@ -73,29 +75,29 @@ export class CueCardService {
 
       return cards.map(card => this.cleanCueCard(card, true));
     } catch {
-      localStorage.removeItem(this.offlineStorageKey);
+      this.appLocalData.removeItem(this.offlineStorageKey);
       return [];
     }
   }
 
   saveOfflineCueCard(card: CueCard): void {
     const cleanCard = this.cleanCueCard(card, true);
-    localStorage.setItem(this.offlineStorageKey, JSON.stringify([cleanCard]));
+    this.appLocalData.setItem(this.offlineStorageKey, JSON.stringify([cleanCard]));
   }
 
   deleteOfflineCueCard(cardId: string): void {
     const nextCards = this.getOfflineCueCards().filter(card => card.id !== cardId);
 
     if (nextCards.length === 0) {
-      localStorage.removeItem(this.offlineStorageKey);
+      this.appLocalData.removeItem(this.offlineStorageKey);
       return;
     }
 
-    localStorage.setItem(this.offlineStorageKey, JSON.stringify(nextCards));
+    this.appLocalData.setItem(this.offlineStorageKey, JSON.stringify(nextCards));
   }
 
   clearOfflineCueCards(): void {
-    localStorage.removeItem(this.offlineStorageKey);
+    this.appLocalData.removeItem(this.offlineStorageKey);
   }
 
   buildCueCard(input: {

@@ -79,8 +79,8 @@ export class EntryLoggerComponent implements OnInit {
   showLegacyTodoSection = false;
   companyName = signal<string>('');
   comments = signal<string>('');
-  customEntryDate = signal<string>('');
-  customEntryTime = signal<string>('');
+  customEntryDateValue = signal<string>('');
+  customEntryTimeValue = signal<string>('');
 
   leaveConfirmationMessage = computed(() => {
     const date = this.leaveConfirmationDate();
@@ -1001,8 +1001,8 @@ export class EntryLoggerComponent implements OnInit {
 
   private populateCustomEntryDateTime(): void {
     const now = new Date();
-    this.customEntryDate.set(this.formatDateForInput(now));
-    this.customEntryTime.set(this.formatTimeForInput(now));
+    this.customEntryDateValue.set(this.formatDateForInput(now));
+    this.customEntryTimeValue.set(this.formatTimeForInput(now));
   }
 
   private getDefaultCompanyName(): string {

@@ -24,6 +24,7 @@ import { AttendanceRecordDialogComponent } from '../attendance-record-dialog/att
 type ConfirmationAction = 'day-off' | 'remove' | null;
 type TimeDialogMode = 'entry' | 'exit' | null;
 type MetadataField = 'company' | 'comments';
+const DEFAULT_COMPANY_KEY = 'office_pulse_default_company_name';
 
 @Component({
   selector: 'app-database-entry-logger',
@@ -190,7 +191,9 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
 
     const storedTime = mode === 'exit' ? record?.exitTime : undefined;
     this.timeInput = this.toDateTimeInput(storedTime ? new Date(storedTime) : new Date());
-    this.companyName = this.editingMetadata() ? this.companyDraft : (record?.companyName ?? '');
+    this.companyName = this.editingMetadata()
+      ? this.companyDraft
+      : (record?.companyName ?? this.getDefaultCompanyName());
     this.comments = this.editingMetadata() ? this.commentsDraft : (record?.comments ?? '');
     this.selectedStatus =
       record && record.status !== 'Pending' && record.status !== 'Day Off' ? record.status : 'Office';
@@ -208,7 +211,7 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
   protected startMetadataEdit(field: MetadataField): void {
     const record = this.activeRecord();
     if (!record || record.exitTime) return;
-    this.companyDraft = record.companyName ?? '';
+    this.companyDraft = record.companyName ?? this.getDefaultCompanyName();
     this.commentsDraft = record.comments ?? '';
     this.editingMetadata.set(field);
     window.setTimeout(() => (field === 'company' ? this.companyEditor : this.commentsEditor)?.nativeElement.focus());
@@ -273,6 +276,7 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
           date: this.today(),
           entryTime: selected.toISOString(),
           status: 'Pending',
+          companyName: this.getDefaultCompanyName() || undefined,
           workHours: this.workHours(),
           submitted: false,
           createdAt: now,
@@ -455,6 +459,10 @@ export class DatabaseEntryLoggerComponent implements OnInit, OnDestroy {
 
   private saveWorkHours(hours: number): void {
     this.appLocalData.setItem('office_pulse_pro_work_hours', String(hours));
+  }
+
+  private getDefaultCompanyName(): string {
+    return this.appLocalData.getItem(DEFAULT_COMPANY_KEY)?.trim() ?? '';
   }
 
   private formatMinutes(minutes: number): string {

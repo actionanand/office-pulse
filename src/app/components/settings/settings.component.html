@@ -134,6 +134,44 @@
     </div>
   </section>
 
+  <section class="settings-section defaults-section" aria-labelledby="defaults-title">
+    <header class="section-heading">
+      <svg class="section-icon" lucideIcon="building-2" aria-hidden="true"></svg>
+      <div>
+        <h2 id="defaults-title">Attendance defaults</h2>
+        <p>Pre-fill common attendance details while keeping each entry editable.</p>
+      </div>
+    </header>
+
+    <div class="setting-rows">
+      <div class="setting-row default-company-row">
+        <span>
+          <strong>Default company name</strong>
+          <small>Used in legacy Logger and Logger Pro forms.</small>
+        </span>
+        <div class="default-company-control">
+          <input
+            type="text"
+            aria-label="Default company name"
+            maxlength="100"
+            autocomplete="organization"
+            placeholder="Add company name"
+            [value]="defaultCompanyName()"
+            (input)="setDefaultCompanyName($event)"
+            (keydown.enter)="saveDefaultCompanyName()" />
+          <button
+            class="action-button primary"
+            type="button"
+            [disabled]="defaultCompanySaving()"
+            (click)="saveDefaultCompanyName()">
+            <svg lucideIcon="save" aria-hidden="true"></svg>
+            {{ defaultCompanySaving() ? 'Saving...' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="settings-section data-section" aria-labelledby="attendance-data-title">
     <header class="section-heading">
       <svg class="section-icon data-icon" lucideIcon="shield-check" aria-hidden="true"></svg>

@@ -12,6 +12,9 @@ import { TodoListComponent } from '../todo-list/todo-list.component';
 import { GoogleFormDialogComponent } from '../google-form-dialog/google-form-dialog.component';
 import { ConfirmationPopupComponent } from '../confirmation-popup/confirmation-popup.component';
 import { environment as env } from '../../../environments/environment';
+import { AppLocalDataDatabaseService } from '../../services/app-local-data-database.service';
+
+const DEFAULT_COMPANY_KEY = 'office_pulse_default_company_name';
 
 interface AttendanceFormData {
   entryDate: string;
@@ -42,6 +45,7 @@ export class EntryLoggerComponent implements OnInit {
   private attendanceState = inject(AttendanceStateService);
   private snackbarService = inject(SnackbarService);
   private logoffNotifications = inject(AndroidLogoffNotificationService);
+  private appLocalData = inject(AppLocalDataDatabaseService);
 
   entryLog = signal<EntryLog | null>(null);
   currentTime = signal<string>('');
@@ -75,6 +79,8 @@ export class EntryLoggerComponent implements OnInit {
   showLegacyTodoSection = false;
   companyName = signal<string>('');
   comments = signal<string>('');
+  customEntryDate = signal<string>('');
+  customEntryTime = signal<string>('');
 
   leaveConfirmationMessage = computed(() => {
     const date = this.leaveConfirmationDate();
@@ -396,6 +402,7 @@ export class EntryLoggerComponent implements OnInit {
   loadData(): void {
     const log = this.storageService.getEntryLog();
     const settings = this.storageService.getSettings();
+    const defaultCompany = this.getDefaultCompanyName();
 
     // NOTE: Entry date is determined by entry time, not exit time (supports night shift)
     // Local storage holds pending entries that haven't been submitted to API yet
@@ -403,7 +410,7 @@ export class EntryLoggerComponent implements OnInit {
     // Keep only today's pending entry, a reasonable overnight shift, or a complete offline entry for today.
     if (log && log.entryTime && this.isRelevantLocalEntry(log)) {
       this.entryLog.set(log);
-      this.companyName.set(log.companyName ?? '');
+      this.companyName.set(log.companyName ?? defaultCompany);
       this.comments.set(log.comments ?? '');
     } else {
       if (log?.entryTime) {
@@ -411,7 +418,7 @@ export class EntryLoggerComponent implements OnInit {
         this.attendanceState.notifyLocalStorageChanged();
       }
       this.entryLog.set(null);
-      this.companyName.set('');
+      this.companyName.set(defaultCompany);
       this.comments.set('');
     }
 
@@ -475,6 +482,8 @@ export class EntryLoggerComponent implements OnInit {
       return;
     }
 
+    this.populateCustomEntryDateTime();
+    this.companyName.update(value => value || this.getDefaultCompanyName());
     this.showEntryDialog.set(true);
   }
 
@@ -988,6 +997,16 @@ export class EntryLoggerComponent implements OnInit {
     this.entryLog.set(nextLog);
     this.storageService.saveEntryLog(nextLog);
     this.attendanceState.notifyLocalStorageChanged();
+  }
+
+  private populateCustomEntryDateTime(): void {
+    const now = new Date();
+    this.customEntryDate.set(this.formatDateForInput(now));
+    this.customEntryTime.set(this.formatTimeForInput(now));
+  }
+
+  private getDefaultCompanyName(): string {
+    return this.appLocalData.getItem(DEFAULT_COMPANY_KEY)?.trim() ?? '';
   }
 
   private formatDateForInput(date: Date): string {

@@ -61,6 +61,9 @@
 .data-section {
   margin-top: 1rem;
 }
+.defaults-section {
+  margin-top: 1rem;
+}
 .theme-section {
   margin-top: 1rem;
 }
@@ -155,6 +158,25 @@
   position: relative;
   display: flex;
   gap: 0.55rem;
+}
+.default-company-control {
+  display: flex;
+  width: min(420px, 100%);
+  gap: 0.55rem;
+}
+.default-company-control input {
+  box-sizing: border-box;
+  min-width: 0;
+  flex: 1;
+  min-height: 42px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cfd6e4;
+  border-radius: 8px;
+  font: inherit;
+}
+.default-company-control input:focus {
+  border-color: var(--theme-primary);
+  outline: 3px solid rgba(var(--theme-focus-rgb), 0.14);
 }
 .file-input {
   position: absolute;
@@ -677,6 +699,15 @@
 
   .data-action-row {
     grid-template-columns: 1fr;
+  }
+  .default-company-row {
+    grid-template-columns: 1fr;
+  }
+  .default-company-control {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
   }
   .data-actions {
     grid-column: 1 / -1;

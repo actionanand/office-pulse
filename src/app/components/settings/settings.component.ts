@@ -20,6 +20,9 @@ import { AttendanceBackupService } from '../../services/attendance-backup.servic
 import { AttendanceDatabaseService } from '../../services/attendance-database.service';
 import { AppThemeId, ThemeService } from '../../services/theme.service';
 import { AttendanceDbRecord } from '../../models/attendance-db.model';
+import { AppLocalDataDatabaseService } from '../../services/app-local-data-database.service';
+
+const DEFAULT_COMPANY_KEY = 'office_pulse_default_company_name';
 
 @Component({
   selector: 'app-settings',
@@ -38,6 +41,7 @@ export class SettingsComponent {
   private readonly snackbar = inject(SnackbarService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly attendanceBackup = inject(AttendanceBackupService);
+  private readonly appLocalData = inject(AppLocalDataDatabaseService);
   protected readonly attendanceDatabase = inject(AttendanceDatabaseService);
   protected readonly theme = inject(ThemeService);
 
@@ -53,6 +57,8 @@ export class SettingsComponent {
   protected readonly backupPassword = signal('');
   protected readonly backupConfirmation = signal('');
   protected readonly restorePassword = signal('');
+  protected readonly defaultCompanyName = signal('');
+  protected readonly defaultCompanySaving = signal(false);
   protected readonly showBackupPassword = signal(false);
   protected readonly showBackupConfirmation = signal(false);
   protected readonly showRestorePassword = signal(false);
@@ -95,6 +101,7 @@ export class SettingsComponent {
 
   constructor() {
     void this.attendanceDatabase.initialize();
+    this.defaultCompanyName.set(this.appLocalData.getItem(DEFAULT_COMPANY_KEY) ?? '');
     effect(onCleanup => {
       if (!this.autoLockPickerOpen()) return;
 
@@ -204,6 +211,24 @@ export class SettingsComponent {
     if (theme === this.theme.activeTheme()) return;
     this.theme.setTheme(theme);
     this.snackbar.success('Theme updated.');
+  }
+
+  protected saveDefaultCompanyName(): void {
+    if (this.defaultCompanySaving()) return;
+    const value = this.defaultCompanyName().trim();
+    this.defaultCompanySaving.set(true);
+    try {
+      if (value) this.appLocalData.setItem(DEFAULT_COMPANY_KEY, value);
+      else this.appLocalData.removeItem(DEFAULT_COMPANY_KEY);
+      this.defaultCompanyName.set(value);
+      this.snackbar.success(value ? 'Default company saved.' : 'Default company cleared.');
+    } finally {
+      this.defaultCompanySaving.set(false);
+    }
+  }
+
+  protected setDefaultCompanyName(event: Event): void {
+    this.defaultCompanyName.set((event.target as HTMLInputElement).value);
   }
 
   protected onAutoLockBackdropClick(event: MouseEvent): void {

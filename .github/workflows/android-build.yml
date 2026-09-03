@@ -47,6 +47,9 @@ jobs:
       - name: Inject build environment
         env:
           PASSWORD_HASH: ${{ secrets.PASSWORD_HASH }}
+          FORM_ID: ${{ secrets.FORM_ID }}
+          ACHIEVEMENT_ID: ${{ secrets.ACHIEVEMENT_ID }}
+          COPY_ID: ${{ secrets.COPY_ID }}
         run: node scripts/inject-env.js
 
       - name: Build Angular app

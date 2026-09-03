@@ -5,9 +5,9 @@ export const environment = {
   // Example to activate Pro only: LOGGER_MODE: 'pro' as 'both' | 'legacy' | 'pro',
   // LOGGER_MODE: 'both' as 'both' | 'legacy' | 'pro'
   LOGGER_MODE: 'both' as 'both' | 'legacy' | 'pro',
-  YOUR_FORM_ID: '1FAIpQLScIsEo4T_94FyMU5q73l0206-ZREHok9ocfDpBI_knFCzxOwg',
-  ACHIEVEMENT_FORM_ID: '1FAIpQLSc6R3WMpgpARFaCTDtKLgdlh9v6tEm97ezi96qm4M_S-9MSiA',
-  COPY_FORM_ID: '1FAIpQLSeZcoA781WH17KE84fciVDYsEufrVkvHDXxes0QyQtz4ysRjQ',
+  YOUR_FORM_ID: 'FORM_PLACEHOLDER',
+  ACHIEVEMENT_FORM_ID: 'ACHIEVEMENT_PLACEHOLDER',
+  COPY_FORM_ID: 'COPY_PLACEHOLDER',
   GOOGLE_SHEET_ID: '1YxH6WgNo9F8ZN4aaWRQVhfodup-pcuxX346rY9IjuGs', // Replace with actual Sheet ID from URL
   SHEET_GID: 2129265715, // Sheet tab number (0 for first tab)
   TODO_SHEET_GID: 1219554792, // Sheet tab number (1 for second tab)

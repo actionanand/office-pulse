@@ -26,9 +26,10 @@ jobs:
       - name: Inject environment variables into Angular
         env: # Step-level environment variables
           PASSWORD_HASH: ${{ secrets.PASSWORD_HASH }} # Ensure this secret is set in your repository settings
-        run: |
-          # Example: Inject environment variables into Angular's environment.ts
-          sed -i "s|PASSWORD_HASH_PLACEHOLDER|${{ env.PASSWORD_HASH }}|g" src/environments/environment.ts
+          FORM_ID: ${{ secrets.FORM_ID }}
+          ACHIEVEMENT_ID: ${{ secrets.ACHIEVEMENT_ID }}
+          COPY_ID: ${{ secrets.COPY_ID }}
+        run: node scripts/inject-env.js
 
       - name: Extract repository name from package.json
         id: package
